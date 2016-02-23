@@ -84,6 +84,10 @@ li img:target {
 li img:not(:target) {
 	opacity: 0;
 }
+.shadowfilter {
+	-webkit-filter: drop-shadow(12px 12px 7px rgba(0,0,0,0.5));
+	filter: url(shadow.svg#drop-shadow);
+}
 </style>
     <div id="slideshow">
       <ul>
@@ -97,7 +101,7 @@ li img:not(:target) {
 <h3>
 <a id="dependencies" class="anchor" href="#dependencies" aria-hidden="true"><span class="octicon octicon-link"></span></a>Basemap Support</h3>
 
-<p><img src="images/intro4.png"></p>
+<p><img src="images/intro4.png" class="shadowfilter"></p>
 <h3>
 <a id="dependencies" class="anchor" href="#dependencies" aria-hidden="true"><span class="octicon octicon-link"></span></a>Communities</h3>
 
