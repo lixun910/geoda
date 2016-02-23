@@ -8,6 +8,12 @@
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
     <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+    <style>
+	.shadowfilter {
+	-webkit-filter: drop-shadow(12px 12px 7px rgba(0,0,0,0.5));
+	filter: url(shadow.svg#drop-shadow);
+	}
+    </style>
   </head>
   <body>
     <section class="page-header">
@@ -28,74 +34,27 @@
 <a id="dependencies" class="anchor" href="#dependencies" aria-hidden="true"><span class="octicon octicon-link"></span></a>Introducing GeoDa 1.7</h3>
 
 <p>
-<style>
-#slideshow {
-margin: 0px auto;
-position: relative;
-width: 100%;
-height: 600px;
-}
+<div class="bss-slides num2" tabindex="2">
+   <figure>
+      <img src="images/intro1.png" width="100%" /><figcaption>Mac OSX Yosemite</figcaption> 
+   </figure>
+    <figure>
+      <img src="images/intro2.png" width="100%" /><figcaption>Windows 7/8/10</figcaption> 
+   </figure>
+   <figure>
+      <img src="images/intro3.png" width="100%" /><figcaption>Ubuntu 14.04</figcaption>  
+   </figure>
+</div> <!-- // bss-slides -->
+<script src="javascript/better-simple-slideshow.min.js"></script>
+<script>
+var opts = {
+    auto : false,
+    fullScreen : true,
+    swipe : false
+};
+makeBSS('.num2', opts);
+</script>
 
-ul {
-  list-style: none;
-}
-
-li {
-  float: left;
-  overflow: hidden;
-  margin: 0 20px 0 0;
-	
-}
-
-li a {
-  color: #222;
-	text-decoration: none;
-	font: 15px/1 Helvetica, sans-serif;
-	
-	-webkit-transition: color 0.5s ease;
-	   -moz-transition: color 0.5s ease;
-	     -o-transition: color 0.5s ease;
-	    -ms-transition: color 0.5s ease;
-	        transition: color 0.5s ease;
-}
-
-li a:hover {
-  color: #50b0df;
-}
-
-li img {
-  position: absolute;
-  top: 50px;
-  left: 0;
-  z-index: -1;
-  
-  -webkit-transition: opacity 1s ease-in-out;
-     -moz-transition: opacity 1s ease-in-out;
-       -o-transition: opacity 1s ease-in-out;
-      -ms-transition: opacity 1s ease-in-out;
-          transition: opacity 1s ease-in-out;
-
-}
-
-li img:target {
-	z-index: 1;
-}
-
-li img:not(:target) {
-	opacity: 0;
-}
-.shadowfilter {
-	-webkit-filter: drop-shadow(12px 12px 7px rgba(0,0,0,0.5));
-	filter: url(shadow.svg#drop-shadow);
-}
-</style>
-    <div id="slideshow">
-      <ul>
-        <li><a href="#one">Cross Platforms: Mac OSX</a><img id="one" src="images/intro1.png"/></li>
-        <li><a href="#two">Windows 7/8/10</a> <img id="two" src="images/intro2.png"/></li>
-        <li><a href="#three">Ubuntu 14.04</a> <img id="three" src="images/intro3.png"/></li>
-      </ul>
-    </div>
 </p>
 
 <h3>
