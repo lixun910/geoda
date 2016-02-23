@@ -28,20 +28,69 @@
 <a id="dependencies" class="anchor" href="#dependencies" aria-hidden="true"><span class="octicon octicon-link"></span></a>Introducing GeoDa 1.7</h3>
 
 <p>
-<div id="slider">
-    <div id="image-1">
-        <a href=""><img src="images/intro1.png" alt="" /></a>
-        <a class="slider-nav" href="#image-1"></a>
+<style>
+#slideshow {
+	margin: 50px auto;
+	position: relative;
+	width: 100%;
+}
+
+ul {
+  list-style: none;
+}
+
+li {
+	float: left;
+	overflow: hidden;
+	margin: 0 20px 0 0;
+	
+}
+
+li a {
+	color: #222;
+	text-decoration: none;
+	font: 15px/1 Helvetica, sans-serif;
+	
+	-webkit-transition: color 0.5s ease;
+	   -moz-transition: color 0.5s ease;
+	     -o-transition: color 0.5s ease;
+	    -ms-transition: color 0.5s ease;
+	        transition: color 0.5s ease;
+}
+
+li a:hover {
+	color: #50b0df;
+}
+
+li img {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  z-index: -1;
+  
+  -webkit-transition: opacity 1s ease-in-out;
+     -moz-transition: opacity 1s ease-in-out;
+       -o-transition: opacity 1s ease-in-out;
+      -ms-transition: opacity 1s ease-in-out;
+          transition: opacity 1s ease-in-out;
+
+}
+
+li img:target {
+	z-index: 1;
+}
+
+li img:not(:target) {
+	opacity: 0;
+}
+</style>
+    <div id="slideshow">
+      <ul>
+        <li><a href="#one">One</a><img id="one" src="images/intro1.png"/></li>
+        <li><a href="#two">Two</a> <img id="two" src="images/intro2.png"/></li>
+        <li><a href="#three">Three</a> <img id="three" src="images/intro3.png"/></li>
+      </ul>
     </div>
-    <div id="image-2">
-        <a href=""><img src="images/intro2.png" alt="" /></a>
-        <a class="slider-nav" href="#image-2"></a>
-    </div>
-    <div id="image-3">
-        <a href=""><img src="images/intro3.png" alt="" /></a>
-        <a class="slider-nav" href="#image-3"></a>
-    </div>
-</div>
 </p>
 
 <h3>
