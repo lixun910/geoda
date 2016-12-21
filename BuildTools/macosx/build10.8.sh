@@ -456,13 +456,10 @@ if ! [ -f "$PREFIX/lib/$LIB_CHECKER" ] ; then
     cmake -DBOOST_ROOT=$PREFIX/include/boost/ -DCMAKE_INSTALL_PREFIX=$PREFIX ../
     $MAKE
     make install
-    #rm -rf "$PREFIX/include/json_spirit"
-    #rm -f "$PREFIX/lib/$LIB_CHECKER"
-    #mkdir "$PREFIX/include/json_spirit"
-    #echo "Copying JSON Sprit includes..."
-    #cp -R "../json_spirit" "$PREFIX/include/."
-    #echo "Copying libjson_spirit.a"
-    #cp json_spirit/libjson_spirit.a "$PREFIX/lib/."
+    rm -rf "$PREFIX/include/json_spirit"
+    mkdir "$PREFIX/include/json_spirit"
+    echo "Copying JSON Sprit includes..."
+    mv $PREFIX/include/json_*.h $PREFIX/include/json_spirit/
 fi
 
 if ! [ -f "$PREFIX/lib/$LIB_CHECKER" ] ; then
@@ -537,7 +534,7 @@ else
     ./configure CC="$GDA_CC" CXX="$GDA_CXX" CFLAGS="$GDA_CFLAGS" CXXFLAGS="$GDA_CXXFLAGS" LDFLAGS="$GDA_LDFLAGS" --without-libtool --with-jpeg=internal --prefix=$PREFIX --with-freexl=$PREFIX --with-libiconv-prefix="-L/usr/lib" --with-sqlite3=$PREFIX --with-spatialite=$PREFIX --with-static-proj4=$PREFIX --with-curl=$PREFIX/bin/curl-config --with-geos=$PREFIX/bin/geos-config --with-libkml=$PREFIX --with-xerces=$PREFIX --with-xerces-inc="$PREFIX/include" --with-xerces-lib="-L$PREFIX/lib -lxerces-c -framework CoreServices" --with-pg=$PREFIX/bin/pg_config --with-mysql=$PREFIX/bin/mysql_config --without-pam --with-xml2=no --enable-debug
 fi
 echo "$GEODA_HOME/dep/$LIB_NAME"
-make clean
+#make clean
 $MAKER
 make install
 #cd ogr/ogrsf_frmts/oci
