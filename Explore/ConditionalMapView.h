@@ -49,6 +49,7 @@ public:
 						int num_categories,
 						const wxString& custom_classif_title = wxEmptyString);
 	virtual void update(CatClassifState* o);
+    //virtual void update(HLStateInt* o);
 	
 	virtual void OnSaveCategories();
 	virtual void SetCheckMarks(wxMenu* menu);
@@ -58,10 +59,8 @@ public:
 									  int virtual_scrn_h = 0);
 	virtual void DrawLayer0();
 	virtual void ZoomShapes(bool is_zoomin = true);
-	virtual void OnMouseEvent(wxMouseEvent& event);
+	//virtual void OnMouseEvent(wxMouseEvent& event);
 	virtual void OnScrollChanged(wxScrollWinEvent& event);
-	virtual void OnPaint(wxPaintEvent& event);
-	virtual void OnSize(wxSizeEvent& event);
     
 protected:
 	virtual void PopulateCanvas();
@@ -79,6 +78,8 @@ protected:
 	CatClassifState* cc_state_map;
 	int num_categories; // current number of categories
 	std::vector<Gda::dbl_int_pair_vec_type> cat_var_sorted;
+    std::vector<std::vector<bool> > cat_var_undef;
+    
 	std::vector<bool> map_valid;
 	std::vector<wxString> map_error_message;
 	
@@ -109,7 +110,7 @@ public:
     ConditionalMapFrame(wxFrame *parent, Project* project,
 					  const std::vector<GdaVarTools::VarInfo>& var_info,
 					  const std::vector<int>& col_ids,
-					  const wxString& title = "Conditional Map",
+					  const wxString& title = _("Conditional Map"),
 					  const wxPoint& pos = wxDefaultPosition,
 					  const wxSize& size = wxDefaultSize,
 					  const long style = wxDEFAULT_FRAME_STYLE);

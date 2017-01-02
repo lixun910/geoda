@@ -22,7 +22,184 @@
 #include "GenUtils.h"
 #include <wx/mstream.h>
 
-char* GdaConst::raw_zoom_in[] = {
+const char* GdaConst::sample_names[] = {
+    "NATREGIMES US County Homicides",
+    "Baltimore: house sales prices and hedonics",
+    "Baltimore: house sales prices and trend surface residuals",
+    "Buenosaires: Electoral Data for 1999 Argentinean Elections",
+    "Columbus: Columbus neighborhood crime",
+    "SIDS2: North Carolina county SIDS death counts and rates",
+    "Nepal: Health, poverty and education indicators",
+    "NYC: Demographic, housing, and public assistance data 02-09",
+    "Milwaukee1: WI 2000 Census Tract Data",
+    "Malaria in Colombia: departments-incidence and population",
+    "Malaria in Colombia: municipalities-incidence and population",
+    "StLouis: St Louis Region Homicides counts and rates",
+    
+    "Atlanta, GA region homicide counts and rates",
+    "Bostonhsg: housing and neighborhood",
+    "Charleston1: SC MSA 2000 Census Tract Data",
+    "Charleston1: SC counties 2000 Census Tract Data",
+    "Charleston2: 1998 and 2001 Zip Code Business Patterns",
+    "Grid100: Grid with simulated variables",
+    "Hickory1: NC MSA 2000 Census Tract Data for Hickory",
+    "Hickory1: NC counties 2000 Census Tract Data for Hickory",
+    "Hickory2: 1998 and 2001 Zip Code Business Patterns ",
+    "Houston: region homicide counts and rates",
+    "Juvenile: Cardiff juvenile delinquent residences",
+    "Lansing1: MI counties 2000 Census Tract Data",
+    "Lansing1: MI MSA 2000 Census Tract Data",
+    "Lansing2: 1998 and 2001 Zip Code Business Patterns",
+    "Laozone: Ozone measures at monitoring stations in LA basin",
+    "LasRosas1999: Corn yield, fertilizer and field data",
+    "LasRosas2001: Corn yield, fertilizer and field data",
+    "Milwaukee2: 1998 and 2001 Zip Code Business Patterns",
+    "NCOVR: US county homicides 1960-1990",
+    "NDVI: Normalized Difference Vegetation Index grid",
+    "Ohiolung: UTM zone lung cancer data, 1968, 1978, 1988",
+    "Ohiolung: OH counties lung cancer data, 1968, 1978, 1988",
+    "Orlando1: Counties 2000 Census Tract Data",
+    "Orlando1: Final Census 2000 Census Tract Data",
+    "Orlando2: MSA 1998 and 2001 Zip Code Business Patterns",
+    "Oz9799: Monthly ozone data, 1997-99",
+    "Phoenix ACS: Phoenix American Community Survey Data 2010",
+    "Pittsburgh: 1993 homicide locations",
+    "Pittsburgh: 1994 homicide locations",
+    "Pittsburgh: 1993 1994 homicide locations",
+    "Police: Police expenditures Mississippi counties",
+    "Sacramento1: 2000 Census Tract Data",
+    "Sacramento2: 1998 and 2001 Zip Code Business Patterns",
+    "SanFran Crime: July-Dec 2012 crime incidents",
+    "Savannah1: GA MSA 2000 Census Tract Data for Savannah",
+    "Savannah1: Counties 2000 Census Tract Data for Savannah",
+    "Savannah2: 1998 and 2001 Zip Code Business Patterns",
+    "Scotlip: Scottish districts",
+    "Scotlip: Male lip cancer in Scotland, 1975-80",
+    "Seattle1: WA MSA 2000 Census Tract Data",
+    "Seattle1: WA counties 2000 Census Tract Data",
+    "Seattle2: 1998 and 2001 Zip Code Business Patterns",
+    "SIDS: North Carolina county SIDS death counts",
+    "South: US Southern county homicides 1960-1990",
+    "Tampa1: FL counties 2000 Census Tract Data",
+    "Tampa1: FL MSA 2000 Census Tract Data"
+};
+
+const char* GdaConst::sample_layer_names[] = {
+    "natregimes",
+    "baltim",
+    "baltimore",
+    "buenosaires",
+    "columbus",
+    "sids2",
+    "nepal",
+    "nyc",
+    "wi_final_census2_random4",
+    "coldept",
+    "colmunic",
+    "stl_hom",
+    
+    "atl_hom",
+    "boston",
+    "sc_msa_counties",
+    "sc_final_census2",
+    "CharlestonMSA2",
+    "grid100",
+    "nc_final_census2",
+    "nc_msa_counties",
+    "HickoryMSA2",
+    "hou_hom",
+    "juvenile",
+    "mi_msa_counties",
+    "mi_final_census2",
+    "LansingMSA2",
+    "oz96_utm",
+    "rosas1999",
+    "rosas2001",
+    "MilwaukeeMSA2",
+    "NAT",
+    "ndvigrid",
+    "ohlung",
+    "ohutm",
+    "orlando_counties",
+    "orlando_final_census2",
+    "OrlandoMSA2",
+    "oz9799",
+    "phx",
+    "pitt93",
+    "pitt94",
+    "pitthom",
+    "police",
+    "sacramentot2",
+    "SacramentoMSA2",
+    "sfpd_plots",
+    "ga_final_census2",
+    "ga_msa_counties",
+    "SavannahMSA2",
+    "scotdistricts",
+    "scotlip",
+    "wa_final_census2",
+    "wa_msa_counties",
+    "SeattleMSA2",
+    "sids",
+    "south",
+    "tampa_counties",
+    "tampa_final_census2"
+};
+
+const char* GdaConst::sample_datasources[] = {
+    "samples.sqlite", "samples.sqlite", "samples.sqlite", "samples.sqlite",
+    "samples.sqlite", "samples.sqlite", "samples.sqlite", "samples.sqlite",
+    "samples.sqlite", "samples.sqlite", "samples.sqlite", "samples.sqlite",
+
+    "http://geodacenter.github.io/sample_data/atl_hom.geojson",
+    "http://geodacenter.github.io/sample_data/boston.geojson",
+    "http://geodacenter.github.io/sample_data/sc_msa_counties.geojson",
+    "http://geodacenter.github.io/sample_data/sc_final_census2.geojson",
+    "http://geodacenter.github.io/sample_data/CharlestonMSA2.geojson",
+    "http://geodacenter.github.io/sample_data/grid100.geojson",
+    "http://geodacenter.github.io/sample_data/nc_final_census2.geojson",
+    "http://geodacenter.github.io/sample_data/nc_msa_counties.geojson",
+    "http://geodacenter.github.io/sample_data/HickoryMSA2.geojson",
+    "http://geodacenter.github.io/sample_data/hou_hom.geojson",
+    "http://geodacenter.github.io/sample_data/juvenile.geojson",
+    "http://geodacenter.github.io/sample_data/mi_msa_counties.geojson",
+    "http://geodacenter.github.io/sample_data/mi_final_census2.geojson",
+    "http://geodacenter.github.io/sample_data/LansingMSA2.geojson",
+    "http://geodacenter.github.io/sample_data/oz96_utm.geojson",
+    "http://geodacenter.github.io/sample_data/rosas1999.geojson",
+    "http://geodacenter.github.io/sample_data/rosas2001.geojson",
+    "http://geodacenter.github.io/sample_data/MilwaukeeMSA2.geojson",
+    "http://geodacenter.github.io/sample_data/NAT.geojson",
+    "http://geodacenter.github.io/sample_data/ndvigrid.geojson",
+    "http://geodacenter.github.io/sample_data/ohlung.geojson",
+    "http://geodacenter.github.io/sample_data/ohutm.geojson",
+    "http://geodacenter.github.io/sample_data/orlando_counties.geojson",
+    "http://geodacenter.github.io/sample_data/orlando_final_census2.geojson",
+    "http://geodacenter.github.io/sample_data/OrlandoMSA2.geojson",
+    "http://geodacenter.github.io/sample_data/oz9799.geojson"
+    "http://geodacenter.github.io/sample_data/phx.geojson",
+    "http://geodacenter.github.io/sample_data/pitt93.geojson",
+    "http://geodacenter.github.io/sample_data/pitt94.geojson",
+    "http://geodacenter.github.io/sample_data/pitthom.geojson",
+    "http://geodacenter.github.io/sample_data/police.geojson",
+    "http://geodacenter.github.io/sample_data/sacramentot2.geojson",
+    "http://geodacenter.github.io/sample_data/SacramentoMSA2.geojson",
+    "http://geodacenter.github.io/sample_data/sfpd_plots.geojson",
+    "http://geodacenter.github.io/sample_data/ga_final_census2.geojson",
+    "http://geodacenter.github.io/sample_data/ga_msa_counties.geojson",
+    "http://geodacenter.github.io/sample_data/SavannahMSA2.geojson",
+    "http://geodacenter.github.io/sample_data/scotdistricts.geojson",
+    "http://geodacenter.github.io/sample_data/scotlip.geojson",
+    "http://geodacenter.github.io/sample_data/wa_final_census2.geojson",
+    "http://geodacenter.github.io/sample_data/wa_msa_counties.geojson",
+    "http://geodacenter.github.io/sample_data/SeattleMSA2.geojson",
+    "http://geodacenter.github.io/sample_data/sids.geojson",
+    "http://geodacenter.github.io/sample_data/south.geojson",
+    "http://geodacenter.github.io/sample_data/tampa_counties.geojson",
+    "http://geodacenter.github.io/sample_data/tampa_final_census2.geojson"
+};
+
+const char* GdaConst::raw_zoom_in[] = {
 
 	"16 16 48 1",
 	" 	g None",
@@ -91,7 +268,7 @@ char* GdaConst::raw_zoom_in[] = {
 	"                "
 };
 
-char* GdaConst::raw_zoom_out[] = {
+const char* GdaConst::raw_zoom_out[] = {
 	"16 16 48 1",
 	" 	g None",
 	".	g #979797",
@@ -158,12 +335,49 @@ char* GdaConst::raw_zoom_out[] = {
 	"                ",
 	"                "};
 
+const char* GdaConst::delete_icon_xpm[] = {
+    "16 16 14 1 ",
+    "  c #E91611",
+    ". c #EA1711",
+    "X c #ED1813",
+    "o c #FD1E18",
+    "O c #FE1F1A",
+    "+ c #F02917",
+    "@ c #F02918",
+    "# c #F02A19",
+    "$ c #F02D1B",
+    "% c #F02D1C",
+    "& c #DA2E2A",
+    "* c #DA302A",
+    "= c #E93A2D",
+    "- c None",
+    "----------------",
+    "----------------",
+    "----------------",
+    "----------------",
+    "----------------",
+    "----------------",
+    "----------------",
+    "---%%+#####$=---",
+    "---*o.XXXX.o&---",
+    "----------------",
+    "----------------",
+    "----------------",
+    "----------------",
+    "----------------",
+    "----------------",
+    "----------------"
+};
+
+
 wxString GdaConst::FieldTypeToStr(GdaConst::FieldType ft)
 {
 	if (ft == GdaConst::double_type) return "real";
 	if (ft == GdaConst::long64_type) return "integer";
 	if (ft == GdaConst::string_type) return "string";
 	if (ft == GdaConst::date_type) return "date";
+	if (ft == GdaConst::time_type) return "time";
+	if (ft == GdaConst::datetime_type) return "datetime";
 	if (ft == GdaConst::placeholder_type) return "placeholder";
 	return "unknown";
 }
@@ -207,6 +421,19 @@ wxFont* GdaConst::extra_small_font = 0;
 wxFont* GdaConst::small_font = 0;
 wxFont* GdaConst::medium_font = 0;
 wxFont* GdaConst::large_font = 0;
+
+bool GdaConst::use_cross_hatching = false;
+int GdaConst::transparency_highlighted = 190;
+int GdaConst::transparency_unhighlighted = 255;
+int GdaConst::transparency_map_on_basemap = 200;
+bool GdaConst::use_basemap_by_default = false;
+int GdaConst::default_basemap_selection = 0;
+bool GdaConst::hide_sys_table_postgres = false;
+bool GdaConst::hide_sys_table_sqlite = false;
+bool GdaConst::disable_crash_detect = false;
+bool GdaConst::disable_auto_upgrade = false;
+int GdaConst::plot_transparency_highlighted = 255;
+int GdaConst::plot_transparency_unhighlighted = 50;
 
 const wxPen* GdaConst::default_myshape_pen=0;
 const wxBrush* GdaConst::default_myshape_brush=0;
@@ -330,6 +557,7 @@ std::vector<wxColour> GdaConst::qualitative_colors(10);
 
 const wxString GdaConst::html_submenu_title("Web Plugins");
 
+
 /**
  Certain objects such as wxFont objects need to be created after
  wxWidgets is sufficiently initialized.  This function will be
@@ -421,6 +649,7 @@ void GdaConst::init()
 	qualitative_colors[8] = wxColour(202, 178, 214);
 	qualitative_colors[9] = wxColour(106, 61, 154);
 	
+    
 	// Filenames or field names start with a letter, and they can contain any
 	// combination of the letters A through Z, the digits 0 through 9,
 	// the colon (:) (in dBASE II field names only), and the underscore (_)

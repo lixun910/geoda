@@ -64,7 +64,6 @@ rand_dlg(0)
 {
 	LOG_MSG("Entering LisaScatterPlotCanvas::LisaMapCanvas");
 	
-	fixed_aspect_ratio_mode = true;
 	show_reg_selected = false;
 	show_reg_excluded = false;
 	
@@ -73,34 +72,19 @@ rand_dlg(0)
 	sp_var_info.resize(2);
 	var_info = lisa_coord->var_info;
 	var_info_orig = var_info;
-	SyncVarInfoFromCoordinator();
-	
-	cat_data.CreateCategoriesAllCanvasTms(1, 1, num_obs);
-	cat_data.SetCategoryColor(0, 0, GdaConst::scatterplot_regression_excluded_color);
-	for (int i=0; i<num_obs; i++)
-        cat_data.AppendIdToCategory(0, 0, i);
     
-	// For LisaScatterPlot, all time steps have the exact same
-	// trivial categorization.
+	SyncVarInfoFromCoordinator();
+
+    wxColour default_cat_color = GdaConst::scatterplot_regression_excluded_color;
+	cat_data.CreateCategoriesAllCanvasTms(1, 1, num_obs);
+	cat_data.SetCategoryColor(0, 0, default_cat_color);
+    for (int i=0; i<num_obs; i++) {
+        cat_data.AppendIdToCategory(0, 0, i);
+    }
+    
+	// For LisaScatterPlot, all time steps have the exact same trivial categorization.
 	cat_data.SetCurrentCanvasTmStep(0);
 	
-	//CreateCategoriesAllCanvasTms(1, num_time_vals); // 1 = #cats
-	//for (int t=0; t<num_time_vals; t++) {
-	//	SetCategoryColor(t, 0, 
-	//					 GdaConst::scatterplot_regression_excluded_color);
-	//	for (int i=0; i<num_obs; i++) {
-	//		AppendIdToCategory(t, 0, i);
-	//	}
-	//}
-	// For LisaScatterPlot, all time steps have the exact same
-	// trivial categorization.
-	//SetCurrentCanvasTmStep(0);
-	//if (ref_var_index != -1) {
-	//	SetCurrentCanvasTmStep(var_info[ref_var_index].time
-	//						   - var_info[ref_var_index].time_min);
-	//}
-	
-	//CreateAndUpdateCategories();
 	PopulateCanvas();
 	
 	UpdateDisplayLinesAndMargins();
@@ -155,25 +139,6 @@ void LisaScatterPlotCanvas::AddTimeVariantOptionsToMenu(wxMenu* menu)
 		}
 	}
 
-	/*
-	wxMenu* menu2 = new wxMenu(wxEmptyString);
-	if (var_info[0].is_time_variant) {
-		wxString s;
-		s << "Fixed x-axis scale over time";
-		wxMenuItem* mi =
-		menu2->AppendCheckItem(GdaConst::ID_FIX_SCALE_OVER_TIME_VAR1, s, s);
-		mi->Check(var_info[0].fixed_scale);
-	}
-	if (var_info[1].is_time_variant) {
-		wxString s;
-		s << "Fixed y-axis scale over time";
-		wxMenuItem* mi =
-		menu2->AppendCheckItem(GdaConst::ID_FIX_SCALE_OVER_TIME_VAR2, s, s);
-		mi->Check(var_info[1].fixed_scale);
-	}
-	menu->Prepend(wxID_ANY, "Scale Options", menu2, "Scale Options");
-    */
-	 
     menu->AppendSeparator();
     menu->Append(wxID_ANY, "Time Variable Options", menu1,
 				  "Time Variable Options");
@@ -313,14 +278,21 @@ void LisaScatterPlotCanvas::TimeChange()
 void LisaScatterPlotCanvas::SyncVarInfoFromCoordinator()
 {
 	using namespace boost;
+    
 	std::vector<int>my_times(var_info.size());
-	for (int t=0; t<var_info.size(); t++) my_times[t] = var_info[t].time;
+    
+    for (int t=0; t<var_info.size(); t++) {
+        my_times[t] = var_info[t].time;
+    }
+    
 	var_info = lisa_coord->var_info;
 	template_frame->ClearAllGroupDependencies();
+    
 	for (int t=0; t<var_info.size(); t++) {
 		var_info[t].time = my_times[t];
 		template_frame->AddGroupDependancy(var_info[t].name);
 	}
+    
 	is_any_time_variant = lisa_coord->is_any_time_variant;
 	is_any_sync_with_global_time = lisa_coord->is_any_sync_with_global_time;
 	ref_var_index = lisa_coord->ref_var_index;
@@ -333,42 +305,70 @@ void LisaScatterPlotCanvas::SyncVarInfoFromCoordinator()
 	int t_ind = (ref_var_index == -1) ? 0 : ref_var_index;
 	sp_var_info[0] = var_info[t_ind];
 	sp_var_info[1] = var_info[t_ind];
-	
-	x_data.resize(extents[lisa_coord->num_time_vals][lisa_coord->num_obs]);
-	y_data.resize(extents[lisa_coord->num_time_vals][lisa_coord->num_obs]);
+
+    int num_time_vals = lisa_coord->num_time_vals;
+    int num_obs = lisa_coord->num_obs;
+    
+	x_data.resize(extents[num_time_vals][num_obs]);
+	y_data.resize(extents[num_time_vals][num_obs]);
+	x_undef_data.resize(extents[num_time_vals][num_obs]);
+	y_undef_data.resize(extents[num_time_vals][num_obs]);
+    
 	for (int t=0; t<lisa_coord->num_time_vals; t++) {
-		double x_min = lisa_coord->data1_vecs[t][0];
-		double x_max = x_min;
-		double y_min = lisa_coord->lags_vecs[t][0];
-		double y_max = y_min;
+        double x_min, x_max, y_min, y_max;
+        
+        bool has_init = false;
+        
 		for (int i=0; i<lisa_coord->num_obs; i++) {
-			//LOG_MSG(wxString::Format("data1_vecs[%d][%d] = %f", t, i,
-			//						 lisa_coord->data1_vecs[t][i]));
+            
 			x_data[t][i] = lisa_coord->data1_vecs[t][i];
 			y_data[t][i] = lisa_coord->lags_vecs[t][i];
-			if (x_data[t][i] < x_min) {
-				x_min = x_data[t][i];
-			} else if (x_data[t][i] > x_max) {
-				x_max = x_data[t][i];
-			}
-			if (y_data[t][i] < y_min) {
-				y_min = y_data[t][i];
-			} else if (y_data[t][i] > y_max) {
-				y_max = y_data[t][i];
-			}
+            x_undef_data[t][i] = lisa_coord->undef_data[0][t][i];
+            y_undef_data[t][i] = lisa_coord->undef_data[0][t][i];
+            
+			if (x_undef_data[t][i] || y_undef_data[t][i])
+                continue;
+            
+            if (!has_init) {
+                x_min = x_data[t][i];
+                x_max = x_data[t][i];
+                y_min = y_data[t][i];
+                y_max = y_data[t][i];
+                has_init = true;
+            } else {
+                if (x_data[t][i] < x_min) {
+                    x_min = x_data[t][i];
+                }
+                if (x_data[t][i] > x_max) {
+                    x_max = x_data[t][i];
+                }
+                if (y_data[t][i] < y_min) {
+                    y_min = y_data[t][i];
+                }
+                if (y_data[t][i] > y_max) {
+                    y_max = y_data[t][i];
+                }
+            }
 		}
+        
+        // if no valid data, should raise an exception
+        
 		double mag = std::max(std::max(fabs(x_min), fabs(x_max)),
 							  std::max(fabs(y_min), fabs(y_max)));
+       
 		sp_var_info[0].min[sp_var_info[0].time_min+t] = -mag;
 		sp_var_info[0].max[sp_var_info[0].time_min+t] = mag;
 		sp_var_info[1].min[sp_var_info[1].time_min+t] = -mag;
 		sp_var_info[1].max[sp_var_info[1].time_min+t] = mag;
 	}
+    
 	for (int i=0; i<sp_var_info.size(); i++) {
 		sp_var_info[i].min_over_time =
 			sp_var_info[i].min[sp_var_info[i].time_min];
+        
 		sp_var_info[i].max_over_time =
 			sp_var_info[i].max[sp_var_info[i].time_min];
+        
 		for (int t=sp_var_info[i].time_min; t<=sp_var_info[i].time_max; t++) {
 			if (sp_var_info[i].min[t] < sp_var_info[i].min_over_time) {
 				sp_var_info[i].min_over_time = sp_var_info[i].min[t];
@@ -415,34 +415,184 @@ void LisaScatterPlotCanvas::PopulateCanvas()
 	// need to modify var_info temporarily for PopulateCanvas since
 	var_info_orig = var_info;
 	var_info = sp_var_info;
+   
 	ScatterNewPlotCanvas::PopulateCanvas();
+    
+    // sel vs unsel moran calculation
+    // for regressionXYselected and regressionXYexcluded
+    // UpdateRegSelectedLine
+    // UpdateRegExcludedLine
+    int n_hl = highlight_state->GetTotalHighlighted();
+    if (n_hl > 0) {
+        const std::vector<bool>& hl = highlight_state->GetHighlight();
+        int t = project->GetTimeState()->GetCurrTime();
+        int num_obs = lisa_coord->num_obs;
+        
+        std::vector<bool> undefs(num_obs, false);
+        for (int i=0; i<num_obs; i++) {
+            undefs[i] = lisa_coord->undef_tms[t][i] || !hl[i];
+        }
+        std::vector<double> X;
+        std::vector<double> Y;
+        RegimeMoran(undefs, regressionXYselected, X, Y);
+        UpdateRegSelectedLine();
+        
+        for (int i=0; i<X.size(); i++){
+            GdaPoint* pt = new GdaPoint((X[i] - axis_scale_x.scale_min) * scaleX,
+                                        (Y[i] - axis_scale_y.scale_min) * scaleY
+                                        );
+            pt->setPen(wxPen(*wxRED));
+            pt->setBrush(*wxTRANSPARENT_BRUSH);
+            ApplyLastResizeToShp(pt);
+            foreground_shps.push_back(pt);
+        }
+        
+        undefs.clear();
+        undefs.resize(num_obs, false);
+        for (int i=0; i<num_obs; i++) {
+            undefs[i] = lisa_coord->undef_tms[t][i] || hl[i];
+        }
+        std::vector<double> X_ex;
+        std::vector<double> Y_ex;
+        RegimeMoran(undefs, regressionXYexcluded, X_ex, Y_ex);
+        UpdateRegExcludedLine();
+        for (int i=0; i<X_ex.size(); i++){
+            //foreground_shps.push_back(new GdaPoint(X_ex[i], Y_ex[i]));
+            GdaPoint* pt = new GdaPoint((X_ex[i] - axis_scale_x.scale_min) * scaleX,
+                                        (Y_ex[i] - axis_scale_y.scale_min) * scaleY
+                                        );
+            pt->setPen(wxPen(*wxBLACK));
+            pt->setBrush(*wxTRANSPARENT_BRUSH);
+            ApplyLastResizeToShp(pt);
+            foreground_shps.push_back(pt);
+        }
+        
+        wxString s("Moran's I: ");
+        s << regressionXY.beta;
+        if (highlight_state->GetTotalHighlighted()>0) {
+            wxString str = wxString::Format(" (selected: %.3f, unselected: %.3f)",
+                                            regressionXYselected.beta,
+                                            regressionXYexcluded.beta);
+            s << str;
+        }
+        morans_i_text->setText(s);
+    }
+    
 	var_info = var_info_orig;
 	
 	LOG_MSG("Exiting LisaScatterPlotCanvas::PopulateCanvas");
 }
 
+void LisaScatterPlotCanvas::RegimeMoran(const std::vector<bool>& undefs,
+                                        SimpleLinearRegression& regime_lreg,
+                                        std::vector<double>& X,
+                                        std::vector<double>& Y)
+{
+    int t = project->GetTimeState()->GetCurrTime();
+    GalWeight* copy_w = new GalWeight(*lisa_coord->Gal_vecs[t]);
+    copy_w->Update(undefs);
+    GalElement* W = copy_w->gal;
+    
+    double* data1 = lisa_coord->data1_vecs[t];
+    double* data2 = NULL;
+    
+    if (lisa_coord->isBivariate) {
+        data2 = lisa_coord->data2_vecs[0];
+        if (var_info[1].is_time_variant && var_info[1].sync_with_global_time)
+            data2 = lisa_coord->data2_vecs[t];
+    }
+    
+    std::vector<bool> XY_undefs;
+    
+    for (int i=0; i<num_obs; i++) {
+        if (undefs[i])
+            continue;
+        
+        double Wdata = 0;
+        if (lisa_coord->isBivariate) {
+            Wdata = W[i].SpatialLag(data2);
+        } else {
+            Wdata = W[i].SpatialLag(data1);
+        }
+        X.push_back(data1[i]);
+        Y.push_back(Wdata);
+        XY_undefs.push_back(false);
+    }
+    SampleStatistics statsX(X, XY_undefs);
+    SampleStatistics statsY(Y, XY_undefs);
+    regime_lreg = SimpleLinearRegression(X, Y, XY_undefs, XY_undefs,
+                                         statsX.mean, statsY.mean,
+                                         statsX.var_without_bessel,
+                                         statsY.var_without_bessel);
+    
+    delete copy_w;
+}
+
+void LisaScatterPlotCanvas::UpdateSelection(bool shiftdown, bool pointsel)
+{
+    
+    TemplateCanvas::UpdateSelection(shiftdown, pointsel);
+    
+    invalidateBms();
+    PopulateCanvas();
+    
+    // Call TemplateCanvas::update to redraw objects as needed.
+    //TemplateCanvas::update(highlight_stateo);
+    
+    Refresh();
+
+}
+void LisaScatterPlotCanvas::update(HLStateInt* o)
+{
+    invalidateBms();
+    PopulateCanvas();
+    
+    // Call TemplateCanvas::update to redraw objects as needed.
+    TemplateCanvas::update(o);
+    
+    Refresh();
+}
 void LisaScatterPlotCanvas::PopCanvPreResizeShpsHook()
 {
+    // if has highlighted, then the text will be added after RegimeMoran()
 	wxString s("Moran's I: ");
 	s << regressionXY.beta;
-	GdaShapeText* morans_i_text = new GdaShapeText(s, *GdaConst::small_font,
-									   wxRealPoint(50, 100), 0,
-									   GdaShapeText::h_center,
-												   GdaShapeText::v_center,
-									   0, -15);
-	morans_i_text->setPen(*GdaConst::scatterplot_reg_pen);
-	foreground_shps.push_back(morans_i_text);
+    if (highlight_state->GetTotalHighlighted()>0) {
+        wxString str = wxString::Format(" (selected: %.2f, unselected: %.2f)",
+                                        regressionXYselected.beta,
+                                        regressionXYexcluded.beta);
+        s << str;
+    }
+    morans_i_text = new GdaShapeText(s, *GdaConst::small_font,
+                                     wxRealPoint(50, 100), 0,
+                                     GdaShapeText::h_center,
+                                     GdaShapeText::v_center,
+                                     0, -15);
+
+    morans_i_text->setPen(*GdaConst::scatterplot_reg_pen);
+    foreground_shps.push_back(morans_i_text);
 }
 
 void LisaScatterPlotCanvas::ShowRandomizationDialog(int permutation)
 {
-	if (permutation < 9) permutation = 9;
-	if (permutation > 99999) permutation = 99999;
+    if (permutation < 9) {
+        permutation = 9;
+    } else if (permutation > 99999) {
+        permutation = 99999;
+    }
+   
+	int cts = project->GetTimeState()->GetCurrTime();
+    
 	std::vector<double> raw_data1(num_obs);
+    
 	int xt = var_info_orig[0].time-var_info_orig[0].time_min;
 	for (int i=0; i<num_obs; i++) {
 		raw_data1[i] = lisa_coord->data1_vecs[xt][i];
 	}
+   
+    bool reuse_last_seed = lisa_coord->IsReuseLastSeed();
+    uint64_t last_used_seed = lisa_coord->GetLastUsedSeed();
+    
 	if (is_bi) {
 		std::vector<double> raw_data2(num_obs);
 		int yt = var_info_orig[1].time-var_info_orig[1].time_min;
@@ -454,11 +604,18 @@ void LisaScatterPlotCanvas::ShowRandomizationDialog(int permutation)
             rand_dlg->Destroy();
             rand_dlg = 0;
         }
-		rand_dlg = new RandomizationDlg(raw_data1, raw_data2,
-                             lisa_coord->W, permutation,
-                             lisa_coord->IsReuseLastSeed(),
-                             lisa_coord->GetLastUsedSeed(), this);
-        rand_dlg->Connect(wxEVT_DESTROY, wxWindowDestroyEventHandler(LisaScatterPlotCanvas::OnRandDlgClose), NULL, this);
+        // here W handles undefined
+        rand_dlg = new RandomizationDlg(raw_data1, raw_data2,
+                                        lisa_coord->Gal_vecs[cts],
+                                        lisa_coord->undef_tms[cts],
+                                        highlight_state->GetHighlight(),
+                                        permutation,
+                                        reuse_last_seed,
+                                        last_used_seed, this);
+		
+        rand_dlg->Connect(wxEVT_DESTROY,
+                          wxWindowDestroyEventHandler(LisaScatterPlotCanvas::OnRandDlgClose),
+                          NULL, this);
         rand_dlg->Show(true);
         
 	} else {
@@ -466,10 +623,15 @@ void LisaScatterPlotCanvas::ShowRandomizationDialog(int permutation)
             rand_dlg->Destroy();
             rand_dlg = 0;
         }
-    	rand_dlg = new RandomizationDlg(raw_data1, lisa_coord->W, permutation,
-                                 lisa_coord->IsReuseLastSeed(),
-                                 lisa_coord->GetLastUsedSeed(), this);
-        rand_dlg->Connect(wxEVT_DESTROY, wxWindowDestroyEventHandler(LisaScatterPlotCanvas::OnRandDlgClose), NULL, this);
+        rand_dlg = new RandomizationDlg(raw_data1, lisa_coord->Gal_vecs[cts],
+                                        lisa_coord->undef_tms[cts],
+                                        highlight_state->GetHighlight(),
+                                        permutation,
+                                        reuse_last_seed,
+                                        last_used_seed, this);
+        rand_dlg->Connect(wxEVT_DESTROY,
+                          wxWindowDestroyEventHandler(LisaScatterPlotCanvas::OnRandDlgClose),
+                          NULL, this);
 		rand_dlg->Show(true);
 	}
 }
@@ -484,7 +646,7 @@ void LisaScatterPlotCanvas::SaveMoranI()
     
 	int xt = sp_var_info[0].time-sp_var_info[0].time_min;
 	int yt = sp_var_info[1].time-sp_var_info[1].time_min;
-	
+
 
 	for (int i=0; i<num_obs; i++) {
 		std_data[i] = x_data[xt][i];
@@ -509,16 +671,20 @@ void LisaScatterPlotCanvas::SaveMoranI()
 	data[0].label = "Standardized Data";
 	data[0].field_default = "MORAN_STD";
 	data[0].type = GdaConst::double_type;
+    data[0].undefined = &XYZ_undef;
+    
 	data[1].d_val = &lag;
 	data[1].label = "Spatial Lag";
 	data[1].field_default = "MORAN_LAG";
 	data[1].type = GdaConst::double_type;
+    data[1].undefined = &XYZ_undef;
     
     if (is_diff) {
         data[2].d_val = &diff;
         data[2].label = "Diff Values";
         data[2].field_default = "DIFF_VAL";
         data[2].type = GdaConst::double_type;
+        data[2].undefined = &XYZ_undef;
     }
 	
 	SaveToTableDlg dlg(project, this, data, title,
@@ -534,7 +700,8 @@ END_EVENT_TABLE()
 LisaScatterPlotFrame::LisaScatterPlotFrame(wxFrame *parent, Project* project,
 										   LisaCoordinator* lisa_coordinator,
 										   const wxPoint& pos,
-										   const wxSize& size, const long style)
+										   const wxSize& size,
+                                           const long style)
 : ScatterNewPlotFrame(parent, project, pos, size, style),
 lisa_coord(lisa_coordinator)
 {
@@ -589,7 +756,8 @@ void LisaScatterPlotFrame::OnSpecifySeedDlg(wxCommandEvent& event)
 	dlg_val.Trim(false);
 	if (dlg_val.IsEmpty()) return;
 	if (dlg_val.ToULongLong(&val)) {
-		if (!lisa_coord->IsReuseLastSeed()) lisa_coord->SetLastUsedSeed(true);
+		if (!lisa_coord->IsReuseLastSeed())
+            lisa_coord->SetLastUsedSeed(true);
 		uint64_t new_seed_val = val;
 		lisa_coord->SetLastUsedSeed(new_seed_val);
 	} else {

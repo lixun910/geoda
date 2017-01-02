@@ -48,7 +48,7 @@ OGRDatasourceProxy::OGRDatasourceProxy(wxString _ds_name, GdaConst::DataSourceTy
     
     
     if (ds_type == GdaConst::ds_csv) {
-        const char *papszOpenOptions[255] = {"AUTODETECT_TYPE=YES"};
+        const char *papszOpenOptions[255] = {"AUTODETECT_TYPE=YES", "EMPTY_STRING_AS_NULL=YES"};
         ds = (GDALDataset*) GDALOpenEx(pszDsPath, GDAL_OF_VECTOR|GDAL_OF_UPDATE, NULL, papszOpenOptions, NULL);
         
     } else {
@@ -344,7 +344,8 @@ OGRDatasourceProxy::CreateLayer(string layer_name,
     // LAUNDER is for database: rename desired field name
     char* papszLCO[50] = {"OVERWRITE=yes", "PRECISION=no", "LAUNDER=yes"};
     
-    OGRLayer *poDstLayer = ds->CreateLayer(layer_name.c_str(), poOutputSRS, eGType, papszLCO);
+    OGRLayer *poDstLayer = ds->CreateLayer(layer_name.c_str(),
+                                           poOutputSRS, eGType, papszLCO);
     
     if( poDstLayer == NULL ) {
         error_message << "Can't write/create layer \"" << layer_name << "\". \n\nDetails: Attemp to write a readonly database, or "
@@ -360,9 +361,10 @@ OGRDatasourceProxy::CreateLayer(string layer_name,
         std::vector<int> col_id_map;
         table->FillColIdMap(col_id_map);
         
-        int time_steps = table->GetTimeSteps();
-        
-        for ( int id=0; id < table->GetNumberCols(); id++ ) {
+        for (int id=0; id < table->GetNumberCols(); id++) {
+            
+            bool is_time_var = table->IsColTimeVariant(id);
+            int time_steps = is_time_var ? table->GetTimeSteps() : 1;
             
             for ( int t=0; t < time_steps; t++ ) {
                 
@@ -385,6 +387,10 @@ OGRDatasourceProxy::CreateLayer(string layer_name,
                     ogr_type = OFTReal;
                 } else if (ftype == GdaConst::date_type){
                     ogr_type = OFTDate;
+                } else if (ftype == GdaConst::time_type){
+                    ogr_type = OFTTime;
+                } else if (ftype == GdaConst::datetime_type) {
+                    ogr_type = OFTDateTime;
                 } else {
                     ogr_type = OFTString;
                 }

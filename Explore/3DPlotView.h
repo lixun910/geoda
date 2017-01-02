@@ -32,7 +32,9 @@ class Arcball;
 class C3DControlPan;
 class C3DPlotFrame;
 class TableInterface;
+
 typedef boost::multi_array<double, 2> d_array_type;
+typedef boost::multi_array<bool, 2> b_array_type;
 
 class C3DPlotCanvas: public wxGLCanvas, public HighlightStateObserver
 {
@@ -117,6 +119,9 @@ public:
 	int ref_var_index;
 	std::vector<GdaVarTools::VarInfo> var_info;
 	std::vector<d_array_type> data;
+	std::vector<b_array_type> data_undef;
+    std::vector<bool> all_undefs;
+    
 	std::vector<d_array_type> scaled_d;
 	std::vector< std::vector<SampleStatistics> > data_stats;
 	std::vector<double> var_min; // min over time
@@ -129,6 +134,7 @@ public:
 	bool bSelect;
 	C3DControlPan *m_dlg;
 	C3DPlotFrame* c3d_plot_frame;
+	wxGLContext*	m_context;
 	
 	DECLARE_EVENT_TABLE()
 };

@@ -22,6 +22,8 @@
 #include <string>
 #include <vector>
 #include <queue>
+
+#include <wx/wx.h>
 #include <wx/filedlg.h>
 #include <wx/dir.h>
 #include <wx/filefn.h>
@@ -35,6 +37,10 @@
 #include <wx/stdpaths.h>
 #include <wx/progdlg.h>
 #include <wx/panel.h>
+#include <wx/filesys.h>
+#include <wx/zipstrm.h>
+#include <wx/wfstream.h>
+#include <memory>
 
 #include "stdio.h"
 #include <iostream>
@@ -43,7 +49,6 @@
 
 
 #include "../version.h"
-#include "../logger.h"
 #include "../GeneralWxUtils.h"
 #include "../GdaException.h"
 #include "../ShapeOperations/OGRDataAdapter.h"
@@ -254,14 +259,14 @@ wxString AutoUpdate::GetCheckList()
 
 AutoUpdateDlg::AutoUpdateDlg(wxWindow* parent,
                              bool showSkip,
-                       wxWindowID id,
-                       const wxString& title,
-                       const wxPoint& pos,
-                       const wxSize& size )
+                             wxWindowID id,
+                             const wxString& title,
+                             const wxPoint& pos,
+                             const wxSize& size )
 : wxDialog(parent, id, title, pos, size)
 {
     
-    LOG_MSG("Entering AutoUpdateDlg::AutoUpdateDlg(..)");
+    wxLogMessage("Open AutoUpdateDlg:");
    
     // check update, suppose CheckUpdate() return true
     checklist = AutoUpdate::GetCheckList();
@@ -269,7 +274,7 @@ AutoUpdateDlg::AutoUpdateDlg(wxWindow* parent,
     wxString url_update_description = AutoUpdate::GetUpdateUrl(checklist);
     
     wxString update_text;
-	update_text << "A newer version of GeoDa is found. Do you want to update to version ";
+	update_text << _("A newer version of GeoDa is found. Do you want to update to version ");
     update_text << version;
 	update_text << "?";
     
@@ -289,7 +294,7 @@ AutoUpdateDlg::AutoUpdateDlg(wxWindow* parent,
     lbl_box->Add(prg_bar, 1, wxEXPAND |wxALL, 10);
     
     wxButton* btn_skip = NULL;
-    wxButton* btn_cancel= new wxButton(panel, wxID_ANY, "Cancel", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+    wxButton* btn_cancel= new wxButton(panel, wxID_ANY, _("Cancel"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
     if (showSkip)
         btn_skip = new wxButton(panel, wxID_ANY, "Skip");
     wxButton* btn_update= new wxButton(panel, wxID_ANY, "Update", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
@@ -320,8 +325,6 @@ AutoUpdateDlg::AutoUpdateDlg(wxWindow* parent,
     
     btn_update->Connect(wxEVT_BUTTON, wxCommandEventHandler(AutoUpdateDlg::OnOkClick), NULL, this);
     btn_cancel->Connect(wxEVT_BUTTON, wxCommandEventHandler(AutoUpdateDlg::OnCancelClick), NULL, this);
-                        
-    LOG_MSG("Exiting AutoUpdateDlg::AutoUpdateDlg(..)");
 }
 
 
@@ -350,7 +353,7 @@ void AutoUpdateDlg::OnOkClick( wxCommandEvent& event )
        
         int n = (int)lines.size();
         int jobs = (n-2) / 3 + 1; // skip first and second lines
-        wxProgressDialog progressDlg("", "Downloading updates...",
+        wxProgressDialog progressDlg("", _("Downloading updates..."),
                                      jobs, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
         progressDlg.Update(1);
         if (n > 2 && (n-2) % 3 == 0) {
@@ -406,28 +409,32 @@ void AutoUpdateDlg::OnOkClick( wxCommandEvent& event )
    
     if (success) {
         wxMessageDialog msgDlg(this,
-                               "Please restart GeoDa to finish installing updates.",
-                               "Update GeoDa completed",
+                               _("Please restart GeoDa to finish installing updates."),
+                               _("Update GeoDa completed"),
                                wxOK |wxICON_INFORMATION);
         msgDlg.ShowModal();
         EndDialog(wxID_OK);
     } else {
         // raise warning message
         wxMessageDialog msgDlg(this,
-                               "Please check your network connection, or contact GeoDa support team.",
-                               "Update GeoDa failed",
+                               _("Please check your network connection, or contact GeoDa support team."),
+                               _("Update GeoDa failed"),
                                wxOK |wxICON_ERROR);
         msgDlg.ShowModal();
     }
+    
+    wxLogMessage("Close AutoUpdateDlg");
 }
 
 void AutoUpdateDlg::OnCancelClick( wxCommandEvent& event )
 {
+    wxLogMessage("Cancel AutoUpdateDlg");
     EndDialog(wxID_CANCEL);
 }
 
 void AutoUpdateDlg::OnSkipClick( wxCommandEvent& event )
 {
+    wxLogMessage("Skip AutoUpdateDlg");
     EndDialog(wxID_NO);
 }
 wxString AutoUpdateDlg::GetVersion()

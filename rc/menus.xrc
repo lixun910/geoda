@@ -3,49 +3,12 @@
   <object class="wxMenuBar" name="ID_SHARED_MAIN_MENU">
     <object class="wxMenu" name="ID_MENU">
       <label>&amp;File</label>
-	  <object class="wxMenu" name="ID_NEW_PROJ_FROM_MENU">
-		<label>New Project From</label>
-		<object class="wxMenuItem" name="ID_NEW_PROJ_FROM_SHP">
-		  <label>ESRI Shapefile (*.shp)</label>
-		</object>
-		<object class="wxMenuItem" name="ID_NEW_PROJ_FROM_SQLITE">
-          <label>SQLite/SpatialLite (*.sqlite)</label>
-		</object>
-		<object class="wxMenuItem" name="ID_NEW_PROJ_FROM_GPKG">
-          <label>GeoPackage (*.gpkg)</label>
-		</object>
-		<object class="wxMenuItem" name="ID_NEW_PROJ_FROM_CSV">
-          <label>Comma Separated Value (*.csv)</label>
-		</object>
-		<object class="wxMenuItem" name="ID_NEW_PROJ_FROM_DBF">
-          <label>dBase Database File (*.dbf)</label>
-		</object>
-		<object class="wxMenuItem" name="ID_NEW_PROJ_FROM_JSON">
-          <label>GeoJSON (*.json)</label>
-		</object>
-		<object class="wxMenuItem" name="ID_NEW_PROJ_FROM_GML">
-          <label>Geography Markup Language (*.gml)</label>
-		</object>
-		<object class="wxMenuItem" name="ID_NEW_PROJ_FROM_KML">
-          <label>Keyhole Markup Language (*.kml)</label>
-		</object>
-		<object class="wxMenuItem" name="ID_NEW_PROJ_FROM_MAPINFO">
-          <label>MapInfo (*.tab, *.mif, *.mid)</label>
-		</object>
-		<object class="wxMenuItem" name="ID_NEW_PROJ_FROM_XLS">
-          <label>MS Excel (*.xls)</label>
-		</object>
-	  </object>
+	  <object class="wxMenu" name="ID_NEW_PROJ_FROM_RECENT_MENU">
+		<label>New From Recent</label>
+      </object>
       <object class="wxMenuItem" name="ID_NEW_PROJECT">
-        <label>&amp;New Project</label>
+        <label>&amp;New</label>
         <accel>Ctrl+N</accel>
-      </object>
-      <object class="wxMenuItem" name="ID_OPEN_PROJECT">
-        <label>&amp;Open Project</label>
-        <accel>Ctrl+O</accel>
-      </object>
-      <object class="wxMenuItem" name="ID_SAVE_AS_PROJECT">
-        <label>Save Project</label>
       </object>
       <object class="separator"/>
       <object class="wxMenuItem" name="ID_SAVE_PROJECT">
@@ -58,12 +21,23 @@
         <label>Save Selected As</label>
       </object>
       <object class="separator"/>
+      <object class="wxMenuItem" name="ID_OPEN_PROJECT">
+        <label>&amp;Open Project</label>
+        <accel>Ctrl+O</accel>
+      </object>
+      <object class="wxMenuItem" name="ID_SAVE_AS_PROJECT">
+        <label>Save Project</label>
+      </object>
       <object class="wxMenuItem" name="ID_SHOW_PROJECT_INFO">
         <label>Project Information</label>
       </object>
       <object class="separator"/>
+      <object class="wxMenuItem" name="ID_PREFERENCE_SETUP">
+        <label>Preferences...</label>
+      </object>
+      <object class="separator"/>
       <object class="wxMenuItem" name="ID_CLOSE_PROJECT">
-        <label>Close Project</label>
+        <label>Close</label>
       </object>
       <object class="wxMenuItem" name="wxID_EXIT">
         <label>Exit</label>
@@ -387,7 +361,7 @@
       </object>
       <object class="separator"/>
       <object class="wxMenuItem" name="ID_SHOW_CONDITIONAL_MAP_VIEW_MAP_MENU">
-        <label>Conditional Plot Map</label>
+        <label>Conditional Map</label>
       </object>
       <object class="wxMenuItem" name="ID_SHOW_CARTOGRAM_NEW_VIEW">
         <label>Cartogram</label>
@@ -494,6 +468,9 @@
       <object class="wxMenuItem" name="wxID_CHECKUPDATES">
         <label>Check Updates</label>
       </object>
+      <object class="wxMenuItem" name="wxID_REPORTBUG">
+        <label>Report Bug</label>
+      </object>
       <object class="wxMenuItem" name="wxID_ABOUT">
         <label>About GeoDa</label>
       </object>
@@ -529,15 +506,21 @@
         <checkable>1</checkable>
       </object>
     </object>
-    <object class="wxMenuItem" name="ID_DISPLAY_STATISTICS">
-      <label>Display Statistics</label>
-      <checkable>1</checkable>
-      <checked>0</checked>
-    </object>
-    <object class="wxMenuItem" name="ID_SHOW_AXES">
-      <label>Show Vertical Axis</label>
-      <checkable>1</checkable>
-      <checked>1</checked>
+    <object class="wxMenu" name="ID_HIST_VIEW_MENU">
+        <label>View</label>
+        <object class="wxMenuItem" name="ID_ADJUST_AXIS_PRECISION">
+            <label>Set Display Precision on Axes</label>
+        </object>
+        <object class="wxMenuItem" name="ID_DISPLAY_STATISTICS">
+          <label>Display Statistics</label>
+          <checkable>1</checkable>
+          <checked>0</checked>
+        </object>
+        <object class="wxMenuItem" name="ID_SHOW_AXES">
+          <label>Show Vertical Axis</label>
+          <checkable>1</checkable>
+          <checked>1</checked>
+        </object>
     </object>
     <object class="separator"/>
     <object class="wxMenu" name="ID_MENU">
@@ -1444,31 +1427,42 @@
 		  <checkable>1</checkable>
         </object>
 	  </object>
-	  
       <label>Horizontal Bins Breaks</label>
     </object>
-		<object class="wxMenuItem" name="ID_VIEW_LINEAR_SMOOTHER">
+    
+    <object class="wxMenuItem" name="ID_VIEW_LINEAR_SMOOTHER">
       <label>Show Linear Smoother</label>
       <checkable>1</checkable>
       <checked>1</checked>
     </object>
-		<object class="wxMenuItem" name="ID_VIEW_LOWESS_SMOOTHER">
+    <object class="wxMenuItem" name="ID_VIEW_LOWESS_SMOOTHER">
       <label>Show LOWESS Smoother</label>
       <checkable>1</checkable>
       <checked>0</checked>
     </object>
-		<object class="wxMenuItem" name="ID_EDIT_LOWESS_PARAMS">
+    <object class="wxMenuItem" name="ID_EDIT_LOWESS_PARAMS">
       <label>Edit LOWESS Parameters</label>
     </object>
-    <object class="wxMenuItem" name="ID_DISPLAY_AXES_SCALE_VALUES">
-      <label>Display Axes Scale Values</label>
-      <checkable>1</checkable>
-      <checked>1</checked>
-    </object>
-    <object class="wxMenuItem" name="ID_DISPLAY_SLOPE_VALUES">
-      <label>Display Slope Values</label>
-      <checkable>1</checkable>
-      <checked>0</checked>
+    <object class="wxMenu" name="ID_COND_SCATTER_VIEW_MENU">
+        <label>View</label>
+        <object class="wxMenuItem" name="ID_ADJUST_AXIS_PRECISION">
+            <label>Set Display Precision on Axes</label>
+        </object>
+        <object class="wxMenuItem" name="ID_DISPLAY_AXES_SCALE_VALUES">
+          <label>Display Axes Scale Values</label>
+          <checkable>1</checkable>
+          <checked>1</checked>
+        </object>
+        <object class="wxMenuItem" name="ID_DISPLAY_SLOPE_VALUES">
+          <label>Display Slope Values</label>
+          <checkable>1</checkable>
+          <checked>0</checked>
+        </object>
+        <object class="wxMenuItem" name="ID_DISPLAY_STATUS_BAR">
+            <label>Show Status Bar</label>
+            <checkable>1</checkable>
+            <checked>1</checked>
+        </object>
     </object>
     <object class="separator"/>
     <object class="wxMenu" name="ID_MENU">
@@ -1501,11 +1495,7 @@
         <label>Background Color</label>
       </object>
     </object>
-    <object class="wxMenuItem" name="ID_DISPLAY_STATUS_BAR">
-      <label>Show Status Bar</label>
-      <checkable>1</checkable>
-      <checked>1</checked>
-    </object>
+    
     <object class="separator"/>
     
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
@@ -1827,10 +1817,21 @@
     <object class="wxMenuItem" name="ID_HISTOGRAM_INTERVALS">
       <label>Choose Intervals</label>
     </object>
-    <object class="wxMenuItem" name="ID_SHOW_AXES">
-      <label>Show Axes</label>
-      <checkable>1</checkable>
-      <checked>1</checked>
+    <object class="wxMenu" name="ID_COND_SCATTER_VIEW_MENU">
+        <label>View</label>
+        <object class="wxMenuItem" name="ID_ADJUST_AXIS_PRECISION">
+            <label>Set Display Precision on Axes</label>
+        </object>
+        <object class="wxMenuItem" name="ID_SHOW_AXES">
+          <label>Show Axes</label>
+          <checkable>1</checkable>
+          <checked>1</checked>
+        </object>
+        <object class="wxMenuItem" name="ID_DISPLAY_STATUS_BAR">
+            <label>Show Status Bar</label>
+            <checkable>1</checkable>
+            <checked>1</checked>
+        </object>
     </object>
     <object class="separator"/>
     <object class="wxMenu" name="ID_MENU">
@@ -1842,13 +1843,7 @@
         <label>Background Color</label>
       </object>
     </object>
-    <object class="wxMenuItem" name="ID_DISPLAY_STATUS_BAR">
-      <label>Show Status Bar</label>
-      <checkable>1</checkable>
-      <checked>1</checked>
-    </object>
     <object class="separator"/>
-    
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -2085,15 +2080,26 @@
     <object class="wxMenuItem" name="ID_HISTOGRAM_INTERVALS">
       <label>Choose Intervals</label>
     </object>
-    <object class="wxMenuItem" name="ID_DISPLAY_STATISTICS">
-      <label>Display Statistics</label>
-      <checkable>1</checkable>
-      <checked>0</checked>
-    </object>
-    <object class="wxMenuItem" name="ID_SHOW_AXES">
-      <label>Show Axes</label>
-      <checkable>1</checkable>
-      <checked>1</checked>
+    <object class="wxMenu" name="ID_HIST_VIEW_MENU">
+        <label>View</label>
+        <object class="wxMenuItem" name="ID_ADJUST_AXIS_PRECISION">
+            <label>Set Display Precision on Axes</label>
+        </object>
+        <object class="wxMenuItem" name="ID_DISPLAY_STATISTICS">
+            <label>Display Statistics</label>
+            <checkable>1</checkable>
+            <checked>0</checked>
+        </object>
+        <object class="wxMenuItem" name="ID_SHOW_AXES">
+            <label>Show Axes</label>
+            <checkable>1</checkable>
+            <checked>1</checked>
+        </object>
+        <object class="wxMenuItem" name="ID_DISPLAY_STATUS_BAR">
+            <label>Status Bar</label>
+            <checkable>1</checkable>
+            <checked>1</checked>
+        </object>
     </object>
     <object class="separator"/>
     <object class="wxMenu" name="ID_MENU">
@@ -2105,11 +2111,7 @@
         <label>Background Color</label>
       </object>
     </object>
-    <object class="wxMenuItem" name="ID_DISPLAY_STATUS_BAR">
-      <label>Show Status Bar</label>
-      <checkable>1</checkable>
-      <checked>1</checked>
-    </object>
+    
     <object class="separator"/>
     
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
@@ -2133,15 +2135,21 @@
     <object class="wxMenuItem" name="ID_HISTOGRAM_INTERVALS">
       <label>Choose Intervals</label>
     </object>
-    <object class="wxMenuItem" name="ID_DISPLAY_STATISTICS">
-      <label>Display Statistics</label>
-      <checkable>1</checkable>
-      <checked>0</checked>
-    </object>
-    <object class="wxMenuItem" name="ID_SHOW_AXES">
-      <label>Show Axes</label>
-      <checkable>1</checkable>
-      <checked>1</checked>
+    <object class="wxMenu" name="ID_HIST_VIEW_MENU">
+        <label>View</label>
+        <object class="wxMenuItem" name="ID_ADJUST_AXIS_PRECISION">
+            <label>Set Display Precision on Axes</label>
+        </object>
+        <object class="wxMenuItem" name="ID_DISPLAY_STATISTICS">
+          <label>Display Statistics</label>
+          <checkable>1</checkable>
+          <checked>0</checked>
+        </object>
+        <object class="wxMenuItem" name="ID_SHOW_AXES">
+          <label>Show Axes</label>
+          <checkable>1</checkable>
+          <checked>1</checked>
+        </object>
     </object>
     <object class="separator"/>
     <object class="wxMenu" name="ID_MENU">
@@ -3210,7 +3218,7 @@
         </object>
     </object>
     <object class="wxMenu" name="ID_VIEW_SHOW_SUBMENU">
-        <label>Show</label>
+        <label>Display</label>
 
         <object class="wxMenuItem" name="ID_DISPLAY_STATISTICS">
             <label>Statistics</label>
@@ -3277,7 +3285,7 @@
           </object>
           <object class="separator"/>
           <object class="wxMenuItem" name="ID_ADJUST_Y_AXIS_PRECISION">
-              <label>Adjust Numeric Precision of Y-Axis</label>
+              <label>Set Display Precision of Y-Axis</label>
           </object>
       </object>
       
@@ -3329,29 +3337,81 @@
       <label>Add/Remove Variables</label>
       <checkable>0</checkable>
     </object>
-		<object class="wxMenuItem" name="ID_VIEW_LINEAR_SMOOTHER">
-      <label>Show Linear Smoother</label>
-      <checkable>1</checkable>
-      <checked>1</checked>
+    <object class="wxMenu" name="ID_MENU">
+        <label>Selection Shape</label>
+        <object class="wxMenuItem" name="ID_SELECT_WITH_RECT">
+            <label>Rectangle</label>
+            <checkable>1</checkable>
+        </object>
+        <object class="wxMenuItem" name="ID_SELECT_WITH_CIRCLE">
+            <label>Circle</label>
+            <checkable>1</checkable>
+        </object>
+        <object class="wxMenuItem" name="ID_SELECT_WITH_LINE">
+            <label>Line</label>
+            <checkable>1</checkable>
+        </object>
     </object>
-		<object class="wxMenuItem" name="ID_VIEW_LOWESS_SMOOTHER">
-      <label>Show LOWESS Smoother</label>
-      <checkable>1</checkable>
-      <checked>0</checked>
+    
+    <object class="wxMenu" name="ID_SCATTER_DATA_MENU">
+        <label>Data</label>
+        <object class="wxMenuItem" name="ID_VIEW_STANDARDIZED_DATA">
+            <label>View Standardized Data</label>
+            <checkable>1</checkable>
+        </object>
+        <object class="wxMenuItem" name="ID_VIEW_ORIGINAL_DATA">
+            <label>View Original Data</label>
+            <checkable>1</checkable>
+            <checked>1</checked>
+        </object>
     </object>
-		<object class="wxMenuItem" name="ID_EDIT_LOWESS_PARAMS">
-      <label>Edit LOWESS Parameters</label>
+    <object class="wxMenu" name="ID_SCATTER_DATA_MENU">
+        <label>Smoother</label>
+        <object class="wxMenuItem" name="ID_VIEW_LINEAR_SMOOTHER">
+            <label>Show Linear Smoother</label>
+            <checkable>1</checkable>
+            <checked>1</checked>
+        </object>
+        <object class="wxMenuItem" name="ID_VIEW_LOWESS_SMOOTHER">
+            <label>Show LOWESS Smoother</label>
+            <checkable>1</checkable>
+            <checked>0</checked>
+        </object>
+        <object class="wxMenuItem" name="ID_EDIT_LOWESS_PARAMS">
+            <label>Edit LOWESS Parameters</label>
+        </object>
     </object>
-	  <object class="wxMenuItem" name="ID_VIEW_REGIMES_REGRESSION">
-      <label>Regimes Regression</label>
-      <checkable>1</checkable>
-      <checked>1</checked>
+    
+    <object class="wxMenu" name="ID_SCATTER_DATA_MENU">
+        <label>View</label>
+        <object class="wxMenuItem" name="ID_ADJUST_AXIS_PRECISION">
+            <label>Set Display Precision on Axes</label>
+        </object>
+        <object class="wxMenuItem" name="ID_VIEW_REGIMES_REGRESSION">
+            <label>Regimes Regression</label>
+            <checkable>1</checkable>
+            <checked>1</checked>
+        </object>
+        <object class="wxMenuItem" name="ID_DISPLAY_SLOPE_VALUES">
+            <label>Display Slope Values</label>
+            <checkable>1</checkable>
+            <checked>0</checked>
+        </object>
     </object>
-    <object class="wxMenuItem" name="ID_DISPLAY_SLOPE_VALUES">
-      <label>Display Slope Values</label>
-      <checkable>1</checkable>
-      <checked>0</checked>
+    
+    <object class="wxMenu" name="ID_MENU">
+        <label>Color</label>
+        <object class="wxMenuItem" name="ID_SELECTABLE_OUTLINE_COLOR">
+            <label>Regression Line Color</label>
+        </object>
+        <object class="wxMenuItem" name="ID_SELECTABLE_FILL_COLOR">
+            <label>Point Color</label>
+        </object>
+        <object class="wxMenuItem" name="ID_HIGHLIGHT_COLOR">
+            <label>Highlight Color</label>
+        </object>
     </object>
+    
     <label>Options</label>
   </object>
   <object class="wxMenu" name="ID_CORRELOGRAM_MENU_OPTIONS">
@@ -3465,6 +3525,13 @@
     
     <object class="wxMenu" name="ID_SCATTER_VIEW_MENU">
         <label>View</label>
+        <object class="wxMenuItem" name="ID_ADJUST_AXIS_PRECISION">
+            <label>Set Display Precision on Axes</label>
+        </object>
+        <object class="wxMenuItem" name="ID_FIXED_ASPECT_RATIO_MODE">
+            <label>Fixed Aspect Ratio Mode</label>
+            <checkable>1</checkable>
+        </object>
         <object class="wxMenuItem" name="ID_VIEW_REGIMES_REGRESSION">
             <label>Regimes Regression</label>
             <checkable>1</checkable>
@@ -3688,19 +3755,25 @@
         <checkable>1</checkable>
       </object>
     </object>
-    <object class="wxMenuItem" name="ID_VIEW_STANDARDIZED_DATA">
-      <label>View Standardized Data</label>
-      <checkable>1</checkable>
-    </object>
-    <object class="wxMenuItem" name="ID_VIEW_ORIGINAL_DATA">
-      <label>View Original Data</label>
-      <checkable>1</checkable>
-      <checked>1</checked>
-    </object>
-    <object class="wxMenuItem" name="ID_SHOW_AXES_THROUGH_ORIGIN">
-      <label>Show Axes Through Origin</label>
-      <checkable>1</checkable>
-      <checked>1</checked>
+    <object class="wxMenu" name="ID_HIST_VIEW_MENU">
+        <label>View</label>
+        <object class="wxMenuItem" name="ID_ADJUST_AXIS_PRECISION">
+            <label>Set Display Precision on Axes</label>
+        </object>
+        <object class="wxMenuItem" name="ID_VIEW_STANDARDIZED_DATA">
+          <label>View Standardized Data</label>
+          <checkable>1</checkable>
+        </object>
+        <object class="wxMenuItem" name="ID_VIEW_ORIGINAL_DATA">
+          <label>View Original Data</label>
+          <checkable>1</checkable>
+          <checked>1</checked>
+        </object>
+        <object class="wxMenuItem" name="ID_SHOW_AXES_THROUGH_ORIGIN">
+          <label>Show Axes Through Origin</label>
+          <checkable>1</checkable>
+          <checked>1</checked>
+        </object>
     </object>
     <object class="separator"/>
     <object class="wxMenu" name="ID_MENU">
@@ -4420,5 +4493,51 @@
       <label>Rates-Calculated Maps</label>
     </object>
     <label>Options</label>
+  </object>
+  <object class="wxMenu" name="ID_DATASOURCE_POPUP">
+    <object class="wxMenuItem" name="ID_DS_SHPEFILE">
+      <label>ESRI Shapefile (*.shp)|*.shp</label>
+    </object>
+    <object class="wxMenuItem" name="ID_DS_GEODATABASE">
+      <label>ESRI File Geodatabase (*.gdb)|*.gdb</label>
+    </object>
+    <object class="wxMenuItem" name="ID_DS_GEODATABASE">
+      <label>GeoJSON (*.geojson;*.json)|*.geojson;*.json</label>
+    </object>
+    <object class="wxMenuItem" name="ID_DS_GEOPACKAGE">
+      <label>GeoPackage (*.gpkg)|*.gpkg</label>
+    </object>
+    <object class="wxMenuItem" name="ID_DS_SQLITE">
+      <label>SQLite/SpatiaLite (*.sqlite)|*.sqlite</label>
+    </object>
+    <object class="wxMenuItem" name="ID_DS_PGEO">
+      <label>ESRI Personal Geodatabase (*.mdb)|*.mdb</label>
+    </object>
+    <object class="wxMenuItem" name="ID_DS_GML">
+      <label>Geography Markup Language (*.gml)|*.gml</label>
+    </object>
+    <object class="wxMenuItem" name="ID_DS_KML">
+      <label>Keyhole Markup Language (*.kml)|*.kml</label>
+    </object>
+    <object class="wxMenuItem" name="ID_DS_MAPINFO">
+      <label>MapInfo (*.tab;*.mif;*.mid)|*.tab;*.mif;*.mid</label>
+    </object>
+    <object class="separator"/>
+    <object class="wxMenuItem" name="ID_DS_DBASE">
+      <label>dBase Database File (*.dbf)|*.dbf</label>
+    </object>
+    <object class="wxMenuItem" name="ID_DS_CSV">
+      <label>Comma Separated Value (*.csv)|*.csv</label>
+    </object>
+    <object class="wxMenuItem" name="ID_DS_XLS">
+      <label>MS Excel (*.xls)|*.xls</label>
+    </object>
+    <object class="wxMenuItem" name="ID_DS_ODS">
+      <label>Open Document Spreadsheet (*.ods)|*.ods</label>
+    </object>
+    <object class="separator"/>
+    <object class="wxMenuItem" name="ID_DS_GDA">
+      <label>GeoDa Project File (*.gda)|*.gda</label>
+    </object>
   </object>
 </resource>

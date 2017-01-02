@@ -687,7 +687,8 @@ bool Basemap::Draw(wxBitmap* buffer)
                 bmp.LoadFile(wxFilePath, wxBITMAP_TYPE_JPEG);
             }
             bool bmpOK = bmp.IsOk();
-            if (bmpOK) gc->DrawBitmap(bmp, pos_x, pos_y, 256,256);
+            if (bmpOK)
+                gc->DrawBitmap(bmp, pos_x, pos_y, 256,256);
             //dc.DrawRectangle((i-startX) * 256 - offsetX, (j-startY) * 256 - offsetY, 256, 256);
 		}
 	}

@@ -39,6 +39,7 @@
 #include "Explore/LisaScatterPlotView.h"
 #include "Explore/PCPNewView.h"
 #include "Explore/ScatterNewPlotView.h"
+#include "DialogTools/AdjustYAxisDlg.h"
 
 
 #include "rc/GeoDaIcon-16x16.xpm"
@@ -148,12 +149,23 @@ void TemplateFrame::OnFitToWindowMode(wxCommandEvent& event)
 
 void TemplateFrame::OnFixedAspectRatioMode(wxCommandEvent& event)
 {
-	LOG_MSG("Entering TemplateFrame::OnFixedAspectRatioMode");
 	if (!template_canvas) return;
 	template_canvas->SetFixedAspectRatioMode(
 				!template_canvas->GetFixedAspectRatioMode());	
 	UpdateOptionMenuItems();
-	LOG_MSG("Exiting TemplateFrame::OnFixedAspectRatioMode");
+}
+
+void TemplateFrame::OnSetDisplayPrecision(wxCommandEvent& event)
+{
+	if (!template_canvas) return;
+    
+    AxisLabelPrecisionDlg dlg(template_canvas->axis_display_precision, this);
+    if (dlg.ShowModal () != wxID_OK)
+        return;
+    int def_precision = dlg.precision;
+    template_canvas->SetDisplayPrecision(def_precision);
+    
+	UpdateOptionMenuItems();
 }
 
 void TemplateFrame::OnZoomMode(wxCommandEvent& event)
@@ -184,7 +196,6 @@ void TemplateFrame::OnPrintCanvasState(wxCommandEvent& event)
 {
 	LOG_MSG("Called TemplateFrame::OnPrintCanvasState");
 	if (template_canvas) {
-		LOG_MSG(template_canvas->GetCanvasStateString());
 	}
 }
 
@@ -331,7 +342,6 @@ void TemplateFrame::DisplayStatusBar(bool show)
 		}
 		SendSizeEvent();
 	}
-	LOG(is_status_bar_visible);
 	LOG_MSG("Exiting TemplateFrame::DisplayStatusBar");
 }
 
@@ -382,7 +392,6 @@ void TemplateFrame::DeregisterAsActive()
 	if (activeFrame == this) {
 		activeFrame = NULL;
 		activeFrName = wxEmptyString;
-		LOG_MSG("reset toolbar to default.");
 		// restore to a default state.
 		GdaFrame::GetGdaFrame()->UpdateToolbarAndMenus();
 	}
@@ -412,7 +421,6 @@ void TemplateFrame::OnKeyEvent(wxKeyEvent& event)
 		(event.GetKeyCode() == WXK_LEFT || event.GetKeyCode() == WXK_RIGHT)) {
 		TimeState* time_state = project->GetTimeState();
 		int del = (event.GetKeyCode() == WXK_LEFT) ? -1 : 1;
-		LOG(del);
 		time_state->SetCurrTime(time_state->GetCurrTime() + del);
 		if (time_state->GetCurrTime() < 0) {
 			time_state->SetCurrTime(time_state->GetTimeSteps()-1);
@@ -433,7 +441,7 @@ void TemplateFrame::ExportImage(TemplateCanvas* canvas, const wxString& type)
 	LOG_MSG("Entering TemplateFrame::ExportImage");
 	
 	wxString default_fname(project->GetProjectTitle() + type);
-	wxString filter("BMP|*.bmp|PNG|*.png");
+	wxString filter("BMP|*.bmp|PNG|*.png|SVG|*.svg");
 	int filter_index = 1;
 	//"BMP|*.bmp|PNG|*.png|PostScript|*.ps|SVG|*.svg"
 	//
@@ -466,7 +474,7 @@ void TemplateFrame::ExportImage(TemplateCanvas* canvas, const wxString& type)
 			dc.SelectObject( wxNullBitmap );
 			
 			wxImage image = bitmap.ConvertToImage();
-			
+			image.ClearAlpha();
 			if ( !image.SaveFile( str_fname + ".bmp", wxBITMAP_TYPE_BMP )) {
 				wxMessageBox("GeoDa was unable to save the file.");
 			}			
@@ -484,7 +492,7 @@ void TemplateFrame::ExportImage(TemplateCanvas* canvas, const wxString& type)
 			dc.SelectObject( wxNullBitmap );
 			
 			wxImage image = bitmap.ConvertToImage();
-			
+			image.ClearAlpha();
 			if ( !image.SaveFile( str_fname + ".png", wxBITMAP_TYPE_PNG )) {
 				wxMessageBox("GeoDa was unable to save the file.");
 			}
@@ -542,6 +550,7 @@ void TemplateFrame::ExportImage(TemplateCanvas* canvas, const wxString& type)
 			}
 		}
 			break;
+        */
 		case 2:
 		{
 			LOG_MSG("SVG selected");
@@ -549,7 +558,7 @@ void TemplateFrame::ExportImage(TemplateCanvas* canvas, const wxString& type)
 			template_canvas->RenderToDC(dc, true);
 		}
 			break;
-		 */
+		 
 			
 		default:
 		{

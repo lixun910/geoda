@@ -186,6 +186,12 @@ OGRFieldType OGRLayerProxy::GetOGRFieldType(GdaConst::FieldType field_type)
 	else if (field_type == GdaConst::date_type) {
 		ogr_type = OFTDate;
 	}
+	else if (field_type == GdaConst::time_type) {
+		ogr_type = OFTTime;
+	}
+	else if (field_type == GdaConst::datetime_type) {
+		ogr_type = OFTDateTime;
+	}
 	return ogr_type;
 }
 
@@ -386,6 +392,13 @@ OGRLayerProxy::AddFeatures(vector<OGRGeometry*>& geometries,
     
     int export_size = data.size()==0 ? table->GetNumberRows() : data.size();
     export_progress = export_size / 4;
+   
+    bool ignore_case = false;
+    
+    if (ds_type == GdaConst::ds_postgresql ||
+        ds_type == GdaConst::ds_sqlite) {
+        ignore_case = true;
+    }
     
     // Fill the feature with content
     if (table != NULL) {
@@ -396,40 +409,79 @@ OGRLayerProxy::AddFeatures(vector<OGRGeometry*>& geometries,
             GdaConst::FieldType ftype = fields[j]->GetType();
            
             // get underneath column position (no group and time =0)
-            int col_pos = table->GetColIdx(fname);
+            int col_pos = table->GetColIdx(fname, ignore_case);
             int time_step = 0;
+          
+            if (col_pos < 0) {
+                wxString msg = wxString::Format(_(" Save column %s failed. Please check your data, or contact GeoDa team."), fname);
+                error_message << msg;
+                export_progress = -1;
+                return;
+            }
+            
+            vector<bool> undefs;
             
             if ( ftype == GdaConst::long64_type) {
                 
                 vector<wxInt64> col_data;
-                table->GetColData(col_pos, time_step, col_data);
+                table->GetColData(col_pos, time_step, col_data, undefs);
                 
                 for (size_t k=0; k<selected_rows.size();++k) {
-                    data[k]->SetField(j, (GIntBig)(col_data[selected_rows[k]]));
-                    if (stop_exporting) return;
+                    int orig_id = selected_rows[k];
+                    
+                    if (undefs[orig_id]) {
+                        data[k]->UnsetField(j);
+                    } else {
+                        data[k]->SetField(j, (GIntBig)(col_data[orig_id]));
+                    }
+                    if (stop_exporting)
+                        return;
                 }
                 
             } else if (ftype == GdaConst::double_type) {
                 
                 vector<double> col_data;
-                table->GetColData(col_pos, time_step, col_data);
+                table->GetColData(col_pos, time_step, col_data, undefs);
                 
                 for (size_t k=0; k<selected_rows.size();++k) {
-                    data[k]->SetField(j, col_data[ selected_rows[k] ]);
-                    if (stop_exporting) return;
+                    int orig_id = selected_rows[k];
+                    
+                    if (undefs[orig_id]) {
+                        data[k]->UnsetField(j);
+                    } else {
+                        data[k]->SetField(j, col_data[orig_id]);
+                    }
+                    if (stop_exporting)
+                        return;
                 }
                 
-            } else if (ftype == GdaConst::date_type) {
+            } else if (ftype == GdaConst::date_type ||
+                       ftype == GdaConst::time_type ||
+                       ftype == GdaConst::datetime_type ) {
                 
                 vector<wxInt64> col_data;
-                table->GetColData(col_pos, time_step, col_data);
+                table->GetColData(col_pos, time_step, col_data, undefs);
                 
                 for (size_t k=0; k<selected_rows.size();++k) {
-                    wxInt64 val = col_data[ selected_rows[k] ];
-                    int year    = val/10000;
-                    int month   = (val % 10000) /100;
-                    int day     = val % 10;
-                    data[k]->SetField(j, year, month, day);
+                    int orig_id = selected_rows[k];
+                    
+                    wxInt64 val = col_data[ orig_id ];
+                    int year = val / 10000000000;
+                    val = val % 10000000000;
+                    int month = val / 100000000;
+                    val = val % 100000000;
+                    int day = val  / 1000000;
+                    val = val % 1000000;
+                    int hour = val / 10000;
+                    val = val % 10000;
+                    int minute = val / 100;
+                    int second = val % 100;
+                    
+                    if (undefs[orig_id]) {
+                        data[k]->UnsetField(j);
+                    } else {
+                        data[k]->SetField(j, year, month, day, hour, minute, second);
+                    }
                     if (stop_exporting) return;
                 }
                 
@@ -442,7 +494,7 @@ OGRLayerProxy::AddFeatures(vector<OGRGeometry*>& geometries,
                 // others are treated as string_type
                 // XXX encodings
                 vector<wxString> col_data;
-                table->GetColData(col_pos, time_step, col_data);
+                table->GetColData(col_pos, time_step, col_data, undefs);
                 
                 if (ds_type == GdaConst::ds_csv) {
                     for (int m=0; m<col_data.size(); m++) {
@@ -452,7 +504,13 @@ OGRLayerProxy::AddFeatures(vector<OGRGeometry*>& geometries,
                 }
                 
                 for (size_t k=0; k<selected_rows.size();++k) {
-                    data[k]->SetField(j, col_data[ selected_rows[k] ].mb_str());
+                    int orig_id = selected_rows[k];
+                    
+                    if (undefs[orig_id]) {
+                        data[k]->UnsetField(j);
+                    } else {
+                        data[k]->SetField(j, col_data[orig_id].mb_str());
+                    }
                     if (stop_exporting) return;
                 }
             }
@@ -463,9 +521,11 @@ OGRLayerProxy::AddFeatures(vector<OGRGeometry*>& geometries,
     
     for (size_t i=0; i<data.size(); i++) {
         if (stop_exporting) return;
-        if ((i+1)%2==0) export_progress++;
+        if ((i+1)%2==0)
+            export_progress++;
         if( layer->CreateFeature( data[i] ) != OGRERR_NONE ) {
-			error_message << "Failed to create feature.\n" << CPLGetLastErrorMsg();
+            wxString msg = wxString::Format(" Failed to create feature (%d/%d).", i + 1, data.size());
+            error_message << msg;
             export_progress = -1;
 			return;
         }
@@ -528,6 +588,7 @@ bool OGRLayerProxy::ReadData()
     if (row_idx == 0) {
 		error_message << "GeoDa can't read data from datasource."
 		    << "\n\nDetails: Datasource is empty. "<< CPLGetLastErrorMsg();
+        
         return false;
     }
 	n_rows = row_idx;

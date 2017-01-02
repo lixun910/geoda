@@ -43,7 +43,10 @@ class CorrelogramFrame;
 class Project;
 typedef std::vector<double> vec_dbl_type;
 typedef std::vector<vec_dbl_type> vec_vec_dbl_type;
-typedef std::map<wxString, vec_vec_dbl_type> data_map_type; 
+typedef std::map<wxString, vec_vec_dbl_type> data_map_type;
+
+typedef std::vector<std::vector<bool> > vec_vec_bool_type;
+typedef std::map<wxString, vec_vec_bool_type> data_undef_map_type;
 
 /**
  CorrelogramFrame manages all of its canvas child windows.
@@ -52,10 +55,10 @@ class CorrelogramFrame : public TemplateFrame, public CorrelParamsObserver,
 public SimpleScatterPlotCanvasCbInt, public SimpleBinsHistCanvasCbInt
 {
 public:
-	CorrelogramFrame(wxFrame *parent, Project* project,
-											const wxString& title = "Scatter Plot Matrix",
-											const wxPoint& pos = wxDefaultPosition,
-											const wxSize& size = wxDefaultSize);
+    CorrelogramFrame(wxFrame *parent, Project* project,
+                     const wxString& title = _("Scatter Plot Matrix"),
+                     const wxPoint& pos = wxDefaultPosition,
+                     const wxSize& size = wxDefaultSize);
 	virtual ~CorrelogramFrame();
 	
 	void OnMouseEvent(wxMouseEvent& event);
@@ -98,6 +101,7 @@ protected:
 	CorrelParams par;
 	GdaVarTools::Manager var_man;
 	data_map_type data_map;
+	data_undef_map_type data_undef_map;
 	std::vector<CorrelogramAlgs::CorreloBin> cbins;
 	std::vector<SimpleScatterPlotCanvas*> scatt_plots;
 	std::vector<SimpleAxisCanvas*> vert_labels;

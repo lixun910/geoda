@@ -20,6 +20,7 @@
 
 
 #include <fstream>
+#include <wx/wx.h>
 #include <wx/checkbox.h>
 #include <wx/dir.h>
 #include <wx/dirdlg.h>
@@ -59,17 +60,20 @@ ExportDataDlg::ExportDataDlg(wxWindow* parent,
                              wxString projectFileName,
                              const wxPoint& pos,
                              const wxSize& size )
-: is_selected_only(isSelectedOnly), project_p(_project), project_file_name(projectFileName), is_saveas_op(true), is_geometry_only(false), is_table_only(false), is_save_centroids(false)
+: is_selected_only(isSelectedOnly),
+project_p(_project),
+project_file_name(projectFileName),
+is_saveas_op(true),
+is_geometry_only(false),
+is_table_only(false),
+is_save_centroids(false)
 {
     
-    LOG_MSG("Exiting ExportDataDlg::ExportDataDlg(..)");
     if( project_p ) {
         project_file_name = project_p->GetProjectTitle();
         table_p = project_p->GetTableInt();
     }
     Init(parent, pos);
-    
-    LOG_MSG("Exiting ExportDataDlg::ExportDataDlg(..)");
 }
 
 ExportDataDlg::ExportDataDlg(wxWindow* parent,
@@ -122,11 +126,9 @@ ExportDataDlg::ExportDataDlg(wxWindow* parent,
 }
 
 
-
-
-
 void ExportDataDlg::Init(wxWindow* parent, const wxPoint& pos)
 {
+    wxLogMessage("Open ExportDataDlg in its Init()");
     DatasourceDlg::Init();
     
     is_create_project = project_file_name.empty() ? false : true;
@@ -173,6 +175,8 @@ void ExportDataDlg::CreateControls()
 
 void ExportDataDlg::BrowseExportDataSource ( wxCommandEvent& event )
 {
+    wxLogMessage("In ExportDataDlg::BrowseExportDataSource()");
+    
     // for datasource file, we should support many file types:
     // SHP, DBF, CSV, GML, ...
     //bool table_only = m_chk_table_only->IsChecked();
@@ -185,8 +189,8 @@ void ExportDataDlg::BrowseExportDataSource ( wxCommandEvent& event )
     if (name.Contains(filegdb_ext)) {
         // directory data source, such as ESRI .gdb directory
         //do {
-        wxDirDialog dlg(this, "Select an existing *.gdb directory, "
-                        "or create an New Folder named *.gdb","",
+        wxString msg = _("Select an existing *.gdb directory, or create an New Folder named *.gdb");
+        wxDirDialog dlg(this, msg,"",
                         wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
         if (dlg.ShowModal() != wxID_OK) 
             return;
@@ -195,7 +199,7 @@ void ExportDataDlg::BrowseExportDataSource ( wxCommandEvent& event )
             ds_file_path.SetExt(filegdb_ext);
         //} while (!ds_file_path.EndsWith(".gdb"))
     } else {
-        wxFileDialog dlg(this, "Export or save layer to", "", "",
+        wxFileDialog dlg(this, _("Export or save layer to"), "", "",
                          wildcard, wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
         if (dlg.ShowModal() != wxID_OK) 
             return;
@@ -209,11 +213,7 @@ void ExportDataDlg::BrowseExportDataSource ( wxCommandEvent& event )
     // construct the export datasource file name
     wxString ext_str;
     if (ds_file_path.GetExt().IsEmpty()){
-        wxString msg; 
-        msg << "Can't get datasource type from: ";
-        msg << ds_file_path.GetFullPath();
-        msg << "\n\nPlease select datasource supported by GeoDa or add ";
-        msg << "extension  to file datasource.";
+        wxString msg = wxString::Format(_("Can't get datasource type from: %s\n\nPlease select datasource supported by GeoDa or add extension  to file datasource."),  ds_file_path.GetFullPath());
         wxMessageDialog dlg(this, msg, "Warning", wxOK | wxICON_WARNING);
         dlg.ShowModal();
         return;
@@ -231,16 +231,18 @@ void ExportDataDlg::BrowseExportDataSource ( wxCommandEvent& event )
  */
 void ExportDataDlg::OnOkClick( wxCommandEvent& event )
 {
+    wxLogMessage("In ExportDataDlg::OnOkClick()");
     
     int datasource_type = m_ds_notebook->GetSelection();
     IDataSource* datasource = GetDatasource();
     wxString ds_name = datasource->GetOGRConnectStr();
     datasource_name = ds_name;
 	GdaConst::DataSourceType ds_type = datasource->GetType();
-    
+   
+    wxLogMessage(_("ds:") + ds_name);
     if (ds_name.length() <= 0 ) {
-        wxMessageDialog dlg(this, "Please specify a valid data source name.",
-                            "Warning", 
+        wxMessageDialog dlg(this, _("Please specify a valid data source name."),
+                            _("Warning"),
                             wxOK | wxICON_WARNING);
         dlg.ShowModal();
         return;
@@ -306,17 +308,15 @@ void ExportDataDlg::OnOkClick( wxCommandEvent& event )
                         ds_type == GdaConst::ds_shapefile) {
                         // can't save a table-only ds to non-table-only ds,
                         // if there is no new geometries to be saved.
-                        wxString msg = "GeoDa can't save a Table-only data "
-                        "source as a Geometry enabled data source. Please try to add a geometry layer and then use File->Save As.";
+                        wxString msg = _("GeoDa can't save a Table-only data source as a Geometry enabled data source. Please try to add a geometry layer and then use File->Save As.");
                         throw GdaException(msg.mb_str());
                     }
                 }
             } else if ( !o_ds_table_only && n_ds_table_only) {
                 if (is_save_centroids == false && shape_type == Shapefile::NULL_SHAPE) {
                     // possible loss geom data save a non-table ds to table-only ds
-                    wxString msg = "The geometries will not be saved when exporting to a Table-only data source.\n\n"
-                    "Do you want to continue?";
-                    wxMessageDialog dlg(this, msg, "Warning: loss data",
+                    wxString msg = _("The geometries will not be saved when exporting to a Table-only data source.\n\nDo you want to continue?");
+                    wxMessageDialog dlg(this, msg, _("Warning: loss data"),
                                         wxYES_NO | wxICON_WARNING);
                     if (dlg.ShowModal() != wxID_YES)
                         return;
@@ -350,7 +350,7 @@ void ExportDataDlg::OnOkClick( wxCommandEvent& event )
 
         
         if( !CreateOGRLayer(ds_name, spatial_ref, is_update) ) {
-            wxString msg = "Save As has been cancelled.";
+            wxString msg = _("Save As has been cancelled.");
             throw GdaException(msg.mb_str(), GdaException::NORMAL);
         }
         // save project file
@@ -366,7 +366,7 @@ void ExportDataDlg::OnOkClick( wxCommandEvent& event )
                 // E.g. export a shape file to PostgreGIS layer, then the new
                 // project file should has <datasource> content of database
                 // configuration
-                wxString file_dlg_title = "GeoDa Project to Save As";
+                wxString file_dlg_title = _("GeoDa Project to Save As");
                 wxString file_dlg_type =  "GeoDa Project (*.gda)|*.gda";
                 wxFileDialog dlg(this, file_dlg_title, wxEmptyString,
                                  wxEmptyString, file_dlg_type,
@@ -408,7 +408,7 @@ void ExportDataDlg::OnOkClick( wxCommandEvent& event )
                 wxRemoveFile(tmp_ds_name);
             }
         }
-		wxMessageDialog dlg(this, e.what() , "Error", wxOK | wxICON_ERROR);
+		wxMessageDialog dlg(this, e.what() , _("Error"), wxOK | wxICON_ERROR);
 		dlg.ShowModal();
 		return;
 	}
@@ -433,7 +433,7 @@ void ExportDataDlg::ExportOGRLayer(wxString& ds_name, bool is_update)
     OGRTable* tbl = dynamic_cast<OGRTable*>(project_p->GetTableInt());
 	if (!tbl) {
 		// DBFTable case, try to read into
-        wxString msg = "Only OGR datasource can be saved as.";
+        wxString msg = _("Only OGR datasource can be saved as.");
 		throw GdaException(msg.mb_str());
 	}
 
@@ -442,8 +442,8 @@ void ExportDataDlg::ExportOGRLayer(wxString& ds_name, bool is_update)
     layer->T_Export(ds_format.ToStdString(), ds_name.ToStdString(),
                     layer_name.ToStdString(), is_update);
     int prog_n_max = project_p->GetNumRecords();
-    wxProgressDialog prog_dlg("Save As progress dialog",
-                              "Saving data...",
+    wxProgressDialog prog_dlg(_("Save As progress dialog"),
+                              _("Saving data..."),
                               prog_n_max, // range
                               this,
                               wxPD_CAN_ABORT|wxPD_AUTO_HIDE|wxPD_APP_MODAL);
@@ -457,11 +457,8 @@ void ExportDataDlg::ExportOGRLayer(wxString& ds_name, bool is_update)
             return;
         }
         if (layer->export_progress == -1){
-            ostringstream msg;
-            msg << "Saving to data source (" << ds_name.ToStdString()
-            << ") failed." << "\n\nDetails:" 
-            << layer->error_message.str();
-            throw GdaException(msg.str().c_str());
+            wxString msg = wxString::Format(_("Saving to data source (%s) failed.\n\nDetails: %s"), ds_name, layer->error_message.str());
+            throw GdaException(msg.c_str());
         }
     }
 }
@@ -490,7 +487,7 @@ ExportDataDlg::CreateOGRLayer(wxString& ds_name,
         if (num_obs == 0) num_obs = project_p->GetNumRecords();
         if (num_obs == 0) {
             ostringstream msg;
-            msg << "Saving failed: GeoDa can't save as empty datasource.";
+            msg << _("Saving failed: GeoDa can't save as empty datasource.");
             throw GdaException(msg.str().c_str());
         }
         
@@ -570,14 +567,23 @@ ExportDataDlg::CreateOGRLayer(wxString& ds_name,
     
     if (prog_n_max == 0 && table_p)
         prog_n_max = table_p->GetNumberRows();
-    
-    OGRLayerProxy* new_layer = OGRDataAdapter::GetInstance().ExportDataSource(ds_format.ToStdString(), ds_name.ToStdString(), layer_name.ToStdString(), geom_type, ogr_geometries, table_p, selected_rows, spatial_ref, is_update);
-    
+   
+    OGRDataAdapter& ogr_adapter = OGRDataAdapter::GetInstance();
+    OGRLayerProxy* new_layer =
+    ogr_adapter.ExportDataSource(ds_format.ToStdString(),
+                                 ds_name.ToStdString(),
+                                 layer_name.ToStdString(),
+                                 geom_type,
+                                 ogr_geometries,
+                                 table_p,
+                                 selected_rows,
+                                 spatial_ref,
+                                 is_update);
     if (new_layer == NULL)
         return false;
     
-    wxProgressDialog prog_dlg("Save data source progress dialog",
-                              "Saving data...",
+    wxProgressDialog prog_dlg(_("Save data source progress dialog"),
+                              _("Saving data..."),
                               prog_n_max, this,
                               wxPD_CAN_ABORT|wxPD_AUTO_HIDE|wxPD_APP_MODAL);
     bool cont = true;
@@ -593,10 +599,8 @@ ExportDataDlg::CreateOGRLayer(wxString& ds_name,
             return false;
         }
         if (new_layer->export_progress == -1){
-            ostringstream msg;
-            msg << "Saving as data source (" << ds_name.ToStdString()
-            << ") failed." << "\n\nDetails:" << new_layer->error_message.str();
-            throw GdaException(msg.str().c_str());
+            wxString msg = wxString::Format(_("Saving to data source (%s) failed.\n\nDetails: %s"), ds_name, new_layer->error_message.str());
+            throw GdaException(msg.c_str());
         }
     }
     
@@ -671,10 +675,7 @@ IDataSource* ExportDataDlg::GetDatasource()
         else if (cur_sel == DBTYPE_MYSQL) ds_type = GdaConst::ds_mysql;
         //else if (cur_sel == 4) ds_type = GdaConst::ds_ms_sql;
         else {
-            wxString msg = "The selected database driver is not supported "
-            "on this platform. Please check GeoDa website "
-            "for more information about database support "
-            " and connection.";
+            wxString msg = _("The selected database driver is not supported on this platform. Please check GeoDa website for more information about database support and connection.");
             throw GdaException(msg.mb_str());
         }
         
@@ -688,7 +689,7 @@ IDataSource* ExportDataDlg::GetDatasource()
         if (!error_msg.IsEmpty()) throw GdaException(error_msg.mb_str());
         
         ds_format = IDataSource::GetDataTypeNameByGdaDSType(ds_type);
-        return new DBDataSource(dbname,dbhost,dbport,dbuser,dbpwd,ds_type);
+        return new DBDataSource(ds_type, dbname,dbhost,dbport,dbuser,dbpwd);
         //ds_name = ds.GetOGRConnectStr();
         
     } else {
@@ -712,7 +713,7 @@ IDataSource* ExportDataDlg::GetDatasource()
         
         ds_format = IDataSource::GetDataTypeNameByGdaDSType(GdaConst::ds_cartodb);
         
-        return new WebServiceDataSource(url, GdaConst::ds_cartodb);
+        return new WebServiceDataSource(GdaConst::ds_cartodb, url);
     }
     return NULL;
 }
