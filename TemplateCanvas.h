@@ -268,18 +268,10 @@ public:
                                         bool crosshatch= false);
     void helper_DrawSelectableShapes_gc(wxGraphicsContext &gc, bool hl_only=false,
                                         bool revert=false,
-                                        bool crosshatch= false);
+                                        bool crosshatch= false,
+										int alpha=255);
     
 
-    void SetTransparency(double _transparency) {
-        transparency = _transparency;
-    };
-    
-    double GetTransparency() {
-        return transparency;
-    }
-    
-    
 	void GetVizInfo(std::map<wxString, std::vector<int> >& colors);
 	
     void GetVizInfo(wxString& shape_type,
@@ -366,7 +358,6 @@ protected:
 	TemplateFrame* template_frame;
 
     bool isResize;
-    double transparency;
     
 	virtual void UpdateSelectableOutlineColors();
 	// The following five methods enable the use of a custom

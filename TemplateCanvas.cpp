@@ -103,7 +103,7 @@ selectable_fill_color(GdaConst::selectable_fill_color),
 highlight_color(GdaConst::highlight_color),
 canvas_background_color(GdaConst::canvas_background_color),
 selectable_shps_type(mixed), use_category_brushes(false),
-draw_sel_shps_by_z_val(false), transparency(0.5),
+draw_sel_shps_by_z_val(false),
 isResize(false), 
 layer0_bm(0), layer1_bm(0), layer2_bm(0), faded_layer_bm(0),
 layer0_valid(false), layer1_valid(false), layer2_valid(false),
@@ -168,9 +168,9 @@ void TemplateCanvas::resizeLayerBms(int width, int height)
 {
 	deleteLayerBms();
 
-	layer0_bm = new wxBitmap(width, height);
-	layer1_bm = new wxBitmap(width, height);
-	layer2_bm = new wxBitmap(width, height);
+	layer0_bm = new wxBitmap(width, height, 32);
+	layer1_bm = new wxBitmap(width, height, 32);
+	layer2_bm = new wxBitmap(width, height, 32);
 	
 	layer0_valid = false;
 	layer1_valid = false;
@@ -816,29 +816,11 @@ void TemplateCanvas::DrawHighlightedShapes(wxMemoryDC &dc)
 void TemplateCanvas::DrawSelectableShapes_dc(wxMemoryDC &_dc, bool hl_only,
                                              bool revert)
 {
-#ifdef __WIN32__
-
-	// MSW (Direct2D)
-#if wxUSE_GRAPHICS_DIRECT2D 
-    wxGraphicsRenderer* renderer = wxGraphicsRenderer::GetDirect2DRenderer(); 
-    wxGraphicsContext* context = renderer->CreateContext (_dc);
-
-    wxGCDC gdc;
-	gdc.SetGraphicsContext (context); 
-    helper_DrawSelectableShapes_dc(gdc, hl_only, revert);
+#ifdef __WXOSX__
+    wxGCDC dc(_dc);
+    helper_DrawSelectableShapes_dc(dc, hl_only, revert);
 #else
-	// MSW (GDIPlus)
 	helper_DrawSelectableShapes_dc(_dc, hl_only, revert);
-#endif
-    
-#else
-	// mac OSX and Linux (GTK: cairo)
-    wxGraphicsRenderer* renderer = wxGraphicsRenderer::GetDefaultRenderer();
-    wxGraphicsContext* context = renderer->CreateContext (_dc);
-	//helper_DrawSelectableShapes_gc(*gc, hl_only, revert);
-    wxGCDC gdc;
-    gdc.SetGraphicsContext (context);
-    helper_DrawSelectableShapes_dc(gdc, hl_only, revert);
 #endif
 }
 
@@ -871,9 +853,9 @@ void TemplateCanvas::helper_DrawSelectableShapes_dc(wxDC &dc, bool hl_only,
                 dc.SetPen(wxPen(highlight_color));
             } else {
                 wxColour clr = cat_data.GetCategoryColor(cc_ts, cat);
-                wxColour new_clr( clr.Red(), clr.Green(), clr.Blue(), GdaConst::plot_transparency_highlighted);
-                dc.SetPen(wxPen(new_clr));
-                //dc.SetPen(cat_data.GetCategoryColor(cc_ts, cat));
+                //wxColour new_clr( clr.Red(), clr.Green(), clr.Blue(), GdaConst::plot_transparency_highlighted);
+                //dc.SetPen(wxPen(new_clr));
+                dc.SetPen(wxPen(clr));
             }
 
 			vector<int>& ids =	cat_data.GetIdsRef(cc_ts, cat);
@@ -942,18 +924,18 @@ void TemplateCanvas::helper_DrawSelectableShapes_dc(wxDC &dc, bool hl_only,
             } else {
                 if (selectable_outline_visible) {
                     wxPen pen = cat_data.GetCategoryPen(cc_ts, cat);
-                    wxColour clr = pen.GetColour();
-                    wxColour new_clr(clr.Red(), clr.Green(), clr.Blue(), GdaConst::plot_transparency_highlighted);
-                    pen.SetColour(new_clr);
+                    //wxColour clr = pen.GetColour();
+                    //wxColour new_clr(clr.Red(), clr.Green(), clr.Blue(), GdaConst::plot_transparency_highlighted);
+                    //pen.SetColour(new_clr);
                     dc.SetPen(pen);
                     
                 } else {
                     dc.SetPen(*wxTRANSPARENT_PEN);
                 }
                 wxBrush brush =  cat_data.GetCategoryBrush(cc_ts, cat);
-                wxColour clr = brush.GetColour();
-                wxColour new_clr(clr.Red(), clr.Green(), clr.Blue(), GdaConst::plot_transparency_highlighted);
-                brush.SetColour(new_clr);
+                //wxColour clr = brush.GetColour();
+                //wxColour new_clr(clr.Red(), clr.Green(), clr.Blue(), GdaConst::plot_transparency_highlighted);
+                //brush.SetColour(new_clr);
                 dc.SetBrush(brush);
             }
 			vector<int>& ids = cat_data.GetIdsRef(cc_ts, cat);
@@ -980,8 +962,9 @@ void TemplateCanvas::helper_DrawSelectableShapes_dc(wxDC &dc, bool hl_only,
             } else {
                 //dc.SetPen(cat_data.GetCategoryColor(cc_ts, cat));
                 wxColour clr = cat_data.GetCategoryColor(cc_ts, cat);
-                wxColour new_clr( clr.Red(), clr.Green(), clr.Blue(), GdaConst::plot_transparency_highlighted);
-                dc.SetPen(wxPen(new_clr));
+                //wxColour new_clr( clr.Red(), clr.Green(), clr.Blue(), GdaConst::plot_transparency_highlighted);
+                //dc.SetPen(wxPen(new_clr));
+                dc.SetPen(wxPen(clr));
                 
             }
 			vector<int>& ids = cat_data.GetIdsRef(cc_ts, cat);
@@ -1003,9 +986,12 @@ void TemplateCanvas::helper_DrawSelectableShapes_dc(wxDC &dc, bool hl_only,
 // draw unhighlighted selectable shapes with wxGraphicsContext
 void TemplateCanvas::helper_DrawSelectableShapes_gc(wxGraphicsContext &gc,
                                                     bool hl_only,
-                                                    bool revert, bool crosshatch)
+                                                    bool revert, 
+													bool crosshatch,
+													int alpha)
 {
     gc.SetAntialiasMode(wxANTIALIAS_NONE);
+    gc.SetInterpolationQuality( wxINTERPOLATION_NONE );
     vector<bool>& hs = GetSelBitVec();
     
     int cc_ts = cat_data.curr_canvas_tm_step;
@@ -1033,14 +1019,14 @@ void TemplateCanvas::helper_DrawSelectableShapes_gc(wxGraphicsContext &gc,
                 char r = penClr.Red();
                 char b = penClr.Blue();
                 char g = penClr.Green();
-                wxColour newClr(r, g, b, GdaConst::plot_transparency_highlighted);
+                wxColour newClr(r, g, b, alpha);
                 gc.SetPen(wxPen(newClr));
             }
             std::vector<int>& ids = cat_data.GetIdsRef(cc_ts, cat);
             wxGraphicsPath path = gc.CreatePath();
             
             for (int i=0, iend=ids.size(); i<iend; i++) {
-                if (!_IsShpValid(ids[i]) || (hl_only && hs[ids[i]])) {
+                if (!_IsShpValid(ids[i]) || (hl_only && hs[ids[i]]== revert)) {
                     continue;
                 }
                 p = (GdaPoint*) selectable_shps[ids[i]];
@@ -1070,7 +1056,7 @@ void TemplateCanvas::helper_DrawSelectableShapes_gc(wxGraphicsContext &gc,
                 char r = brushClr.Red();
                 char b = brushClr.Blue();
                 char g = brushClr.Green();
-                wxColour newClr(r, g, b, GdaConst::plot_transparency_highlighted);
+                wxColour newClr(r, g, b, alpha);
                 wxBrush newBrush(newClr);
                 gc.SetBrush(newBrush);
             }
@@ -1079,7 +1065,7 @@ void TemplateCanvas::helper_DrawSelectableShapes_gc(wxGraphicsContext &gc,
             
             for (int i=0, iend=ids.size(); i<iend; i++) {
                 wxGraphicsPath path = gc.CreatePath();
-                if (!_IsShpValid(ids[i]) || (hl_only && hs[ids[i]]) ) {
+                if (!_IsShpValid(ids[i]) || (hl_only && hs[ids[i]]== revert) ) {
                     continue;
                 }
                 p = (GdaPolygon*) selectable_shps[ids[i]];
@@ -1116,10 +1102,8 @@ void TemplateCanvas::helper_DrawSelectableShapes_gc(wxGraphicsContext &gc,
             } else {
                 wxColour penClr = cat_data.GetCategoryPen(cc_ts, cat).GetColour();
                 wxColour brushClr = cat_data.GetCategoryBrush(cc_ts, cat).GetColour();
-                wxColour newPenClr(penClr.Red(), penClr.Green(), penClr.Blue(),
-                                   GdaConst::plot_transparency_highlighted);
-                wxColour newBrushClr(brushClr.Red(), brushClr.Green(), brushClr.Blue(),
-                                     GdaConst::plot_transparency_highlighted);
+                wxColour newPenClr(penClr.Red(), penClr.Green(), penClr.Blue(), alpha);
+                wxColour newBrushClr(brushClr.Red(), brushClr.Green(), brushClr.Blue(), alpha);
                 gc.SetPen(wxPen(newPenClr));
                 gc.SetBrush(wxBrush(newBrushClr));
             }
@@ -1127,7 +1111,7 @@ void TemplateCanvas::helper_DrawSelectableShapes_gc(wxGraphicsContext &gc,
             std::vector<int>& ids = cat_data.GetIdsRef(cc_ts, cat);
             if (selectable_outline_visible) {
                 for (int i=0, iend=ids.size(); i<iend; i++) {
-                    if (!_IsShpValid(ids[i]) || (hl_only && hs[ids[i]]) ) {
+                    if (!_IsShpValid(ids[i]) || (hl_only && hs[ids[i]]== revert) ) {
                         continue;
                     }
                     c = (GdaCircle*) selectable_shps[ids[i]];
@@ -1142,7 +1126,7 @@ void TemplateCanvas::helper_DrawSelectableShapes_gc(wxGraphicsContext &gc,
                 // than filling them one at a time.  This does not appear
                 // to be true for polygons.
                 for (int i=0, iend=ids.size(); i<iend; i++) {
-                    if (!_IsShpValid(ids[i]) || (hl_only && hs[ids[i]]) ) {
+                    if (!_IsShpValid(ids[i]) || (hl_only && hs[ids[i]]== revert) ) {
                         continue;
                     }
                     c = (GdaCircle*) selectable_shps[ids[i]];
@@ -1162,15 +1146,14 @@ void TemplateCanvas::helper_DrawSelectableShapes_gc(wxGraphicsContext &gc,
         GdaPolyLine* s = 0;
         for (int cat=0; cat<num_cats; cat++) {
             wxColour penClr = cat_data.GetCategoryPen(cc_ts, cat).GetColour();
-            wxColour newPenClr(penClr.Red(), penClr.Green(), penClr.Blue(),
-                               GdaConst::plot_transparency_highlighted);
+            wxColour newPenClr(penClr.Red(), penClr.Green(), penClr.Blue(),alpha);
             
             gc.SetPen(wxPen(newPenClr));
             
             std::vector<int>& ids =	cat_data.GetIdsRef(cc_ts, cat);
             wxGraphicsPath path = gc.CreatePath();
             for (int i=0, iend=ids.size(); i<iend; i++) {
-                if (!_IsShpValid(ids[i]) || (hl_only && hs[ids[i]]) ) {
+                if (!_IsShpValid(ids[i]) || (hl_only && hs[ids[i]]== revert) ) {
                     continue;
                 }
                 s = (GdaPolyLine*) selectable_shps[ids[i]];
@@ -2090,7 +2073,7 @@ void TemplateCanvas::SelectAllInCategory(int category,
 	
 	if ( selection_changed ) {
 		highlight_state->SetEventType(HLStateInt::delta);
-		highlight_state->notifyObservers(this);
+		highlight_state->notifyObservers();
 	}
 }
 
