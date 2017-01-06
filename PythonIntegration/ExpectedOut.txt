@@ -1,0 +1,58 @@
+Test1:Test RunFile Function
+Enter runFileMain main
+Enter runFileMain mul
+Enter runFileMain multiply
+Expected Result: 6
+Actual Result:  6
+
+
+Test2:Test RunModule Function without Args
+Enter runFileMain main
+Enter runFileMain mul
+Enter runFileMain multiply
+Expected Result: 6
+Actual Result:  6
+Enter support main
+Enter support mul
+Enter support multiply
+Expected Support Result:  6
+Actual Support Result:  6
+
+
+Test3:Test RunModule Function with Integer Args
+Enter runFileMain main
+Enter runFileMain mul
+Enter runFileMain multiply
+Expected Result:  20
+Actual Result:  20
+Enter support main
+Enter support mul
+Enter support multiply
+Expected Support Result:  20
+Actual Support Result:  20
+Result of call: 20
+
+
+Test4:Test RunModule Function with String Args
+Enter runFileMain main
+Enter runFileMain mul
+Enter runFileMain multiply
+String Received:
+Hello
+World
+Result of call: 1
+
+
+Test5:Test RunModule Function with List Args
+Enter list main
+Enter list mul
+Enter list multiply
+List1:
+List1
+6
+List2:
+7
+List2
+Result of call: 1
+
+
