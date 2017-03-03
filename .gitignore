@@ -1,5 +1,10 @@
 *~
 
+BuildTools/centos/build/
+BuildTools/centos/temp/
+BuildTools/centos/libraries/
+o/
+
 BuildTools/windows/temp/
 BuildTools/windows/Debug/
 BuildTools/windows/Release/
