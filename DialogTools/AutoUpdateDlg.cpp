@@ -229,10 +229,10 @@ wxString AutoUpdate::GetCheckList()
         isTestMode = true;
     }
    
-    wxString checklistUrl = "http://geodacenter.github.io/updates/checklist";
+    wxString checklistUrl = "https://s3.amazonaws.com/geodaupdate/checklist";
     
     if (isTestMode) {
-        checklistUrl = "http://geodacenter.github.io/updates/test.checklist";
+        checklistUrl = "https://s3.amazonaws.com/geodaupdate/test.checklist";
     }
     
     // download checklist.txt
@@ -243,7 +243,15 @@ wxString AutoUpdate::GetCheckList()
             checklistUrl += ".win64.txt";
         }
     } else if (GeneralWxUtils::isMac()) {
-        checklistUrl += ".macosx.txt";
+        int majorVsn = 0;
+        int minorVsn = 0;
+        wxGetOsVersion(&majorVsn, &minorVsn);
+        if (minorVsn == 6) {
+            checklistUrl += ".macosx106.txt";
+        } else {
+            checklistUrl += ".macosx107.txt";
+            
+        }
     } else {
         // we don't support auto update on other platforms
         return "";
