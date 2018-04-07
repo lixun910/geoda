@@ -54,6 +54,7 @@
 		A45DBDF41EDDEDAD00C2AA8A /* pca.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A45DBDF11EDDEDAD00C2AA8A /* pca.cpp */; };
 		A45DBDF51EDDEDAD00C2AA8A /* cluster.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A45DBDF31EDDEDAD00C2AA8A /* cluster.cpp */; };
 		A45DBDFA1EDDEE4D00C2AA8A /* maxp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A45DBDF81EDDEE4D00C2AA8A /* maxp.cpp */; };
+		A47614AE20759EAD00D9F3BE /* arcgis_swm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A47614AD20759EAD00D9F3BE /* arcgis_swm.cpp */; };
 		A47FC9DB1F74DE1600BEFBF2 /* MLJCCoordinator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A47FC9D91F74DE1600BEFBF2 /* MLJCCoordinator.cpp */; };
 		A48356BB1E456310002791C8 /* ConditionalClusterMapView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A48356B91E456310002791C8 /* ConditionalClusterMapView.cpp */; };
 		A496C99E1E6A184C008F87DD /* samples.sqlite in Resources */ = {isa = PBXBuildFile; fileRef = A496C99D1E6A184C008F87DD /* samples.sqlite */; };
@@ -74,6 +75,7 @@
 		A496C9C51E6A441D008F87DD /* watermark-20.png in Resources */ = {isa = PBXBuildFile; fileRef = A496C9C41E6A441D008F87DD /* watermark-20.png */; };
 		A49F56DD1E956FCC000309CE /* HClusterDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A49F56DB1E956FCC000309CE /* HClusterDlg.cpp */; };
 		A4A763F41F69FB3B00EE79DD /* ColocationMapView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4A763F21F69FB3B00EE79DD /* ColocationMapView.cpp */; };
+		A4B1F994207730FA00905246 /* matlab_mat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4B1F992207730FA00905246 /* matlab_mat.cpp */; };
 		A4C4ABFB1F97DA2D00085D47 /* MLJCMapNewView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4C4ABF91F97DA2D00085D47 /* MLJCMapNewView.cpp */; };
 		A4D5423D1F45037B00572878 /* redcap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4D5423B1F45037B00572878 /* redcap.cpp */; };
 		A4D9A31F1E4D5F3800EF584C /* gdaldata in Resources */ = {isa = PBXBuildFile; fileRef = A4D9A31E1E4D5F3800EF584C /* gdaldata */; };
@@ -363,6 +365,8 @@
 		A45DBDF81EDDEE4D00C2AA8A /* maxp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = maxp.cpp; path = Algorithms/maxp.cpp; sourceTree = "<group>"; };
 		A45DBDF91EDDEE4D00C2AA8A /* maxp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = maxp.h; path = Algorithms/maxp.h; sourceTree = "<group>"; };
 		A46DFA8F1FA92145007F5923 /* texttable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = texttable.h; path = Algorithms/texttable.h; sourceTree = "<group>"; };
+		A47614AB20759E5600D9F3BE /* arcgis_swm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = arcgis_swm.h; path = io/arcgis_swm.h; sourceTree = "<group>"; };
+		A47614AD20759EAD00D9F3BE /* arcgis_swm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = arcgis_swm.cpp; path = io/arcgis_swm.cpp; sourceTree = "<group>"; };
 		A47FC9D91F74DE1600BEFBF2 /* MLJCCoordinator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLJCCoordinator.cpp; sourceTree = "<group>"; };
 		A47FC9DA1F74DE1600BEFBF2 /* MLJCCoordinator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLJCCoordinator.h; sourceTree = "<group>"; };
 		A47FC9DC1F74E31800BEFBF2 /* MLJCCoordinatorObserver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLJCCoordinatorObserver.h; sourceTree = "<group>"; };
@@ -389,6 +393,8 @@
 		A49F56DC1E956FCC000309CE /* HClusterDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HClusterDlg.h; sourceTree = "<group>"; };
 		A4A763F21F69FB3B00EE79DD /* ColocationMapView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColocationMapView.cpp; sourceTree = "<group>"; };
 		A4A763F31F69FB3B00EE79DD /* ColocationMapView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColocationMapView.h; sourceTree = "<group>"; };
+		A4B1F992207730FA00905246 /* matlab_mat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = matlab_mat.cpp; path = io/matlab_mat.cpp; sourceTree = "<group>"; };
+		A4B1F9952077311F00905246 /* matlab_mat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = matlab_mat.h; path = io/matlab_mat.h; sourceTree = "<group>"; };
 		A4C4ABF91F97DA2D00085D47 /* MLJCMapNewView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLJCMapNewView.cpp; sourceTree = "<group>"; };
 		A4C4ABFA1F97DA2D00085D47 /* MLJCMapNewView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLJCMapNewView.h; sourceTree = "<group>"; };
 		A4D5423B1F45037B00572878 /* redcap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = redcap.cpp; path = Algorithms/redcap.cpp; sourceTree = "<group>"; };
@@ -842,6 +848,17 @@
 			name = _InternalData;
 			sourceTree = "<group>";
 		};
+		A47614AC20759E6100D9F3BE /* io */ = {
+			isa = PBXGroup;
+			children = (
+				A4B1F9952077311F00905246 /* matlab_mat.h */,
+				A4B1F992207730FA00905246 /* matlab_mat.cpp */,
+				A47614AD20759EAD00D9F3BE /* arcgis_swm.cpp */,
+				A47614AB20759E5600D9F3BE /* arcgis_swm.h */,
+			);
+			name = io;
+			sourceTree = "<group>";
+		};
 		DD7686D41A9FF446009EFC6D /* libgdiam */ = {
 			isa = PBXGroup;
 			children = (
@@ -854,6 +871,7 @@
 		DD7974650F1D1B0700496A84 /* ../../ */ = {
 			isa = PBXGroup;
 			children = (
+				A47614AC20759E6100D9F3BE /* io */,
 				A45DBDEF1EDDDD2600C2AA8A /* Algorithms */,
 				A45DBDF61EDDEDC400C2AA8A /* _SampleImages */,
 				A45DBDF71EDDEDDA00C2AA8A /* _InternalData */,
@@ -1630,6 +1648,7 @@
 				DD92D22417BAAF2300F8FE01 /* TimeEditorDlg.cpp in Sources */,
 				A1DA623A17BCBC070070CAAB /* AutoCompTextCtrl.cpp in Sources */,
 				A1B93AC017D18735007F8195 /* ProjectConf.cpp in Sources */,
+				A4B1F994207730FA00905246 /* matlab_mat.cpp in Sources */,
 				A48356BB1E456310002791C8 /* ConditionalClusterMapView.cpp in Sources */,
 				A4596B4E2033DB8E00C9BCC8 /* AbstractCoordinator.cpp in Sources */,
 				DD92851C17F5FC7300B9481A /* VarOrderPtree.cpp in Sources */,
@@ -1656,6 +1675,7 @@
 				DD817EA819676AF100228B0A /* WeightsManState.cpp in Sources */,
 				DD8183C3197054CA00228B0A /* WeightsMapCanvas.cpp in Sources */,
 				DD8183C81970619800228B0A /* WeightsManDlg.cpp in Sources */,
+				A47614AE20759EAD00D9F3BE /* arcgis_swm.cpp in Sources */,
 				DD81857C19709B7800228B0A /* ConnectivityMapView.cpp in Sources */,
 				DD4DED12197E16FF00FE29E8 /* SelectWeightsDlg.cpp in Sources */,
 				DD5AA73D1982D200009B30C6 /* CalcHelp.cpp in Sources */,
