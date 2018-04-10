@@ -228,7 +228,7 @@ bool GdaApp::OnInit(void)
 {
 	if (!wxApp::OnInit())
         return false;
-    
+   
     // initialize OGR connection
 	OGRDataAdapter::GetInstance();
     
@@ -290,6 +290,11 @@ bool GdaApp::OnInit(void)
     
     // load preferences
     PreferenceDlg::ReadFromCache();
+    
+    // load language here:
+    // GdaConst::gda_ui_language
+    // value 0: english
+    // value 1: chinese
    
     // Other GDAL configurations
     if (GdaConst::hide_sys_table_postgres == false) {
@@ -405,7 +410,7 @@ bool GdaApp::OnInit(void)
                         OGRDataAdapter::GetInstance().AddEntry("gda_user_email", user_email.ToStdString());
                         GdaConst::gda_user_email = user_email;
                     }
-                    wxString ttl = _("Crash Report");
+                    wxString ttl = "Crash Report";
                     wxString body;
                     body << "From: " << user_email << "\n Details:";
                     ReportBugDlg::CreateIssue(ttl, body);
