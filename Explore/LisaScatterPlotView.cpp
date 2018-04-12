@@ -36,7 +36,7 @@
 #include "../DialogTools/PermutationCounterDlg.h"
 #include "../DialogTools/RandomizationDlg.h"
 #include "../DialogTools/SaveToTableDlg.h"
-#include "../ShapeOperations/ShapeUtils.h"
+
 #include "LisaCoordinator.h"
 #include "LisaScatterPlotView.h"
 
@@ -809,6 +809,10 @@ void LisaScatterPlotCanvas::ShowRandomizationDialog(int permutation)
 	std::vector<double> raw_data1(num_obs);
     
 	int xt = var_info_orig[0].time-var_info_orig[0].time_min;
+    if (is_diff) {
+        // in case its differential moran, there is only one grouped variable
+        xt = 0;
+    }
 	for (int i=0; i<num_obs; i++) {
 		raw_data1[i] = lisa_coord->data1_vecs[xt][i];
 	}

@@ -39,7 +39,6 @@
 
 #include "../Project.h"
 #include "../DataViewer/TableInterface.h"
-#include "../DataViewer/DbfTable.h"
 #include "../DataViewer/DataSource.h"
 #include "../GenUtils.h"
 #include "../logger.h"
@@ -225,7 +224,7 @@ void ExportDataDlg::BrowseExportDataSource ( wxCommandEvent& event )
     wxString ext_str;
     if (ds_file_path.GetExt().IsEmpty()) {
         wxString msg = wxString::Format(_("Can't get datasource type from: %s\n\nPlease select datasource supported by GeoDa or add extension  to file datasource."),  ds_file_path.GetFullPath());
-        wxMessageDialog dlg(this, msg, "Warning", wxOK | wxICON_WARNING);
+        wxMessageDialog dlg(this, msg, _("Warning"), wxOK | wxICON_WARNING);
         dlg.ShowModal();
         return;
     } else { 
@@ -421,7 +420,7 @@ void ExportDataDlg::OnOkClick( wxCommandEvent& event )
 	//wxString msg = "Export successfully.";
     //msg << "\n\nTips: if you want to use exported project/datasource, please"
     //    << " close current project and then open exported project/datasource.";
-	//wxMessageDialog dlg(this, msg , "Info", wxOK | wxICON_INFORMATION);
+	//wxMessageDialog dlg(this, msg , _("Info"), wxOK | wxICON_INFORMATION);
     //dlg.ShowModal();
     
     EndDialog(wxID_OK);
@@ -692,11 +691,11 @@ IDataSource* ExportDataDlg::GetDatasource()
         }
         
         // check if empty, prompt user to input
-        if (dbhost.IsEmpty()) error_msg = "Please input database host.";
-        else if (dbname.IsEmpty()) error_msg= "Please input database name.";
-        else if (dbport.IsEmpty()) error_msg= "Please input database port.";
-        else if (dbuser.IsEmpty()) error_msg= "Please input user name.";
-        else if (layer_name.IsEmpty()) error_msg= "Please input table name.";
+        if (dbhost.IsEmpty()) error_msg = _("Please input database host.");
+        else if (dbname.IsEmpty()) error_msg= _("Please input database name.");
+        else if (dbport.IsEmpty()) error_msg= _("Please input database port.");
+        else if (dbuser.IsEmpty()) error_msg= _("Please input user name.");
+        else if (layer_name.IsEmpty()) error_msg= _("Please input table name.");
         
         if (!error_msg.IsEmpty()) throw GdaException(error_msg.mb_str());
         
@@ -709,10 +708,12 @@ IDataSource* ExportDataDlg::GetDatasource()
         std::string key(m_cartodb_key->GetValue().Trim().mb_str());
         
         if (user.empty()) {
-            throw GdaException("Please input Carto User Name.");
+            wxString msg = _("Please input Carto User Name.");
+            throw GdaException(msg.mb_str());
         }
         if (key.empty()) {
-            throw GdaException("Please input Carto App Key.");
+            wxString msg = _("Please input Carto App Key.");
+            throw GdaException(msg.mb_str());
         }
         
         CPLSetConfigOption("CARTODB_API_KEY", key.c_str());

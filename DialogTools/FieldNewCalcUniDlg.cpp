@@ -107,7 +107,7 @@ void FieldNewCalcUniDlg::Apply()
 {
 	if (m_result->GetSelection() == wxNOT_FOUND) {
 		wxString msg("Please choose a Result field.");
-		wxMessageDialog dlg (this, msg, "Error", wxOK | wxICON_ERROR);
+		wxMessageDialog dlg (this, msg, _("Error"), wxOK | wxICON_ERROR);
 		dlg.ShowModal();
 		return;
 	}
@@ -119,7 +119,7 @@ void FieldNewCalcUniDlg::Apply()
 	}	
 	if (var_col == wxNOT_FOUND && !m_valid_const) {
 		wxString msg("Operation requires a valid field name or constant.");
-		wxMessageDialog dlg (this, msg, "Error", wxOK | wxICON_ERROR);
+		wxMessageDialog dlg (this, msg, _("Error"), wxOK | wxICON_ERROR);
 		dlg.ShowModal();
 		return;
 	}
@@ -129,7 +129,7 @@ void FieldNewCalcUniDlg::Apply()
 		IsAllTime(var_col, m_var_tm->GetSelection())) {
 		wxString msg("When \"all times\" selected for variable, result "
 					 "field must also be \"all times.\"");
-		wxMessageDialog dlg (this, msg, "Error", wxOK | wxICON_ERROR);
+		wxMessageDialog dlg (this, msg, _("Error"), wxOK | wxICON_ERROR);
 		dlg.ShowModal();
 		return;
 	}
@@ -247,7 +247,7 @@ void FieldNewCalcUniDlg::Apply()
 						msg << "Observation " << i;
 						msg << " is undefined. ";
 						msg << "Operation aborted.";
-						wxMessageDialog dlg (this, msg, "Error",
+						wxMessageDialog dlg (this, msg, _("Error"),
 											 wxOK | wxICON_ERROR);
 						dlg.ShowModal();
 						return;
@@ -265,7 +265,7 @@ void FieldNewCalcUniDlg::Apply()
 						msg << "Observation ";
 						msg << i << " is undefined. ";
 						msg << "Operation aborted.";
-						wxMessageDialog dlg (this, msg, "Error",
+						wxMessageDialog dlg (this, msg, _("Error"),
 											 wxOK | wxICON_ERROR);
 						dlg.ShowModal();
 						return;
@@ -276,7 +276,7 @@ void FieldNewCalcUniDlg::Apply()
 				for (int i=0; i<rows; i++) ssum += r_data[i] * r_data[i];
 				if (ssum == 0) {
 					wxString msg("Standard deviation is 0, operation aborted.");
-					wxMessageDialog dlg (this, msg, "Error", wxOK|wxICON_ERROR);
+					wxMessageDialog dlg (this, msg, _("Error"), wxOK|wxICON_ERROR);
 					dlg.ShowModal();
 					return;
 				}
@@ -372,6 +372,7 @@ void FieldNewCalcUniDlg::InitFieldChoices()
 		// only the time field changed
 		if (m_var_sel != wxNOT_FOUND) {
 			m_var->SetSelection(m_var_sel);
+            m_var->SetValue(m_var->GetStringSelection());
 		} else {
 			m_var->SetValue(var_val_orig);
 		}
@@ -506,7 +507,7 @@ void FieldNewCalcUniDlg::OnUnaryOperandUpdated( wxCommandEvent& event )
 		m_var_sel = m_var->GetSelection();
 	}
 	m_var_tm->Enable(m_var_sel != wxNOT_FOUND &&
-					 table_int->GetColTimeSteps(col_id_map[m_var_sel]) > 1);
+                     table_int->GetColTimeSteps(col_id_map[m_var_sel]) > 1);
 	Display();
 }
 

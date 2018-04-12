@@ -275,7 +275,7 @@ void SkaterDlg::OnChangeSeed(wxCommandEvent& event)
     } else {
         wxString m;
         m << "\"" << dlg_val << "\" is not a valid seed. Seed unchanged.";
-        wxMessageDialog dlg(NULL, m, "Error", wxOK | wxICON_ERROR);
+        wxMessageDialog dlg(NULL, m, _("Error"), wxOK | wxICON_ERROR);
         dlg.ShowModal();
         GdaConst::use_gda_user_seed = false;
         OGRDataAdapter& ogr_adapt = OGRDataAdapter::GetInstance();
@@ -381,7 +381,7 @@ void SkaterDlg::OnOK(wxCommandEvent& event )
     wxString str_initial = m_max_region->GetValue();
     if (str_initial.IsEmpty()) {
         wxString err_msg = _("Please enter number of regions");
-        wxMessageDialog dlg(NULL, err_msg, "Error", wxOK | wxICON_ERROR);
+        wxMessageDialog dlg(NULL, err_msg, _("Error"), wxOK | wxICON_ERROR);
         dlg.ShowModal();
         return;
     }
@@ -389,7 +389,7 @@ void SkaterDlg::OnOK(wxCommandEvent& event )
     wxString field_name = m_textbox->GetValue();
     if (field_name.IsEmpty()) {
         wxString err_msg = _("Please enter a field name for saving clustering results.");
-        wxMessageDialog dlg(NULL, err_msg, "Error", wxOK | wxICON_ERROR);
+        wxMessageDialog dlg(NULL, err_msg, _("Error"), wxOK | wxICON_ERROR);
         dlg.ShowModal();
         return;
     }
@@ -419,7 +419,7 @@ void SkaterDlg::OnOK(wxCommandEvent& event )
     // Check connectivity
     if (!CheckConnectivity(gw)) {
         wxString msg = _("The connectivity of selected spatial weights is incomplete, please adjust the spatial weights.");
-        wxMessageDialog dlg(this, msg, "Warning", wxOK | wxICON_WARNING );
+        wxMessageDialog dlg(this, msg, _("Warning"), wxOK | wxICON_WARNING );
         dlg.ShowModal();
     }
     
@@ -430,7 +430,7 @@ void SkaterDlg::OnOK(wxCommandEvent& event )
         wxString str_floor = txt_floor->GetValue();
         if (str_floor.IsEmpty()) {
             wxString err_msg = _("Please enter minimum bound value");
-            wxMessageDialog dlg(NULL, err_msg, "Error", wxOK | wxICON_ERROR);
+            wxMessageDialog dlg(NULL, err_msg, _("Error"), wxOK | wxICON_ERROR);
             dlg.ShowModal();
             return;
         }
@@ -486,6 +486,9 @@ void SkaterDlg::OnOK(wxCommandEvent& event )
     for (int i = 1; i < rows; i++) free(ragged_distances[i]);
     free(ragged_distances);
     
+    vector<wxInt64> clusters(rows, 0);
+    vector<bool> clusters_undef(rows, false);
+    
 	// Run Skater
     Skater skater(rows, columns, initial, input_data, distances, check_floor, min_bound, bound_vals);
     
@@ -493,9 +496,6 @@ void SkaterDlg::OnOK(wxCommandEvent& event )
 
     vector<vector<int> > cluster_ids = skater.GetRegions();
     int ncluster = cluster_ids.size();
-    
-    vector<wxInt64> clusters(rows, 0);
-    vector<bool> clusters_undef(rows, false);
 
     // sort result
     std::sort(cluster_ids.begin(), cluster_ids.end(), GenUtils::less_vectors);
@@ -514,15 +514,7 @@ void SkaterDlg::OnOK(wxCommandEvent& event )
             n_island++;
         }
     }
-    // complete/ward/single-order single linkage 0.505
-    //int cc[49] = {2,2,4,4,4,4,3,4,4,4,4,4,4,4,4,4,4,4,4,1,4,4,1,4,4,4,4,4,4,4,0,1,4,4,4,0,4,4,0,1,1,0,4,4,4,0,1,4,4};
-    // average 0.465
-    int cc[49] = {2,2,3,3,3,3,3,3,3,4,3,3,3,3,3,3,0,3,3,0,3,3,0,3,3,3,3,3,3,3,1,0,3,3,3,1,3,3,1,0,0,1,3,3,3,1,0,3,3 };
-    // single linkage
     
-    
-    //for (int i=0; i<49; i++) clusters[i] = cc[i]+1;
-    // summary
     CreateSummary(clusters);
     
     // save to table
@@ -539,7 +531,7 @@ void SkaterDlg::OnOK(wxCommandEvent& event )
         // detect if column is integer field, if not raise a warning
         if (table_int->GetColType(col) != GdaConst::long64_type ) {
             wxString msg = _("This field name already exists (non-integer type). Please input a unique name.");
-            wxMessageDialog dlg(this, msg, "Warning", wxOK | wxICON_WARNING );
+            wxMessageDialog dlg(this, msg, _("Warning"), wxOK | wxICON_WARNING );
             dlg.ShowModal();
             return;
         }
