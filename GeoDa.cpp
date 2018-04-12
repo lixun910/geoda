@@ -71,8 +71,6 @@
 #include <wx/settings.h>
 #include <wx/uri.h>
 
-#include "DataViewer/DataChangeType.h"
-#include "DataViewer/DbfTable.h"
 #include "DataViewer/DataViewerAddColDlg.h"
 #include "DataViewer/DataViewerDeleteColDlg.h"
 #include "DataViewer/DataViewerEditFieldPropertiesDlg.h"
@@ -163,7 +161,6 @@
 #include "Regression/DiagnosticReport.h"
 
 #include "ShapeOperations/CsvFileUtils.h"
-#include "ShapeOperations/ShapeUtils.h"
 #include "ShapeOperations/WeightsManager.h"
 #include "ShapeOperations/WeightsManState.h"
 #include "ShapeOperations/OGRDataAdapter.h"
@@ -172,7 +169,7 @@
 #include "Algorithms/redcap.h"
 #include "Algorithms/geocoding.h"
 
-#include "ShpFile.h"
+
 #include "GdaException.h"
 #include "FramesManager.h"
 #include "GdaConst.h"
@@ -861,7 +858,7 @@ void GdaFrame::OnOpenNewTable()
 	if (g) tf = (TableFrame*) g->GetParent()->GetParent(); // wxPanel<wxFrame
 	if (!tf) {
 		wxString msg = _("The Table should always be open, although somtimes it is hidden while the project is open.  This condition has been violated.  Please report this to the program developers.");
-		wxMessageDialog dlg(this, msg, "Warning", wxOK | wxICON_WARNING);
+		wxMessageDialog dlg(this, msg, _("Warning"), wxOK | wxICON_WARNING);
 		dlg.ShowModal();
 		tf = new TableFrame(gda_frame, project_p,
 							GdaConst::table_frame_title,
@@ -1160,7 +1157,7 @@ void GdaFrame::OnRecentDSClick(wxCommandEvent& event)
     if (ds == NULL) {
         // raise message dialog show can't connect to datasource
         wxString msg = _("Can't connect to datasource: ") + ds_name;
-        wxMessageDialog dlg (this, msg, "Error", wxOK | wxICON_ERROR);
+        wxMessageDialog dlg (this, msg, _("Error"), wxOK | wxICON_ERROR);
         dlg.ShowModal();
         return;
     }
@@ -1175,7 +1172,7 @@ void GdaFrame::OnRecentDSClick(wxCommandEvent& event)
         
     } catch (GdaException& e) {
         RemoveInvalidRecentDS();
-        wxMessageDialog dlg (this, e.what(), "Error", wxOK | wxICON_ERROR);
+        wxMessageDialog dlg (this, e.what(), _("Error"), wxOK | wxICON_ERROR);
         dlg.ShowModal();
         return;
     }
@@ -1200,7 +1197,7 @@ void GdaFrame::NewProjectFromFile(const wxString& full_file_path)
         project_p = new Project(proj_title, layer_name, &fds);
     } catch (GdaException& e) {
         RemoveInvalidRecentDS();
-        wxMessageDialog dlg (this, e.what(), "Error", wxOK | wxICON_ERROR);
+        wxMessageDialog dlg (this, e.what(), _("Error"), wxOK | wxICON_ERROR);
 		dlg.ShowModal();
         return;
     }
@@ -1214,7 +1211,7 @@ void GdaFrame::NewProjectFromFile(const wxString& full_file_path)
     }
 	if (!error_msg.IsEmpty()) {
 
-        wxMessageDialog dlg (this, error_msg, "Error", wxOK | wxICON_ERROR);
+        wxMessageDialog dlg (this, error_msg, _("Error"), wxOK | wxICON_ERROR);
 		dlg.ShowModal();
         return;
     }
@@ -1234,10 +1231,15 @@ void GdaFrame::ShowOpenDatasourceDlg(wxPoint pos, bool init)
 {
 	wxLogMessage(" GdaFrame::ShowOpenDatasourceDlg()");
 
-	if (init && project_p) return;
+    if (init && project_p) {
+        return;
+    }
 
     ConnectDatasourceDlg dlg(this, pos);
     if (dlg.ShowModal() != wxID_OK) {
+        // when open a gda file, which already handles in
+        // ConnectDatasoureDlg()
+        // and the dlg will return wxID_CANCLE
         return;
 	}
     
@@ -1251,7 +1253,8 @@ void GdaFrame::ShowOpenDatasourceDlg(wxPoint pos, bool init)
         project_p = new Project(proj_title, layer_name, datasource);
        
         if (!project_p->IsValid()) {
-            
+            // do noting
+            return;
         }
     } catch (GdaException& e) {
         RemoveInvalidRecentDS();
@@ -1295,25 +1298,24 @@ void GdaFrame::OpenProject(const wxString& full_proj_path)
     wxString msg;
     wxFileName fn(full_proj_path);
     if (fn.GetExt().CmpNoCase("gda") != 0) {
+        // open a geoda project file
         if (IsProjectOpen()) {
             Raise();
-            wxString msg;
-            msg << _("You have requested to create a new file project ");
-            msg << full_proj_path;
-            msg << _(" while another project is open.  Please close project ");
-            msg << project_p->GetProjectTitle();
-            msg << _(" and try again.");
+            msg = _("You have requested to create a new file project %s  while another project is open. Please close project %s and try again.");
+            msg = wxString::Format(msg, full_proj_path, project_p->GetProjectTitle());
             return;
         }
         NewProjectFromFile(full_proj_path);
         return;
     }
+    
     if (!wxFileExists(full_proj_path)) {
-        msg << "Error: \"" << full_proj_path << "\" not found.";
+        msg = _("Error: \"%s\" not found.");
+        msg = wxString::Format(msg, full_proj_path);
     }
     if (!msg.IsEmpty()) {
         LOG_MSG(msg);
-        wxMessageDialog dlg (this, msg, "Error", wxOK | wxICON_ERROR);
+        wxMessageDialog dlg (this, msg, _("Error"), wxOK | wxICON_ERROR);
         dlg.ShowModal();
         return;
     }
@@ -1326,11 +1328,8 @@ void GdaFrame::OpenProject(const wxString& full_proj_path)
 		}
 		Raise();
 		wxString msg;
-		msg << _("You have requested to open project ");
-		msg << full_proj_path;
-		msg << _(" while another project is open.  Please close project ");
-		msg << project_p->GetProjectTitle();
-		msg << _(" and try again.");
+        msg = _("You have requested to create a new file project %s  while another project is open. Please close project %s and try again.");
+        msg = wxString::Format(msg, full_proj_path, project_p->GetProjectTitle());
 		return;
 	}
 
@@ -1354,7 +1353,7 @@ void GdaFrame::OpenProject(const wxString& full_proj_path)
 
     } catch (GdaException &e) {
         wxString msg( e.what() ) ;
-        wxMessageDialog dlg (this, msg, "Error", wxOK | wxICON_ERROR);
+        wxMessageDialog dlg (this, msg, _("Error"), wxOK | wxICON_ERROR);
 		dlg.ShowModal();
 		delete project_p;
         project_p = 0;
@@ -1373,7 +1372,7 @@ void GdaFrame::OnOpenProject(wxCommandEvent& event)
             return;
 	}
 	wxString wildcard = "GeoDa Project (*.gda)|*.gda";
-	wxFileDialog dlg(this, "GeoDa Project File to Open", "", "", wildcard);
+	wxFileDialog dlg(this, _("GeoDa Project File to Open"), "", "", wildcard);
 	if (dlg.ShowModal() != wxID_OK)
         return;
 
@@ -1485,7 +1484,7 @@ void GdaFrame::OnSaveAsProject(wxCommandEvent& event)
     try {
         project_p->SpecifyProjectConfFile(dlg.GetPath());
     } catch (GdaException& e) {
-        wxMessageDialog dlg (this, e.what(), "Error", wxOK | wxICON_ERROR);
+        wxMessageDialog dlg (this, e.what(), _("Error"), wxOK | wxICON_ERROR);
         dlg.ShowModal();
         return;
     }
@@ -1500,10 +1499,10 @@ void GdaFrame::OnSaveAsProject(wxCommandEvent& event)
             // case: users create geometries in a table-only project
             msg << _("\n\nWarning: Geometries will not be saved. Please use \"File->Save As\" to save geometries and related data.");
         }
-        wxMessageDialog dlg(this, msg , "Info", wxOK | wxICON_INFORMATION);
+        wxMessageDialog dlg(this, msg , _("Info"), wxOK | wxICON_INFORMATION);
         dlg.ShowModal();
 	} catch (GdaException& e) {
-		wxMessageDialog dlg (this, e.what(), "Error", wxOK | wxICON_ERROR);
+		wxMessageDialog dlg (this, e.what(), _("Error"), wxOK | wxICON_ERROR);
 		dlg.ShowModal();
 		return;
 	}
@@ -2189,14 +2188,6 @@ void GdaFrame::OnMapChoices(wxCommandEvent& event)
     }
 }
 
-#include "DialogTools/ASC2SHPDlg.h"
-void GdaFrame::OnShapePointsFromASCII(wxCommandEvent& WXUNUSED(event) )
-{
-    wxLogMessage("Open ASC2SHPDlg");
-	ASC2SHPDlg dlg(this);
-	dlg.ShowModal();
-}
-
 #include "DialogTools/CreateGridDlg.h"
 void GdaFrame::OnShapePolygonsFromGrid(wxCommandEvent& WXUNUSED(event) )
 {
@@ -2223,14 +2214,6 @@ void GdaFrame::OnShapePolygonsFromBoundary(wxCommandEvent& WXUNUSED(event) )
 {
     wxLogMessage("Open Bnd2ShpDlg");
 	Bnd2ShpDlg dlg(this);
-	dlg.ShowModal();
-}
-
-#include "DialogTools/SHP2ASCDlg.h" 
-void GdaFrame::OnShapeToBoundary(wxCommandEvent& WXUNUSED(event) )
-{
-    wxLogMessage("Open SHP2ASCDlg");
-	SHP2ASCDlg dlg(this);
 	dlg.ShowModal();
 }
 
@@ -2517,6 +2500,7 @@ void GdaFrame::OnEditFieldProperties(wxCommandEvent& event)
 	dlg.ShowModal();
 }
 
+/*
 void GdaFrame::OnChangeFieldType(wxCommandEvent& event)
 {
 	Project* p = GetProject();
@@ -2536,6 +2520,7 @@ void GdaFrame::OnChangeFieldType(wxCommandEvent& event)
 	
 	DataChangeTypeFrame* dlg = new DataChangeTypeFrame(this, p);
 }
+ */
 
 
 void GdaFrame::OnMergeTableData(wxCommandEvent& event)
@@ -3636,7 +3621,7 @@ void GdaFrame::OnOpenMultiLisa(wxCommandEvent& event)
     GalWeight* gw = w_man_int->GetGal(w_id);
     if (gw == NULL) {
         wxString msg = _T("Invalid Weights Information:\n\n The selected weights file is not valid.\n Please choose another weights file, or use Tools > Weights > Weights Manager to define a valid weights file.");
-        wxMessageDialog dlg (this, msg, "Warning", wxOK | wxICON_WARNING);
+        wxMessageDialog dlg (this, msg, _("Warning"), wxOK | wxICON_WARNING);
         dlg.ShowModal();
         return;
     }
@@ -3718,7 +3703,7 @@ void GdaFrame::OnOpenDiffLisa(wxCommandEvent& event)
     
     if (gw == NULL) {
         wxString msg = _T("Invalid Weights Information:\n\n The selected weights file is not valid.\n Please choose another weights file, or use Tools > Weights > Weights Manager to define a valid weights file.");
-        wxMessageDialog dlg (this, msg, "Warning", wxOK | wxICON_WARNING);
+        wxMessageDialog dlg (this, msg, _("Warning"), wxOK | wxICON_WARNING);
         dlg.ShowModal();
         return;
     }
@@ -3772,7 +3757,7 @@ void GdaFrame::OnOpenLisaEB(wxCommandEvent& event)
     GalWeight* gw = w_man_int->GetGal(w_id);
     if (gw == NULL) {
         wxString msg = _T("Invalid Weights Information:\n\n The selected weights file is not valid.\n Please choose another weights file, or use Tools > Weights > Weights Manager to define a valid weights file.");
-        wxMessageDialog dlg (this, msg, "Warning", wxOK | wxICON_WARNING);
+        wxMessageDialog dlg (this, msg, _("Warning"), wxOK | wxICON_WARNING);
         dlg.ShowModal();
         return;
     }
@@ -3828,7 +3813,7 @@ void GdaFrame::OnOpenLocalJoinCount(wxCommandEvent& event)
     
     if (gw == NULL) {
         wxString msg = _T("Invalid Weights Information:\n\n The selected weights file is not valid.\n Please choose another weights file, or use Tools > Weights > Weights Manager to define a valid weights file.");
-        wxMessageDialog dlg (this, msg, "Warning", wxOK | wxICON_WARNING);
+        wxMessageDialog dlg (this, msg, _("Warning"), wxOK | wxICON_WARNING);
         dlg.ShowModal();
         return;
     }
@@ -3840,7 +3825,7 @@ void GdaFrame::OnOpenLocalJoinCount(wxCommandEvent& event)
     for (int i=0; i<data.size(); i++) {
         if (data[i] !=0 && data[i] != 1) {
             wxString msg = _T("Please select a binary variable for Local Join Count.");
-            wxMessageDialog dlg (this, msg, "Warning", wxOK | wxICON_WARNING);
+            wxMessageDialog dlg (this, msg, _("Warning"), wxOK | wxICON_WARNING);
             dlg.ShowModal();
             return;
         }
@@ -3911,7 +3896,7 @@ void GdaFrame::OnOpenMultiLJC(wxCommandEvent& event)
     for (int i=0; i<data.size(); i++) {
         if (data[i] !=0 && data[i] != 1) {
             wxString msg = _T("Please select two binary variables for Bivariate Local Join Count.");
-            wxMessageDialog dlg (this, msg, "Warning", wxOK | wxICON_WARNING);
+            wxMessageDialog dlg (this, msg, _("Warning"), wxOK | wxICON_WARNING);
             dlg.ShowModal();
             return;
         }
@@ -3920,7 +3905,7 @@ void GdaFrame::OnOpenMultiLJC(wxCommandEvent& event)
     for (int i=0; i<data.size(); i++) {
         if (data[i] !=0 && data[i] != 1) {
             wxString msg = _T("Please select two binary variables for Bivariate Local Join Count.");
-            wxMessageDialog dlg (this, msg, "Warning", wxOK | wxICON_WARNING);
+            wxMessageDialog dlg (this, msg, _("Warning"), wxOK | wxICON_WARNING);
             dlg.ShowModal();
             return;
         }
@@ -3967,7 +3952,7 @@ void GdaFrame::OnOpenGetisOrdStar(wxCommandEvent& event)
     
     if (gw == NULL) {
         wxString msg = _T("Invalid Weights Information:\n\n The selected weights file is not valid.\n Please choose another weights file, or use Tools > Weights > Weights Manager to define a valid weights file.");
-        wxMessageDialog dlg (this, msg, "Warning", wxOK | wxICON_WARNING);
+        wxMessageDialog dlg (this, msg, _("Warning"), wxOK | wxICON_WARNING);
         dlg.ShowModal();
         return;
     }
@@ -4026,7 +4011,7 @@ void GdaFrame::OnOpenGetisOrd(wxCommandEvent& event)
     
     if (gw == NULL) {
         wxString msg = _T("Invalid Weights Information:\n\n The selected weights file is not valid.\n Please choose another weights file, or use Tools > Weights > Weights Manager to define a valid weights file.");
-        wxMessageDialog dlg (this, msg, "Warning", wxOK | wxICON_WARNING);
+        wxMessageDialog dlg (this, msg, _("Warning"), wxOK | wxICON_WARNING);
         dlg.ShowModal();
         return;
     }
@@ -6582,10 +6567,8 @@ BEGIN_EVENT_TABLE(GdaFrame, wxFrame)
     EVT_BUTTON(XRCID("ID_CONNECTIVITY_MAP_VIEW"), GdaFrame::OnConnectivityMapView)
     EVT_MENU(XRCID("ID_SHOW_AXES"), GdaFrame::OnShowAxes)
     EVT_TOOL(XRCID("ID_MAP_CHOICES"), GdaFrame::OnMapChoices)
-    EVT_MENU(XRCID("ID_SHAPE_POINTS_FROM_ASCII"), GdaFrame::OnShapePointsFromASCII)
     EVT_MENU(XRCID("ID_SHAPE_POLYGONS_FROM_GRID"), GdaFrame::OnShapePolygonsFromGrid)
     EVT_MENU(XRCID("ID_SHAPE_POLYGONS_FROM_BOUNDARY"), GdaFrame::OnShapePolygonsFromBoundary)
-    EVT_MENU(XRCID("ID_SHAPE_TO_BOUNDARY"), GdaFrame::OnShapeToBoundary)
     EVT_MENU(XRCID("ID_POINTS_FROM_TABLE"), GdaFrame::OnGeneratePointShpFile)
     // Table menu items
     EVT_MENU(XRCID("ID_SHOW_TIME_CHOOSER"), GdaFrame::OnShowTimeChooser)
@@ -6606,7 +6589,7 @@ BEGIN_EVENT_TABLE(GdaFrame, wxFrame)
     EVT_MENU(XRCID("ID_TABLE_ADD_COLUMN"), GdaFrame::OnAddCol)
     EVT_MENU(XRCID("ID_TABLE_DELETE_COLUMN"), GdaFrame::OnDeleteCol)
     EVT_MENU(XRCID("ID_TABLE_EDIT_FIELD_PROP"), GdaFrame::OnEditFieldProperties)
-    EVT_MENU(XRCID("ID_TABLE_CHANGE_FIELD_TYPE"), GdaFrame::OnChangeFieldType)
+    //EVT_MENU(XRCID("ID_TABLE_CHANGE_FIELD_TYPE"), GdaFrame::OnChangeFieldType)
     EVT_MENU(XRCID("ID_TABLE_MERGE_TABLE_DATA"), GdaFrame::OnMergeTableData)
     EVT_MENU(XRCID("ID_TABLE_AGGREGATION_DATA"), GdaFrame::OnAggregateData)
     EVT_MENU(XRCID("ID_TABLE_GEOCODING"), GdaFrame::OnGeocoding)

@@ -38,7 +38,7 @@
 #include "ConditionalClusterMapView.h"
 #include "AbstractCoordinator.h"
 #include "AbstractClusterMap.h"
-#include "../ShpFile.h"
+
 
 IMPLEMENT_CLASS(AbstractMapCanvas, MapCanvas)
 BEGIN_EVENT_TABLE(AbstractMapCanvas, MapCanvas)
@@ -616,7 +616,7 @@ void AbstractMapFrame::OnSpecifySeedDlg(wxCommandEvent& event)
 	} else {
 		wxString m;
 		m << "\"" << dlg_val << "\" is not a valid seed. Seed unchanged.";
-		wxMessageDialog dlg(NULL, m, "Error", wxOK | wxICON_ERROR);
+		wxMessageDialog dlg(NULL, m, _("Error"), wxOK | wxICON_ERROR);
 		dlg.ShowModal();
 	}
 }

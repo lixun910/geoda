@@ -28,12 +28,10 @@
 #include <wx/textdlg.h>
 #include "MergeTableDlg.h"
 #include "DataSource.h"
-#include "DbfColContainer.h"
 #include "TableBase.h"
 #include "TableInterface.h"
 #include "../FramesManagerObserver.h"
 #include "../FramesManager.h"
-#include "../DbfFile.h"
 #include "../ShapeOperations/OGRLayerProxy.h"
 #include "../ShapeOperations/OGRDataAdapter.h"
 #include "../DialogTools/ConnectDatasourceDlg.h"
@@ -204,9 +202,9 @@ void MergeTableDlg::OnOpenClick( wxCommandEvent& ev )
         wxSize sz = GetSize();
         pos.x += sz.GetWidth();
        
-        int dialog_type = 1;
-
-        ConnectDatasourceDlg connect_dlg(this, pos, wxDefaultSize, showCsvConfigure, false, dialog_type);
+        int dialog_type = 1; // no gda is allowed
+        bool showRecentPanel = false;
+        ConnectDatasourceDlg connect_dlg(this, pos, wxDefaultSize, showCsvConfigure, showRecentPanel, dialog_type);
         
         if (connect_dlg.ShowModal() != wxID_OK) {
             return;
@@ -360,7 +358,7 @@ bool MergeTableDlg::CheckKeys(wxString key_name, vector<wxString>& key_vec,
             }
         }
         
-        ScrolledDetailMsgDialog *dlg = new ScrolledDetailMsgDialog("Warning", msg, details);
+        ScrolledDetailMsgDialog *dlg = new ScrolledDetailMsgDialog(_("Warning"), msg, details);
         dlg->Show(true);
         return false;
     }

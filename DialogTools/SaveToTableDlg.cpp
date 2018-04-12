@@ -25,7 +25,6 @@
 #include <wx/textctrl.h>
 #include <wx/stattext.h>
 
-#include "../DbfFile.h"
 #include "../DataViewer/DataViewerAddColDlg.h"
 #include "../DataViewer/TableInterface.h"
 #include "../DataViewer/TimeState.h"
@@ -166,9 +165,8 @@ void SaveToTableDlg::OnAddFieldButton( wxCommandEvent& event )
 		}
 	}
 	if (obj_id == -1) {
-		wxString msg = "Could not determine which Add Variable button was "
-			"pressed. Please report this error.";
-		wxMessageDialog dlg(this, msg, "Error", wxOK | wxICON_ERROR );
+		wxString msg = "Could not determine which Add Variable button was pressed. Please report this error.";
+		wxMessageDialog dlg(this, msg, _("Error"), wxOK | wxICON_ERROR );
 		dlg.ShowModal();
 		return;
 	}
@@ -227,9 +225,8 @@ void SaveToTableDlg::OnFieldChoice( wxCommandEvent& event )
 		}
 	}
 	if (obj_id == -1) {
-		wxString msg = "Could not determine which Field Choice was "
-		"selected. Please report this error.";
-		wxMessageDialog dlg(this, msg, "Error", wxOK | wxICON_ERROR );
+		wxString msg = "Could not determine which Field Choice was selected. Please report this error.";
+		wxMessageDialog dlg(this, msg, _("Error"), wxOK | wxICON_ERROR );
 		dlg.ShowModal();
 		return;
 	}
@@ -250,9 +247,8 @@ void SaveToTableDlg::OnTimeChoice( wxCommandEvent& event )
 		}
 	}
 	if (obj_id == -1) {
-		wxString msg = "Could not determine which Time Choice was "
-		"selected. Please report this error.";
-		wxMessageDialog dlg(this, msg, "Error", wxOK | wxICON_ERROR );
+		wxString msg = "Could not determine which Time Choice was selected. Please report this error.";
+		wxMessageDialog dlg(this, msg, _("Error"), wxOK | wxICON_ERROR );
 		dlg.ShowModal();
 		return;
 	}
@@ -348,7 +344,7 @@ void SaveToTableDlg::OnOkClick( wxCommandEvent& event )
             wxString name = m_txt_field[i]->GetValue();
             if (name.empty()) {
                 wxMessageDialog dlg(this, "Variable name can't be empty.",
-                                    "Error", wxOK | wxICON_ERROR );
+                                    _("Error"), wxOK | wxICON_ERROR );
                 dlg.ShowModal();
                 return;
             }
@@ -366,7 +362,7 @@ void SaveToTableDlg::OnOkClick( wxCommandEvent& event )
 		it = names.find(s);
 		if (it != names.end()) {
 			wxMessageDialog dlg(this, "Duplicate variable names specified.",
-								"Error", wxOK | wxICON_ERROR );
+								_("Error"), wxOK | wxICON_ERROR );
 			dlg.ShowModal();
 			return;
 		}

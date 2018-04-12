@@ -41,7 +41,6 @@
 #include "../logger.h"
 #include "../GeoDa.h"
 #include "../Project.h"
-#include "../ShapeOperations/ShapeUtils.h"
 #include "PCPNewView.h"
 
 IMPLEMENT_CLASS(PCPCanvas, TemplateCanvas)
@@ -114,7 +113,7 @@ num_categories(6), all_init(false)
 			}
             if (temp_vec.empty()) {
                 wxString m = wxString::Format(_("Variable %s is not valid. Please select another variable."), var_info[v].name);
-                wxMessageDialog dlg(NULL, m, "Error", wxOK | wxICON_ERROR);
+                wxMessageDialog dlg(NULL, m, _("Error"), wxOK | wxICON_ERROR);
                 dlg.ShowModal();
                 return;
             }

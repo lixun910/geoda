@@ -101,8 +101,8 @@ void FieldNewCalcDateTimeDlg::CreateControls()
 void FieldNewCalcDateTimeDlg::Apply()
 {
 	if (m_result->GetSelection() == wxNOT_FOUND) {
-		wxString msg("Please choose a Result field.");
-		wxMessageDialog dlg (this, msg, "Error", wxOK | wxICON_ERROR);
+		wxString msg = _("Please choose a Result field.");
+		wxMessageDialog dlg (this, msg, _("Error"), wxOK | wxICON_ERROR);
 		dlg.ShowModal();
 		return;
 	}
@@ -113,8 +113,8 @@ void FieldNewCalcDateTimeDlg::Apply()
 		var_col = dt_col_id_map[m_var_sel];
 	}	
 	if (var_col == wxNOT_FOUND && !m_valid_const) {
-		wxString msg("Operation requires a valid field name or constant.");
-		wxMessageDialog dlg (this, msg, "Error", wxOK | wxICON_ERROR);
+		wxString msg = _("Operation requires a valid field name or constant.");
+		wxMessageDialog dlg (this, msg, _("Error"), wxOK | wxICON_ERROR);
 		dlg.ShowModal();
 		return;
 	}
@@ -122,9 +122,9 @@ void FieldNewCalcDateTimeDlg::Apply()
 	if (is_space_time && var_col != wxNOT_FOUND &&
 		!IsAllTime(result_col, m_result_tm->GetSelection()) &&
 		IsAllTime(var_col, m_var_tm->GetSelection())) {
-		wxString msg("When \"all times\" selected for variable, result "
+		wxString msg = _("When \"all times\" selected for variable, result "
 					 "field must also be \"all times.\"");
-		wxMessageDialog dlg (this, msg, "Error", wxOK | wxICON_ERROR);
+		wxMessageDialog dlg (this, msg, _("Error"), wxOK | wxICON_ERROR);
 		dlg.ShowModal();
 		return;
 	}
