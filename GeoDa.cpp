@@ -301,7 +301,32 @@ bool GdaApp::OnInit(void)
 		appFileName.Normalize(wxPATH_NORM_DOTS|wxPATH_NORM_ABSOLUTE|
 		wxPATH_NORM_TILDE);
 		m_TranslationHelper = new wxTranslationHelper(*this, appFileName.GetPath(), false);
-		wxString path = appFileName.GetPath()+
+
+		wxString search_Path = appFileName.GetPath();
+		bool findFile = false;
+		while (!findFile)
+		{
+			if (wxDirExists(search_Path + wxFileName::GetPathSeparator() + wxT("Algorithms") + wxFileName::GetPathSeparator() + wxT("internationalization"))){
+				search_Path = search_Path + wxFileName::GetPathSeparator() + wxT("Algorithms") + wxFileName::GetPathSeparator() + wxT("internationalization");
+				//wxMessageBox(search_Path);
+				findFile = true;
+			}
+			else
+			{
+				if (wxPathOnly(search_Path) == search_Path)
+				{
+					wxMessageBox(wxT("Please check your Language package in your dir Algorithms\internationalization"));
+					findFile = true;
+				}
+				else
+				{
+					search_Path = wxPathOnly(search_Path);
+				}
+			}
+		
+		}
+
+		wxString path = search_Path+
 		wxFileName::GetPathSeparator()+
 		GetAppName()+wxT(".ini");
 		m_TranslationHelper->SetConfigPath(path);
