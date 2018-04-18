@@ -306,8 +306,8 @@ bool GdaApp::OnInit(void)
 		bool findFile = false;
 		while (!findFile)
 		{
-			if (wxDirExists(search_Path + wxFileName::GetPathSeparator() + wxT("Algorithms") + wxFileName::GetPathSeparator() + wxT("internationalization"))){
-				search_Path = search_Path + wxFileName::GetPathSeparator() + wxT("Algorithms") + wxFileName::GetPathSeparator() + wxT("internationalization");
+			if (wxDirExists(search_Path + wxFileName::GetPathSeparator() + wxT("internationalization"))){
+				search_Path = search_Path + wxFileName::GetPathSeparator() + wxT("internationalization");
 				//wxMessageBox(search_Path);
 				findFile = true;
 			}
@@ -315,7 +315,7 @@ bool GdaApp::OnInit(void)
 			{
 				if (wxPathOnly(search_Path) == search_Path)
 				{
-					wxMessageBox(wxT("Please check your Language package in your dir Algorithms\internationalization"));
+					wxMessageBox(wxT("Please check your Language package in your dir internationalization"));
 					findFile = true;
 				}
 				else
