@@ -10,12 +10,9 @@ wxTranslationHelper::wxTranslationHelper(wxApp & app,
 : m_App(app), m_SearchPath(search_path), 
 m_ConfigPath(wxEmptyString), m_Locale(NULL), m_UseNativeConfig(use_native_config)
 {	
-<<<<<<< HEAD
-	if(search_path.IsEmpty())
-	{
-=======
+
 	if(search_path.IsEmpty()) {
->>>>>>> upstream/dev1.9
+
 		m_SearchPath = wxPathOnly(m_App.argv[0]);
 	}
 }
@@ -42,12 +39,11 @@ const wxString & wxTranslationHelper::GetSearchPath()
 void wxTranslationHelper::SetSearchPath(wxString & value)
 {
 	m_SearchPath = value;
-<<<<<<< HEAD
-	if(m_SearchPath.IsEmpty())
+
 	{
-=======
+
 	if(m_SearchPath.IsEmpty()) {
->>>>>>> upstream/dev1.9
+
 		m_SearchPath = wxPathOnly(m_App.argv[0]);
 	}
 }
@@ -65,36 +61,7 @@ void wxTranslationHelper::SetConfigPath(wxString & value)
 bool wxTranslationHelper::Load()
 {
 	wxConfigBase * config;
-<<<<<<< HEAD
-	if(m_UseNativeConfig)
-	{
-		config = new wxConfig(m_App.GetAppName());
-	}
-	else
-	{
-		config = new wxFileConfig(m_App.GetAppName(), wxEmptyString, m_ConfigPath);
-	}
-	long language;
-	config->SetPath(wxT("wxTranslation"));
-	if(!config->Read(wxT("wxTranslationLanguage"), 
-		&language, wxLANGUAGE_UNKNOWN))
-	{
-		language = wxLANGUAGE_UNKNOWN;
-	}
-	delete config;
-	if(language == wxLANGUAGE_UNKNOWN) 
-	{
-		return false;
-	}
-	wxArrayString names;
-	wxArrayLong identifiers;
-	GetInstalledLanguages(names, identifiers);
-	for(size_t i = 0; i < identifiers.Count(); i++)
-	{
-		if(identifiers[i] == language)
-		{
-			if(m_Locale) wxDELETE(m_Locale);
-=======
+
 	if(m_UseNativeConfig) {
 		config = new wxConfig(m_App.GetAppName());
 	} else {
@@ -122,7 +89,7 @@ bool wxTranslationHelper::Load()
             if(m_Locale) {
                 wxDELETE(m_Locale);
             }
->>>>>>> upstream/dev1.9
+
 			m_Locale = new wxLocale;
 			m_Locale->Init(identifiers[i]);
 			m_Locale->AddCatalogLookupPathPrefix(m_SearchPath);
@@ -136,27 +103,7 @@ bool wxTranslationHelper::Load()
 void wxTranslationHelper::Save(bool bReset)
 {
 	wxConfigBase * config;
-<<<<<<< HEAD
-	if(m_UseNativeConfig)
-	{
-		config = new wxConfig(m_App.GetAppName());
-	}
-	else
-	{
-		config = new wxFileConfig(m_App.GetAppName(), wxEmptyString, m_ConfigPath);
-	}
-	long language = wxLANGUAGE_UNKNOWN;
-	if(!bReset)
-	{
-		if(m_Locale)
-		{
-			language = m_Locale->GetLanguage();
-		}
-	}	
-	config->DeleteEntry(wxT("wxTranslation"));
-	config->SetPath(wxT("wxTranslation"));
-	config->Write(wxT("wxTranslationLanguage"), language);
-=======
+
 	if(m_UseNativeConfig) {
 		config = new wxConfig(m_App.GetAppName());
 	} else {
@@ -171,7 +118,7 @@ void wxTranslationHelper::Save(bool bReset)
 	config->DeleteEntry("Translation");
 	config->SetPath("Translation");
 	config->Write("Language", language);
->>>>>>> upstream/dev1.9
+
 	config->Flush();
 	delete config;
 }
@@ -179,54 +126,7 @@ void wxTranslationHelper::Save(bool bReset)
 void wxTranslationHelper::GetInstalledLanguages(wxArrayString & names, 
 												wxArrayLong & identifiers)
 {
-<<<<<<< HEAD
 
-	names.Clear();
-	identifiers.Clear();	
-	
-	wxString filename;	
-	const wxLanguageInfo * langinfo;	
-	wxString name = wxLocale::GetLanguageName(wxLANGUAGE_DEFAULT);
-	
-
-	if(!name.IsEmpty())
-	{
-		
-		names.Add(_("Default"));
-		
-		identifiers.Add(wxLANGUAGE_DEFAULT);		
-	}
-	
-	if(!wxDir::Exists(m_SearchPath)) 
-	{
-		
-		wxLogTrace("F:\GitHub\examples\wxtranslation\bin\en\wxTranslation.mo", _("Directory %s DOES NOT EXIST !!!"),
-			m_SearchPath.GetData());
-		return;
-	}
-	wxDir dir(m_SearchPath);
-	for(bool cont = dir.GetFirst(&filename, 
-#ifdef __WXMSW__
-	wxT("*"),
-#else	
-	wxT("*.*"),
-#endif  
-	wxDIR_DEFAULT); 
-		cont; cont = dir.GetNext(&filename))
-	{
-		langinfo = wxLocale::FindLanguageInfo(filename);
-		
-		if(langinfo != NULL)
-		{
-			wxLogTrace("F:\GitHub\examples\wxtranslation\bin\en\wxTranslation.mo", _("SEARCHING FOR %s"),
-				wxString(dir.GetName()+wxFileName::GetPathSeparator()+
-				filename+wxFileName::GetPathSeparator()+
-				m_App.GetAppName()+wxT(".mo")).GetData());
-			if(wxFileExists(dir.GetName()+wxFileName::GetPathSeparator()+
-				filename+wxFileName::GetPathSeparator()+
-				m_App.GetAppName()+wxT(".mo")))
-			{
-=======
 	names.Clear();
 	identifiers.Clear();	
 	
@@ -260,16 +160,15 @@ void wxTranslationHelper::GetInstalledLanguages(wxArrayString & names,
             // search for mo file
             wxString mo_file = dir.GetName() + wxFileName::GetPathSeparator() + filename + wxFileName::GetPathSeparator() + appname + ".mo";
 			if(wxFileExists(mo_file)) {
->>>>>>> upstream/dev1.9
+
 				names.Add(langinfo->Description);
 				identifiers.Add(langinfo->Language);
 			}
 		}
-<<<<<<< HEAD
-=======
+
         
         cont = dir.GetNext(&filename);
->>>>>>> upstream/dev1.9
+
 	}
 }
 
@@ -277,40 +176,24 @@ bool wxTranslationHelper::AskUserForLanguage(wxArrayString & names,
 											 wxArrayLong & identifiers)
 {
 	wxCHECK_MSG(names.Count() == identifiers.Count(), false, 
-<<<<<<< HEAD
-		_("Array of language names and identifiers should have the same size."));
-	long index = wxGetSingleChoiceIndex(_("Select the language"), 
-			_("Language"), names);
-	if(index != -1)
-	{
-		if(m_Locale)
-		{
-=======
+
 		"Array of language names and identifiers should have the same size.");
     
 	long index = wxGetSingleChoiceIndex(_("Select the language"), _("Language"), names);
     
 	if(index != -1) {
 		if(m_Locale) {
->>>>>>> upstream/dev1.9
+
 			wxDELETE(m_Locale);
 		}
 		m_Locale = new wxLocale;
 		m_Locale->Init(identifiers[index]);
 		m_Locale->AddCatalogLookupPathPrefix(m_SearchPath);
-<<<<<<< HEAD
-		wxLogTrace("F:\GitHub\examples\wxtranslation\bin\en\wxTranslation.mo", 
-			_("wxTranslationHelper: Path Prefix = \"%s\""), 
-			m_SearchPath.GetData());
-		m_Locale->AddCatalog(m_App.GetAppName());
-		wxLogTrace("F:\GitHub\examples\wxtranslation\bin\en\wxTranslation.mo", 
-			_("wxTranslationHelper: Catalog Name = \"%s\""), 
-			m_App.GetAppName().GetData());
-=======
+
 		m_Locale->AddCatalog(m_App.GetAppName());
         //Catalog Name = m_App.GetAppName().GetData());
         Save();
->>>>>>> upstream/dev1.9
+
 		return true;
 	}
 	return false;

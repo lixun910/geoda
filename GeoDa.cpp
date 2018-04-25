@@ -290,50 +290,6 @@ bool GdaApp::OnInit(void)
     
     // load language here:
     // GdaConst::gda_ui_language
-    // value 0: english
-    // value 1: chinese
-	int language = GdaConst::gda_ui_language;
-	//wxMessageBox(wxString::Format("%i",language));
-	if(language == 1)
-	{
-		// select chinese as the default language
-		wxFileName appFileName(argv[0]);
-		appFileName.Normalize(wxPATH_NORM_DOTS|wxPATH_NORM_ABSOLUTE|
-		wxPATH_NORM_TILDE);
-		m_TranslationHelper = new wxTranslationHelper(*this, appFileName.GetPath(), false);
-
-		wxString search_Path = appFileName.GetPath();
-		bool findFile = false;
-		while (!findFile)
-		{
-			if (wxDirExists(search_Path + wxFileName::GetPathSeparator() + wxT("internationalization"))){
-				search_Path = search_Path + wxFileName::GetPathSeparator() + wxT("internationalization");
-				//wxMessageBox(search_Path);
-				findFile = true;
-			}
-			else
-			{
-				if (wxPathOnly(search_Path) == search_Path)
-				{
-					wxMessageBox(wxT("Please check your Language package in your dir internationalization"));
-					findFile = true;
-				}
-				else
-				{
-					search_Path = wxPathOnly(search_Path);
-				}
-			}
-		
-		}
-
-		wxString path = search_Path+
-		wxFileName::GetPathSeparator()+
-		GetAppName()+wxT(".ini");
-		m_TranslationHelper->SetConfigPath(path);
-		m_TranslationHelper->Load();
-	}
-	
-
 
     // search_path is the ./lang directory
     // config_path it the exe directory (every user will have a different config file?)
@@ -358,7 +314,7 @@ bool GdaApp::OnInit(void)
         m_TranslationHelper->SetConfigPath(config_path);
         m_TranslationHelper->Load();
     }
->>>>>>> upstream/dev1.9
+
    
     // Other GDAL configurations
     if (GdaConst::hide_sys_table_postgres == false) {
