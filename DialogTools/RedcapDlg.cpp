@@ -22,6 +22,8 @@
 #include <algorithm>
 #include <limits>
 
+
+#include <wx/textfile.h>
 #include <wx/wx.h>
 #include <wx/xrc/xmlres.h>
 #include <wx/msgdlg.h>
@@ -42,25 +44,27 @@
 #include "../Project.h"
 #include "../Algorithms/DataUtils.h"
 #include "../Algorithms/cluster.h"
-#include "../Algorithms/redcap.h"
+
 
 #include "../GeneralWxUtils.h"
 #include "../GenUtils.h"
 #include "SaveToTableDlg.h"
 #include "RedcapDlg.h"
 
+using namespace SpanningTreeClustering;
 
 BEGIN_EVENT_TABLE( RedcapDlg, wxDialog )
 EVT_CLOSE( RedcapDlg::OnClose )
 END_EVENT_TABLE()
 
 RedcapDlg::RedcapDlg(wxFrame* parent_s, Project* project_s)
-: AbstractClusterDlg(parent_s, project_s,  _("REDCAP Settings"))
+: redcap(NULL), AbstractClusterDlg(parent_s, project_s,  _("REDCAP Settings"))
 {
     wxLogMessage("Open REDCAP dialog.");
     
     parent = parent_s;
     project = project_s;
+    weights = NULL;
     
     bool init_success = Init();
     
@@ -76,6 +80,10 @@ RedcapDlg::~RedcapDlg()
 {
     wxLogMessage("On RedcapDlg::~RedcapDlg");
     frames_manager->removeObserver(this);
+    if (redcap) {
+        delete redcap;
+        redcap = NULL;
+    }
 }
 
 bool RedcapDlg::Init()
@@ -97,7 +105,7 @@ bool RedcapDlg::Init()
 void RedcapDlg::CreateControls()
 {
     wxLogMessage("On RedcapDlg::CreateControls");
-    wxScrolledWindow* scrl = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(820,720), wxHSCROLL|wxVSCROLL );
+    wxScrolledWindow* scrl = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(820,780), wxHSCROLL|wxVSCROLL );
     scrl->SetScrollRate( 5, 5 );
     
     wxPanel *panel = new wxPanel(scrl);
@@ -118,9 +126,9 @@ void RedcapDlg::CreateControls()
     
     wxStaticText* st20 = new wxStaticText(panel, wxID_ANY, _("Method:"),
                                           wxDefaultPosition, wxSize(128,-1));
-    wxString choices20[] = {"Single-Linkage (first-order)", "Average-Linkage (first-order)", "Complete-Linkage (first-order)", "Single-Linkage (full-order)", "Average-Linkage (full-order)", "Complete-Linkage (full-order)"};
-    combo_method = new wxChoice(panel, wxID_ANY, wxDefaultPosition, wxSize(200,-1), 6, choices20);
-    combo_method->SetSelection(0);
+    wxString choices20[] = {"FirstOrder-SingleLinkage", "FullOrder-CompleteLinkage", "FullOrder-AverageLinkage", "FullOrder-SingleLinkage"};
+    combo_method = new wxChoice(panel, wxID_ANY, wxDefaultPosition, wxSize(200,-1), 4, choices20);
+    combo_method->SetSelection(2);
     
     gbox->Add(st20, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxLEFT, 10);
     gbox->Add(combo_method, 1, wxEXPAND);
@@ -176,13 +184,17 @@ void RedcapDlg::CreateControls()
     
     
     // Buttons
-    wxButton *okButton = new wxButton(panel, wxID_OK, wxT("Run"), wxDefaultPosition,
+    wxButton *okButton = new wxButton(panel, wxID_OK, _("Run"), wxDefaultPosition,
                                       wxSize(70, 30));
-    wxButton *closeButton = new wxButton(panel, wxID_EXIT, wxT("Close"),
+    saveButton = new wxButton(panel, wxID_OK, _("Save Spanning Tree"), wxDefaultPosition,
+                                      wxSize(140, 30));
+    wxButton *closeButton = new wxButton(panel, wxID_EXIT, _("Close"),
                                          wxDefaultPosition, wxSize(70, 30));
     wxBoxSizer *hbox2 = new wxBoxSizer(wxHORIZONTAL);
-    hbox2->Add(okButton, 1, wxALIGN_CENTER | wxALL, 5);
-    hbox2->Add(closeButton, 1, wxALIGN_CENTER | wxALL, 5);
+    hbox2->Add(okButton, 0, wxALIGN_CENTER | wxALL, 5);
+    hbox2->Add(saveButton, 0, wxALIGN_CENTER | wxALL, 5);
+    hbox2->Add(closeButton, 0, wxALIGN_CENTER | wxALL, 5);
+    saveButton->Disable();
     
     // Container
     vbox->Add(hbox, 0, wxALIGN_CENTER | wxALL, 10);
@@ -233,6 +245,7 @@ void RedcapDlg::CreateControls()
     
     // Events
     okButton->Bind(wxEVT_BUTTON, &RedcapDlg::OnOK, this);
+    saveButton->Bind(wxEVT_BUTTON, &RedcapDlg::OnSaveTree, this);
     closeButton->Bind(wxEVT_BUTTON, &RedcapDlg::OnClickClose, this);
     chk_seed->Bind(wxEVT_CHECKBOX, &RedcapDlg::OnSeedCheck, this);
     seedButton->Bind(wxEVT_BUTTON, &RedcapDlg::OnChangeSeed, this);
@@ -368,6 +381,39 @@ wxString RedcapDlg::_printConfiguration()
     return txt;
 }
 
+void RedcapDlg::OnSaveTree(wxCommandEvent& event )
+{
+    if (weights && redcap) {
+        wxString filter = "GWT|*.gwt";
+        wxFileDialog dialog(NULL, _("Save Spanning Tree to a Weights File"), wxEmptyString,
+                            wxEmptyString, filter,
+                            wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        if (dialog.ShowModal() != wxID_OK)
+            return;
+        wxFileName fname = wxFileName(dialog.GetPath());
+        wxString new_main_dir = fname.GetPathWithSep();
+        wxString new_main_name = fname.GetName();
+        wxString new_txt = new_main_dir + new_main_name+".gwt";
+        wxTextFile file(new_txt);
+        file.Create(new_txt);
+        file.Open(new_txt);
+        file.Clear();
+        
+        wxString header;
+        header << "0 " << project->GetNumRecords() << " " << project->GetProjectTitle();
+        file.AddLine(header);
+        
+        for (int i=0; i<redcap->ordered_edges.size(); i++) {
+            wxString line;
+            line << redcap->ordered_edges[i]->orig->id+1<< " " << redcap->ordered_edges[i]->dest->id +1<< " " << redcap->ordered_edges[i]->length ;
+            file.AddLine(line);
+        }
+        file.Write();
+        file.Close();
+        
+    }
+}
+
 void RedcapDlg::OnOK(wxCommandEvent& event )
 {
     wxLogMessage("Click RedcapDlg::OnOK");
@@ -426,7 +472,7 @@ void RedcapDlg::OnOK(wxCommandEvent& event )
         dlg.ShowModal();
         return;
     }
-    
+    weights = w_man_int->GetGal(w_id);
     // Check connectivity
     if (!CheckConnectivity(gw)) {
         wxString msg = _("The connectivity of selected spatial weights is incomplete, please adjust the spatial weights.");
@@ -457,42 +503,28 @@ void RedcapDlg::OnOK(wxCommandEvent& event )
  
     int transpose = 0; // row wise
     double** ragged_distances = distancematrix(rows, columns, input_data,  mask, weight, dist, transpose);
-    vector<vector<double> > distances = DataUtils::copyRaggedMatrix(ragged_distances, rows, rows);
+    double** distances = DataUtils::fullRaggedMatrix(ragged_distances, rows, rows);
     for (int i = 1; i < rows; i++) free(ragged_distances[i]);
     free(ragged_distances);
     
     // run RedCap
-	vector<vector<double> > z;
-	for (int i=0; i<rows; i++) {
-		vector<double> vals;
-		for (int j=0; j<columns; j++) {
-			vals.push_back(input_data[i][j]);
-		}
-		z.push_back(vals);
-	}
     std::vector<bool> undefs(rows, false);
   
-    /*
-    for (int i=0; i<rows; i++) {
-        for (int j=0; j<rows; j++) {
-            distances[i][j] = abs(z[i][0] - z[j][0]);
-        }
-    }*/
+    if (redcap != NULL) {
+        delete redcap;
+        redcap = NULL;
+    }
     
-    AbstractRedcap* redcap = NULL;
     int method_idx = combo_method->GetSelection();
-    if (method_idx == 0) 
-        redcap = new FirstOrderSLKRedCap(distances, z, undefs, gw->gal, bound_vals, min_bound);
+    if (method_idx == 0)
+        redcap = new Skater(rows, columns, distances, input_data, undefs, gw->gal, bound_vals, min_bound);
     else if (method_idx == 1)
-        redcap = new FirstOrderALKRedCap(distances, z, undefs, gw->gal, bound_vals, min_bound);
+        redcap = new FullOrderCLKRedCap(rows, columns, distances, input_data, undefs, gw->gal, bound_vals, min_bound);
     else if (method_idx == 2)
-        redcap = new FirstOrderCLKRedCap(distances, z, undefs, gw->gal, bound_vals, min_bound);
+        redcap = new FullOrderALKRedCap(rows, columns, distances, input_data, undefs, gw->gal, bound_vals, min_bound);
     else if (method_idx == 3)
-        redcap = new FullOrderSLKRedCap(distances, z, undefs, gw->gal, bound_vals, min_bound);
-    else if (method_idx == 4)
-        redcap = new FullOrderALKRedCap(distances, z, undefs, gw->gal, bound_vals, min_bound);
-    else if (method_idx == 5)
-        redcap = new FullOrderCLKRedCap(distances, z, undefs, gw->gal, bound_vals, min_bound);
+        redcap = new FullOrderSLKRedCap(rows, columns, distances, input_data, undefs, gw->gal, bound_vals, min_bound);
+
    
     if (redcap==NULL) {
         delete[] bound_vals;
@@ -563,7 +595,9 @@ void RedcapDlg::OnOK(wxCommandEvent& event )
     }
     
     // free memory
-    delete redcap;
+    for (int i = 1; i < rows; i++) free(distances[i]);
+    free(distances);
+    
 	delete[] bound_vals;
 	bound_vals = NULL;
     
@@ -597,4 +631,6 @@ void RedcapDlg::OnOK(wxCommandEvent& event )
     ttl << n_regions;
     ttl << " clusters)";
     nf->SetTitle(ttl);
+    
+    saveButton->Enable();
 }

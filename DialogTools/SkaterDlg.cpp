@@ -23,6 +23,7 @@
 #include <limits>
 
 #include <wx/wx.h>
+#include <wx/textfile.h>
 #include <wx/xrc/xmlres.h>
 #include <wx/msgdlg.h>
 #include <wx/sizer.h>
@@ -42,7 +43,7 @@
 #include "../Project.h"
 #include "../Algorithms/cluster.h"
 #include "../Algorithms/maxp.h"
-#include "../Algorithms/skater.h"
+#include "../Algorithms/DataUtils.h"
 
 #include "../GeneralWxUtils.h"
 #include "../GenUtils.h"
@@ -55,7 +56,7 @@ EVT_CLOSE( SkaterDlg::OnClose )
 END_EVENT_TABLE()
 
 SkaterDlg::SkaterDlg(wxFrame* parent_s, Project* project_s)
-: AbstractClusterDlg(parent_s, project_s, _("Skater Settings"))
+: skater(NULL), AbstractClusterDlg(parent_s, project_s, _("Skater Settings"))
 {
     wxLogMessage("Open Skater dialog.");
     CreateControls();
@@ -64,6 +65,10 @@ SkaterDlg::SkaterDlg(wxFrame* parent_s, Project* project_s)
 SkaterDlg::~SkaterDlg()
 {
     wxLogMessage("On SkaterDlg::~SkaterDlg");
+    if (skater) {
+        delete skater;
+        skater = NULL;
+    }
 }
 
 void SkaterDlg::CreateControls()
@@ -79,13 +84,12 @@ void SkaterDlg::CreateControls()
     // Input
     AddSimpleInputCtrls(panel, vbox);
     
-    
     // Parameters
     wxFlexGridSizer* gbox = new wxFlexGridSizer(9,2,5,0);
 
     wxStaticText* st11 = new wxStaticText(panel, wxID_ANY, _("Number of Clusters:"),
                                           wxDefaultPosition, wxSize(128,-1));
-    m_max_region = new wxTextCtrl(panel, wxID_ANY, "4", wxDefaultPosition, wxSize(200,-1));
+    m_max_region = new wxTextCtrl(panel, wxID_ANY, "5", wxDefaultPosition, wxSize(200,-1));
     gbox->Add(st11, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxLEFT, 10);
     gbox->Add(m_max_region, 1, wxEXPAND);
     
@@ -148,11 +152,15 @@ void SkaterDlg::CreateControls()
     // Buttons
     wxButton *okButton = new wxButton(panel, wxID_OK, wxT("Run"), wxDefaultPosition,
                                       wxSize(70, 30));
+    saveButton = new wxButton(panel, wxID_OK, _("Save Spanning Tree"), wxDefaultPosition,
+                              wxSize(140, 30));
     wxButton *closeButton = new wxButton(panel, wxID_EXIT, wxT("Close"),
                                          wxDefaultPosition, wxSize(70, 30));
     wxBoxSizer *hbox2 = new wxBoxSizer(wxHORIZONTAL);
-    hbox2->Add(okButton, 1, wxALIGN_CENTER | wxALL, 5);
-    hbox2->Add(closeButton, 1, wxALIGN_CENTER | wxALL, 5);
+    hbox2->Add(okButton, 0, wxALIGN_CENTER | wxALL, 5);
+    hbox2->Add(saveButton, 0, wxALIGN_CENTER | wxALL, 5);
+    hbox2->Add(closeButton, 0, wxALIGN_CENTER | wxALL, 5);
+    saveButton->Disable();
     
     // Container
     //vbox->Add(hbox0, 1,  wxEXPAND | wxALL, 10);
@@ -205,9 +213,43 @@ void SkaterDlg::CreateControls()
     // Events
     okButton->Bind(wxEVT_BUTTON, &SkaterDlg::OnOK, this);
     closeButton->Bind(wxEVT_BUTTON, &SkaterDlg::OnClickClose, this);
+    saveButton->Bind(wxEVT_BUTTON, &SkaterDlg::OnSaveTree, this);
     chk_seed->Bind(wxEVT_CHECKBOX, &SkaterDlg::OnSeedCheck, this);
     seedButton->Bind(wxEVT_BUTTON, &SkaterDlg::OnChangeSeed, this);
 
+}
+
+void SkaterDlg::OnSaveTree(wxCommandEvent& event )
+{
+    if (skater) {
+        wxString filter = "GWT|*.gwt";
+        wxFileDialog dialog(NULL, _("Save Spanning Tree to a Weights File"), wxEmptyString,
+                            wxEmptyString, filter,
+                            wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        if (dialog.ShowModal() != wxID_OK)
+            return;
+        wxFileName fname = wxFileName(dialog.GetPath());
+        wxString new_main_dir = fname.GetPathWithSep();
+        wxString new_main_name = fname.GetName();
+        wxString new_txt = new_main_dir + new_main_name+".gwt";
+        wxTextFile file(new_txt);
+        file.Create(new_txt);
+        file.Open(new_txt);
+        file.Clear();
+        
+        wxString header;
+        header << "0 " << project->GetNumRecords() << " " << project->GetProjectTitle();
+        file.AddLine(header);
+        
+        for (int i=0; i<skater->ordered_edges.size(); i++) {
+            wxString line;
+            line << skater->ordered_edges[i]->orig->id+1<< " " << skater->ordered_edges[i]->dest->id +1<< " " << skater->ordered_edges[i]->length ;
+            file.AddLine(line);
+        }
+        file.Write();
+        file.Close();
+        
+    }
 }
 
 void SkaterDlg::OnCheckMinBound(wxCommandEvent& event)
@@ -438,6 +480,7 @@ void SkaterDlg::OnOK(wxCommandEvent& event )
     }
     
     double* bound_vals = GetBoundVals();
+    /*
     if (bound_vals == NULL) {
         wxString str_min_regions = txt_minregions->GetValue();
         long val_min_regions;
@@ -449,12 +492,12 @@ void SkaterDlg::OnOK(wxCommandEvent& event )
         for (int i=0; i<rows; i++)
             bound_vals[i] = 1;
     }
-    
+    */
 	// Get region numbers
-    int initial = 0;
+    int n_regions = 0;
     long value_initial;
     if(str_initial.ToLong(&value_initial)) {
-        initial = value_initial;
+        n_regions = value_initial;
     }
     
 	// Get random seed
@@ -462,40 +505,73 @@ void SkaterDlg::OnOK(wxCommandEvent& event )
     if (chk_seed->GetValue()) rnd_seed = GdaConst::gda_user_seed;
     
     // Create distance matrix using weights
-    vector<vector<double> > distances(rows);
+    /*
     double** ragged_distances = distancematrix(rows, columns, input_data,  mask, weight, dist, transpose);
-    for (int i = 0; i < rows; i++) {
-        distances[i].resize(rows);
-        for (int j = 0; j < rows; j++)
-            distances[i][j] = -1;
-    }
-    for (int i=0; i< rows; i++) {
-        for (int j=0; j< gw->gal[i].Size(); j++) {
-            int k = gw->gal[i][j];
-            distances[i][k] = 0;
-        }
-    }
-    for (int i = 1; i < rows; i++) {
-        for (int j = 0; j < i; j++) {
-            if (distances[i][j] == 0)
-                distances[i][j] = sqrt(ragged_distances[i][j]);
-            if (distances[j][i] == 0)
-                distances[j][i] = sqrt(ragged_distances[i][j]);
-        }
-    }
+    double** distances = DataUtils::fullRaggedMatrix(ragged_distances, rows, rows);
     for (int i = 1; i < rows; i++) free(ragged_distances[i]);
     free(ragged_distances);
+    */
+    double** distances = new double*[rows];
+    for (int i=0; i<rows; i++) {
+        distances[i] = new double[rows];
+    }
+    boost::unordered_map<pair<int, int>, bool> access_dict;
+    for (int i=0; i<rows; i++) {
+        for (int j=0; j<gw->gal[i].Size(); j++) {
+            int nbr = gw->gal[i][j];
+            pair<int, int> i_nbr(i, nbr);
+            pair<int, int> nbr_i(nbr, i);
+            if (access_dict.find(i_nbr) != access_dict.end() ||
+                access_dict.find(nbr_i) != access_dict.end() )
+            {
+                continue;
+            }
+            {
+                double dis = 0;
+                for (int k=0; k<columns; k++) {
+                    double tmp = input_data[i][k] - input_data[nbr][k];
+                    dis += tmp * tmp;
+                }
+                dis = sqrt(dis);
+                distances[i][nbr] = dis;
+                distances[nbr][i] = dis;
+                access_dict[i_nbr] =  true;
+                access_dict[nbr_i] =  true;
+            }
+        }
+    }
     
-    vector<wxInt64> clusters(rows, 0);
-    vector<bool> clusters_undef(rows, false);
+    
+    if (skater != NULL) {
+        delete skater;
+        skater = NULL;
+    }
     
 	// Run Skater
-    Skater skater(rows, columns, initial, input_data, distances, check_floor, min_bound, bound_vals);
+    skater = new SpanningTreeClustering::Skater(rows, columns, distances, input_data, undefs, gw->gal, bound_vals, min_bound);
     
-	delete[] bound_vals;
-
-    vector<vector<int> > cluster_ids = skater.GetRegions();
+    if (skater==NULL) {
+        delete[] bound_vals;
+        bound_vals = NULL;
+        return;
+    }
+    
+    skater->Partitioning(n_regions);
+    
+    vector<vector<int> > cluster_ids = skater->GetRegions();
+    
     int ncluster = cluster_ids.size();
+    
+    if (ncluster < n_regions) {
+        // show message dialog to user
+        wxString warn_str = _("The number of identified clusters is less than ");
+        warn_str << n_regions;
+        wxMessageDialog dlg(NULL, warn_str, _("Warning"), wxOK | wxICON_WARNING);
+        dlg.ShowModal();
+    }
+    vector<wxInt64> clusters(rows, 0);
+    vector<bool> clusters_undef(rows, false);
+
 
     // sort result
     std::sort(cluster_ids.begin(), cluster_ids.end(), GenUtils::less_vectors);
@@ -576,4 +652,6 @@ void SkaterDlg::OnOK(wxCommandEvent& event )
     if (n_island>0) {
         nf->SetLegendLabel(0, "Not Clustered");
     }
+    
+    saveButton->Enable();
 }

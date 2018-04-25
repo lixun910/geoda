@@ -28,6 +28,7 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/heap/priority_queue.hpp>
+#include <boost/graph/adjacency_list.hpp>
 
 #include "../ShapeOperations/GalWeight.h"
 
@@ -35,452 +36,439 @@
 using namespace std;
 using namespace boost;
 
-template <class T>
-class SortedList
-{
-public:
-    SortedList();
-    ~SortedList();
+namespace SpanningTreeClustering {
     
-    void push_back(T* node);
-   
-    T* pop(); // pop with largest node->items
-};
-
-typedef std::pair<int, int> E;
-
-/////////////////////////////////////////////////////////////////////////
-//
-// RedCapNode
-//
-/////////////////////////////////////////////////////////////////////////
-class RedCapNode
-{
-public:
-    RedCapNode(int id, const vector<double>& value);
+    class Node;
+    class Edge;
+    class Cluster;
+    class Tree;
+    class AbstractClusterFactory;
     
-    RedCapNode(RedCapNode* node);
-   
-    RedCapNode(RedCapNode* node, RedCapNode* exclude_neighb_node);
-    
-    ~RedCapNode();
-    
-    void AddNeighbor(RedCapNode* node);
-    
-    void RemoveNeighbor(RedCapNode* node);
-    
-    void RemoveNeighbor(int node_id);
-    
-    int id; // mapping to record id
-    
-    const vector<double>& value;
-    
-    std::set<RedCapNode*> neighbors;
-    
-    std::set<RedCapNode*>::iterator it;
-};
-
-/////////////////////////////////////////////////////////////////////////
-//
-// RedCapEdge
-//
-/////////////////////////////////////////////////////////////////////////
-class RedCapEdge
-{
-public:
-    RedCapEdge(RedCapNode* a, RedCapNode* b, double length, double weight=1.0);
-    ~RedCapEdge();
-    
-    RedCapNode* a;
-    RedCapNode* b;
-    double length; // legnth of the edge |a.val - b.val|
-    
-    bool Has(int id1) {
-        return a->id == id1 || b->id == id1;
-    }
-protected:
-    double weight;
-    
-};
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// RedCapCluster
-//
-////////////////////////////////////////////////////////////////////////////////
-class RedCapCluster {
-public:
-    RedCapCluster(RedCapEdge* edge);
-    
-    RedCapCluster(RedCapNode* node);
-    
-    ~RedCapCluster();
-    
-    int size();
-   
-    bool IsConnectWith(RedCapCluster* c);
-    
-    RedCapNode* GetNode(int i);
-    
-    bool Has(RedCapNode* node);
-    
-    bool Has(int id);
-    
-    void AddNode(RedCapNode* node);
-    
-    void Merge(RedCapCluster* cluster);
-    
-    RedCapNode* root;
-    
-    unordered_map<int, bool> node_id_dict;
-    
-    unordered_map<RedCapNode*, bool> node_dict;
-    
-    unordered_map<RedCapEdge*, bool> edge_dict;
-};
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// RedCapClusterManager
-//
-////////////////////////////////////////////////////////////////////////////////
-class RedCapClusterManager {
-
-public:
-    RedCapClusterManager();
-    ~RedCapClusterManager();
-   
-    unordered_map<RedCapCluster*, bool> clusters_dict;
-    unordered_map<RedCapCluster*, bool>::iterator it;
-    
-    bool HasCluster(RedCapCluster* cluster);
-    
-    RedCapCluster* UpdateByAdd(RedCapEdge* edge);
-    
-
-    bool CheckConnectivity(RedCapEdge* edge,
-                           RedCapCluster** c1,
-                           RedCapCluster** c2);
-    
-    RedCapCluster* getCluster(RedCapNode* node);
-    
-    RedCapCluster* createCluster(RedCapNode* node);
-    
-    RedCapCluster* mergeToCluster(RedCapNode* node, RedCapCluster* cluster);
-    
-    RedCapCluster* mergeClusters(RedCapCluster* cluster1,
-                                 RedCapCluster* cluster2);
-    
-};
-
-/////////////////////////////////////////////////////////////////////////
-//
-// SpanningTree
-//
-/////////////////////////////////////////////////////////////////////////
-typedef std::pair<int, int> E;
-
-static unordered_map<std::set<int>, double> ssd_dict; // <start, end>: ssd value
-static unordered_map<std::set<int>, vector<double> > avg_dict; // <start, end>: ssd value
-
-class SpanningTree
-{
-public:
-    vector<RedCapEdge*> edges;
-    
-    unordered_map<E, bool> edge_dict;
-    
-    unordered_map<int, bool> node_dict;
-    
-    boost::mutex mutex;
-    
-    double ssd;
-    
-    RedCapNode* root;
-    
-    const vector<vector<double> >& data;
-    
-    const vector<bool>& undefs;
-    
-    double* controls;
-    
-    double control_thres;
-    
-    SpanningTree* left_child;
-    
-    SpanningTree* right_child;
-    
-    map<RedCapEdge*, double> cand_trees;
-    
-    unordered_map<int, RedCapNode*> new_nodes;
-    
-    vector<RedCapEdge*> new_edges;
-
-public:
-    SpanningTree(const vector<RedCapNode*>& all_nodes,
-                 const vector<vector<double> >& _data,
-                 const vector<bool>& _undefs,
-                 double* controls = NULL,
-                 double control_thres = 0);
-    
-    SpanningTree(RedCapNode* node,
-                 RedCapNode* exclude_node,
-                 const vector<vector<double> >& _data,
-                 const vector<bool>& _undefs,
-                 double* controls = NULL,
-                 double control_thres = 0);
-
-    ~SpanningTree();
-   
-    
-    bool AddEdge(RedCapEdge* edge);
-  
-    bool IsFullyCovered();
-    
-    void Split();
-    
-    void subSplit(int start, int end);
-    
-    SpanningTree* GetLeftChild();
-    
-    SpanningTree* GetRightChild();
-    
-    double GetSSD();
-    
-    std::set<int> getSubTree(RedCapNode* a, RedCapNode* exclude_node);
-
-    bool quickCheck(RedCapNode* node, RedCapNode* exclude_node);
-    
-    bool checkEdge(RedCapEdge* edge);
-    
-    void save();
-    
-protected:
-    
-    double computeSSD(std::set<int>& ids);
-    
-    bool checkControl(std::set<int>& ids);
-    // check if all odes are included in the graph
-    
-    RedCapNode* getNewNode(RedCapNode* old_node, bool copy_nbrs=false);
-    
-    void addNewEdge(RedCapNode* a, RedCapNode* b);
-    
-};
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// AbstractRedcap
-//
-////////////////////////////////////////////////////////////////////////////////
-/*! A REDCAP class */
-
-struct CompareCluster
-{
-public:
-    bool operator() (const SpanningTree* lhs, const SpanningTree* rhs) const
+    /////////////////////////////////////////////////////////////////////////
+    //
+    // SSDUtils
+    //
+    /////////////////////////////////////////////////////////////////////////
+    struct Measure
     {
-        return lhs->ssd < rhs->ssd;
-    }
-};
-
-typedef heap::priority_queue<SpanningTree*, heap::compare<CompareCluster> > PriorityQueue;
-
-
-class AbstractRedcap
-{
-public:
+        double ssd;
+        double ssd_part1;
+        double ssd_part2;
+        double measure_reduction;
+    };
     
-    AbstractRedcap(const vector<vector<double> >& distances,
-                   const vector<vector<double> >& data,
-                   const vector<bool>& undefs,
-                   GalElement * w);
+    class SSDUtils
+    {
+        double** raw_data;
+        int row;
+        int col;
+        
+    public:
+        SSDUtils(double** data, int _row, int _col) {
+            raw_data = data;
+            row = _row;
+            col = _col;
+        }
+        ~SSDUtils() {}
+        
+        double ComputeSSD(vector<int>& visited_ids, int start, int end);
+        void MeasureSplit(double ssd, vector<int>& visited_ids, int split_position, Measure& result);
+        
+    };
     
-    //! A Deconstructor
-    /*!
-     Details.
-     */
-    virtual ~AbstractRedcap();
-
-    void init();
+    /////////////////////////////////////////////////////////////////////////
+    //
+    // RedCapNode
+    //
+    /////////////////////////////////////////////////////////////////////////
     
-    // check if mst is a spanning tree
-    bool CheckSpanningTree();
-   
-    void Partitioning(int k);
+    struct NeighborInfo
+    {
+        Node* p;
+        Node* n1;
+        Node* n2;
+        Edge* e1;
+        Edge* e2;
+        
+        void SetDefault(Node* parent) {
+            p = parent;
+            n1 = NULL;
+            n2 = NULL;
+            e1 = NULL;
+            e2 = NULL;
+        }
+        
+        void AddNeighbor(Node* nbr, Edge* e) {
+            if (n1 == NULL) {
+                n1 = nbr;
+                e1 = e;
+            } else if (n2 == NULL) {
+                n2 = nbr;
+                e2 = e;
+            } else {
+                cout << "AddNeighbor() > 2" << endl;
+            }
+        }
+    };
     
-    virtual void Clustering()=0;
+    class Node
+    {
+    public:
+        Node(int id);
+        ~Node() {}
+        
+        void SetCluster(Cluster* cluster);
+        void AddNeighbor(Node* nbr, Edge* e);
+        
+        int id; // mapping to record id
+        Cluster* container;
+        NeighborInfo nbr_info;
+    };
     
-    vector<vector<int> >& GetRegions();
+    /////////////////////////////////////////////////////////////////////////
+    //
+    // RedCapEdge
+    //
+    /////////////////////////////////////////////////////////////////////////
+    class Edge
+    {
+    public:
+        Edge(Node* a, Node* b, double length);
+        ~Edge() {}
+        
+        Node* orig;
+        Node* dest;
+        double length; // legnth of the edge |a.val - b.val|
+    };
     
-    void createFullOrderEdges(vector<RedCapEdge*>& e);
+    ////////////////////////////////////////////////////////////////////////////////
+    //
+    // RedCapCluster
+    //
+    ////////////////////////////////////////////////////////////////////////////////
+    class Cluster {
+    public:
+        static Cluster* GetRoot(Node* node);
+        static void GetOrderedNodes(Cluster* root, vector<Node*>& ordered_nodes);
+        
+        Cluster(Node* node);
+        Cluster(Cluster* c1, Cluster* c2, Edge* e, double** dist_matrix);
+        ~Cluster() {
+            if (child1) {
+                delete child1;
+            }
+            if (child2) {
+                delete child2;
+            }
+        }
+        
+        
+        double** dist_matrix;
+        
+        Node* p1;
+        Node* p2;
+        Cluster* parent;
+        Cluster* child1;
+        Cluster* child2;
+    };
     
-    void createFirstOrderEdges(vector<RedCapEdge*>& e);
     
-    bool checkFirstOrderEdge(int node_i, int node_j);
     
-protected:
+    /////////////////////////////////////////////////////////////////////////
+    //
+    // RedCapTree
+    //
+    /////////////////////////////////////////////////////////////////////////
+    struct SplitSolution
+    {
+        int split_pos;
+        vector<int> split_ids;
+        double ssd;
+        double ssd_reduce;
+    };
     
-    int num_obs;
+    class Tree
+    {
+    public:
+        Tree(vector<int> ordered_ids,
+                   vector<Edge*> _edges,
+                   AbstractClusterFactory* redcap);
+        
+        ~Tree();
+        
+        void Partition(int start, int end, vector<int>& ids,
+                       vector<pair<int, int> >& od_array,
+                       boost::unordered_map<int, vector<int> >& nbr_dict);
+        void Split(int orig, int dest,
+                   boost::unordered_map<int, vector<int> >& nbr_dict,
+                   vector<int>& cand_ids);
+        bool checkControl(vector<int>& cand_ids, vector<int>& ids, int flag);
+        pair<Tree*, Tree*> GetSubTrees();
+        
+        double ssd_reduce;
+        double ssd;
+        
+        vector<pair<int, int> > od_array;
+        AbstractClusterFactory* redcap;
+        pair<Tree*, Tree*> subtrees;
+        int max_id;
+        int split_pos;
+        vector<int> split_ids;
+        vector<Edge*> edges;
+        vector<int> ordered_ids;
+        SSDUtils* ssd_utils;
+        
+        double* controls;
+        double control_thres;
+        
+        // threads
+        boost::mutex mutex;
+        void run_threads(vector<int>& ids,
+                       vector<pair<int, int> >& od_array,
+                       boost::unordered_map<int, vector<int> >& nbr_dict);
+        vector<SplitSolution> split_cands;
+    };
     
-    int num_vars;
+    ////////////////////////////////////////////////////////////////////////////////
+    //
+    // AbstractRedcap
+    //
+    ////////////////////////////////////////////////////////////////////////////////
+    struct CompareTree
+    {
+    public:
+        bool operator() (const Tree* lhs, const Tree* rhs) const
+        {
+            return lhs->ssd_reduce < rhs->ssd_reduce;
+        }
+    };
     
-    GalElement* w;
+    typedef heap::priority_queue<Tree*, heap::compare<CompareTree> > PriorityQueue;
     
-    vector<vector<bool> > first_order_dict;
-    
-    const vector<vector<double> >& distances;
-    
-    const vector<vector<double> >& data;
-    
-    const vector<bool>& undefs; // undef = any one item is undef in all variables
-    
-    double* controls;
-    
-    double control_thres;
-
-    vector<RedCapNode*> all_nodes;
-    
-    vector<RedCapEdge*> first_order_edges;
-    
-    SpanningTree* mstree;
-    
-    vector<SpanningTree*> regions;
-    
-    vector<vector<int> > cluster_ids;
-    
-    RedCapClusterManager cm; // manage to create a MST
-    
-};
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// 1 FirstOrderSLKRedCap
-//
-////////////////////////////////////////////////////////////////////////////////
-class FirstOrderSLKRedCap : public AbstractRedcap
-{
-public:
-    FirstOrderSLKRedCap(const vector<vector<double> >& _distances,
-                        const vector<vector<double> >& data,
-                        const vector<bool>& undefs,
-                        GalElement * w,
-                        double* controls,
-                        double control_thres);
-    virtual ~FirstOrderSLKRedCap();
-    
-    virtual void Clustering();
-};
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// 2 FirstOrderALKRedCap
-//
-////////////////////////////////////////////////////////////////////////////////
-class FirstOrderALKRedCap : public AbstractRedcap
-{
-public:
-    FirstOrderALKRedCap(const vector<vector<double> >& _distances,
-                        const vector<vector<double> >& data,
-                        const vector<bool>& undefs,
-                        GalElement * w,
-                        double* controls,
-                        double control_thres);
-    
-    virtual ~FirstOrderALKRedCap();
-    
-    virtual void Clustering();
-    
-};
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// 3 FirstOrderCLKRedCap
-//
-////////////////////////////////////////////////////////////////////////////////
-class FirstOrderCLKRedCap : public AbstractRedcap
-{
-public:
-    FirstOrderCLKRedCap(const vector<vector<double> >& _distances,
-                        const vector<vector<double> >& data,
-                        const vector<bool>& undefs,
-                        GalElement * w,
-                        double* controls,
-                        double control_thres);
-    
-    virtual ~FirstOrderCLKRedCap();
-    
-    virtual void Clustering();
-    
-protected:
-    vector<vector<double> > maxDist;
-
-    double getMaxDist(RedCapCluster* l, RedCapCluster* m);
-    
-};
-
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// 4 FullOrderSLKRedCap
-//
-////////////////////////////////////////////////////////////////////////////////
-class FullOrderSLKRedCap : public AbstractRedcap
-{
-public:
-    FullOrderSLKRedCap(const vector<vector<double> >& _distances,
-                       const vector<vector<double> >& data,
+    class AbstractClusterFactory
+    {
+    public:
+        int rows;
+        int cols;
+        GalElement* w;
+        double** dist_matrix;
+        double** raw_data;
+        const vector<bool>& undefs; // undef = any one item is undef in all variables
+        double* controls;
+        double control_thres;
+        SSDUtils* ssd_utils;
+        
+        Cluster* cluster;
+        
+        vector<Node*> nodes;
+        vector<Edge*> edges;
+        
+        vector<int> ordered_ids;
+        vector<Edge*> ordered_edges;
+        
+        vector<boost::unordered_map<int, double> > dist_dict;
+        
+        vector<vector<int> > cluster_ids;
+        
+        AbstractClusterFactory(int row, int col,
+                       double** distances,
+                       double** data,
                        const vector<bool>& undefs,
-                       GalElement * w,
-                       double* controls,
-                       double control_thres);
-    virtual ~FullOrderSLKRedCap();
+                       GalElement * w);
+        virtual ~AbstractClusterFactory();
+        
+        virtual void Clustering()=0;
+        
+        virtual double UpdateClusterDist(int cur_id, int orig_id, int dest_id, bool is_orig_nbr, bool is_dest_nbr, vector<int>& clst_ids, vector<int>& clst_startpos, vector<int>& clst_nodenum) { return 0;}
+        
+        Edge* GetShortestEdge(vector<Edge*>& edges, int start, int end){ return NULL;}
+        
+        void init();
+        void Partitioning(int k);
+        vector<vector<int> >& GetRegions();
+    };
     
-    virtual void Clustering();
-};
+    ////////////////////////////////////////////////////////////////////////////////
+    //
+    // 1 Skater
+    //
+    ////////////////////////////////////////////////////////////////////////////////
+    typedef adjacency_list <
+    vecS,
+    vecS,
+    undirectedS,
+    boost::no_property,         //VertexProperties
+    property < edge_weight_t, double>   //EdgeProperties
+    > Graph;
+    
+    class Skater : public AbstractClusterFactory
+    {
+    public:
+        Skater(int rows, int cols,
+               double** _distances,
+               double** data,
+               const vector<bool>& undefs,
+               GalElement * w,
+               double* controls,
+               double control_thres);
+        virtual ~Skater();
+        virtual void Clustering();
+    };
+    
+    ////////////////////////////////////////////////////////////////////////////////
+    //
+    // 1 FirstOrderSLKRedCap
+    //
+    ////////////////////////////////////////////////////////////////////////////////
+    class FirstOrderSLKRedCap : public AbstractClusterFactory
+    {
+    public:
+        FirstOrderSLKRedCap(int rows, int cols,
+                            double** _distances,
+                            double** data,
+                            const vector<bool>& undefs,
+                            GalElement * w,
+                            double* controls,
+                            double control_thres);
+        virtual ~FirstOrderSLKRedCap();
+        
+        virtual void Clustering();
+    };
+    
+    ////////////////////////////////////////////////////////////////////////////////
+    //
+    // 2 FirstOrderALKRedCap
+    //
+    ////////////////////////////////////////////////////////////////////////////////
+    class FirstOrderALKRedCap : public AbstractClusterFactory
+    {
+    public:
+        FirstOrderALKRedCap(int rows, int cols,
+                            double** _distances,
+                            double** data,
+                            const vector<bool>& undefs,
+                            GalElement * w,
+                            double* controls,
+                            double control_thres);
+        
+        virtual ~FirstOrderALKRedCap();
+        
+        virtual void Clustering();
+        
+    };
+    
+    ////////////////////////////////////////////////////////////////////////////////
+    //
+    // 3 FirstOrderCLKRedCap
+    //
+    ////////////////////////////////////////////////////////////////////////////////
+    class FirstOrderCLKRedCap : public AbstractClusterFactory
+    {
+    public:
+        FirstOrderCLKRedCap(int rows, int cols,
+                            double** _distances,
+                            double** data,
+                            const vector<bool>& undefs,
+                            GalElement * w,
+                            double* controls,
+                            double control_thres);
+        
+        virtual ~FirstOrderCLKRedCap();
+        
+        virtual void Clustering();
+        
+    };
+    
+    ////////////////////////////////////////////////////////////////////////////////
+    //
+    // 5 FullOrderALKRedCap
+    //
+    ////////////////////////////////////////////////////////////////////////////////
+    class FullOrderALKRedCap : public AbstractClusterFactory
+    {
+    public:
+        FullOrderALKRedCap(int rows, int cols,
+                           double** _distances,
+                           double** data,
+                           const vector<bool>& undefs,
+                           GalElement * w,
+                           double* controls,
+                           double control_thres,
+                           bool init=true);
+        
+        virtual ~FullOrderALKRedCap();
+        
+        virtual void Clustering();
+        
+        virtual double UpdateClusterDist(int cur_id, int orig_id, int dest_id, bool is_orig_nbr, bool is_dest_nbr, vector<int>& clst_ids, vector<int>& clst_startpos, vector<int>& clst_nodenum);
+        
+        Edge* GetShortestEdge(vector<Edge*>& edges, int start, int end);
+    };
+    
+    ////////////////////////////////////////////////////////////////////////////////
+    //
+    // 4 FullOrderSLKRedCap
+    //
+    ////////////////////////////////////////////////////////////////////////////////
+    class FullOrderSLKRedCap : public FullOrderALKRedCap
+    {
+    public:
+        FullOrderSLKRedCap(int rows, int cols,
+                           double** _distances,
+                           double** data,
+                           const vector<bool>& undefs,
+                           GalElement * w,
+                           double* controls,
+                           double control_thres);
+        virtual ~FullOrderSLKRedCap();
+        
+        virtual double UpdateClusterDist(int cur_id, int orig_id, int dest_id, bool is_orig_nbr, bool is_dest_nbr, vector<int>& clst_ids, vector<int>& clst_startpos, vector<int>& clst_nodenum);
+        
+    };
+    
+    
+    ////////////////////////////////////////////////////////////////////////////////
+    //
+    // 6 FullOrderCLKRedCap
+    //
+    ////////////////////////////////////////////////////////////////////////////////
+    class FullOrderCLKRedCap : public FullOrderALKRedCap
+    {
+    public:
+        FullOrderCLKRedCap(int rows, int cols,
+                           double** _distances,
+                           double** data,
+                           const vector<bool>& undefs,
+                           GalElement * w,
+                           double* controls,
+                           double control_thres);
+        
+        virtual ~FullOrderCLKRedCap();
+        
+        virtual double UpdateClusterDist(int cur_id, int orig_id, int dest_id, bool is_orig_nbr, bool is_dest_nbr, vector<int>& clst_ids, vector<int>& clst_startpos, vector<int>& clst_nodenum);
+        
+    };
 
-////////////////////////////////////////////////////////////////////////////////
-//
-// 5 FullOrderALKRedCap
-//
-////////////////////////////////////////////////////////////////////////////////
-class FullOrderALKRedCap : public AbstractRedcap
-{
-public:
-    FullOrderALKRedCap(const vector<vector<double> >& _distances,
-                       const vector<vector<double> >& data,
-                       const vector<bool>& undefs,
-                       GalElement * w,
-                       double* controls,
-                       double control_thres);
-    
-    virtual ~FullOrderALKRedCap();
-    
-    virtual void Clustering();
-};
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// 6 FullOrderCLKRedCap
-//
-////////////////////////////////////////////////////////////////////////////////
-class FullOrderCLKRedCap : public AbstractRedcap
-{
-public:
-    FullOrderCLKRedCap(const vector<vector<double> >& _distances,
-                       const vector<vector<double> >& data,
-                       const vector<bool>& undefs,
-                       GalElement * w,
-                       double* controls,
-                       double control_thres);
-    
-    virtual ~FullOrderCLKRedCap();
-    
-    virtual void Clustering();
-   
-protected:
-    vector<vector<double> > maxDist;
-};
-
+    ////////////////////////////////////////////////////////////////////////////////
+    //
+    // 6 Ward
+    //
+    ////////////////////////////////////////////////////////////////////////////////
+    class FullOrderWardRedCap : public AbstractClusterFactory
+    {
+    public:
+        FullOrderWardRedCap(int rows, int cols,
+                           double** _distances,
+                           double** data,
+                           const vector<bool>& undefs,
+                           GalElement * w,
+                           double* controls,
+                           double control_thres);
+        
+        virtual ~FullOrderWardRedCap();
+        
+        virtual void Clustering();
+    };
+}
 
 #endif
