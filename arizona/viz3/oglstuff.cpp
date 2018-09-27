@@ -745,7 +745,7 @@ void myOGLCircles::Draw(const GLfloat* unifMvp, const GLfloat* unifToVw,
     glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
     
     // Indexed drawing the triangles in strip mode, using 6 indices
-    glDrawElements(GL_POINTS, 50000000, GL_UNSIGNED_SHORT, (GLvoid *)0);
+    //glDrawElements(GL_POINTS, 50000000, GL_UNSIGNED_SHORT, (GLvoid *)0);
     
     MyOnGLError(myoglERR_DRAWING_TRI);
     
@@ -1516,7 +1516,7 @@ void myOGLManager::SetViewport(int x, int y, int width, int height)
 
 void myOGLManager::Render()
 {
-    glEnable(GL_PROGRAM_POINT_SIZE);
+    //glEnable(GL_PROGRAM_POINT_SIZE);
     //glEnable(GL_DEPTH_TEST);
     //glDepthFunc(GL_LEQUAL);
     //glEnable(GL_BLEND);
