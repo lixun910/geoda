@@ -32,26 +32,26 @@
 
 using namespace std;					// make std:: accessible
 
-int ANN_DIST_TYPE = 2;
+ANN_DIST_METRIC ANNdistMetric = ANNEuclidean;
 
 double ANN_POW(double v)
 {
-    if (ANN_DIST_TYPE == 1) {
+    if (ANNdistMetric == ANNManhattan) {
         return fabs(v);
-    } else if (ANN_DIST_TYPE == 2) {
+    } else if (ANNdistMetric == ANNEuclidean) {
         return v * v;
     } else {
-        return pow(fabs(v), ANN_DIST_TYPE);
+        return v; // other metric should be fixed here
     }
 }
 double ANN_ROOT(double x)
 {
-    if (ANN_DIST_TYPE == 1) {
+    if (ANNdistMetric == ANNManhattan) {
         return x;
-    } else if (ANN_DIST_TYPE == 2) {
+    } else if (ANNdistMetric == ANNEuclidean) {
         return sqrt(x);
     } else {
-        return pow(fabs(x), 1/ANN_DIST_TYPE);
+        return x; // other metric should be fixed here
     }
 }
 double ANN_SUM(double x, double y)

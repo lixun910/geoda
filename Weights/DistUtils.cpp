@@ -15,7 +15,7 @@ DistUtils::DistUtils(const std::vector<std::vector<double> >& input_data, int di
 {
     eps = 0.0;
     
-    ANN_DIST_TYPE = distance_metric;
+    ANNdistMetric = distance_metric == 1 ? ANNManhattan : ANNEuclidean;
     
     n_cols = input_data.size();
     if (n_cols > 0) {

@@ -330,7 +330,9 @@ const ANNbool	ANN_ALLOW_SELF_MATCH	= ANNtrue;
 //		uncomment the appropriate set of macros below.
 //----------------------------------------------------------------------
 
-extern int ANN_DIST_TYPE;
+enum ANN_DIST_METRIC { ANNManhattan, ANNEuclidean };
+
+extern ANN_DIST_METRIC ANNdistMetric;
 
 double ANN_POW(double v);
 double ANN_ROOT(double x);
