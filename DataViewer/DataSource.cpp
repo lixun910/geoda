@@ -143,6 +143,8 @@ wxString IDataSource::GetDataTypeNameByExt(wxString ext)
         ds_format = "Idrisi";
     else if(ext.CmpNoCase("ods")==0)
         ds_format = "ODS";
+    else if(ext.CmpNoCase("osm")==0)
+        ds_format = "OSM";
 
     //else
     //    ds_format = "Unknown";

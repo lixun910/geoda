@@ -1404,6 +1404,7 @@ GdaPolyLine::GdaPolyLine(const GdaPolyLine& s)
 {
 	if (null_shape) return;
 	points = new wxPoint[n];
+    
 	for (int i=0; i<n; i++) {
 		points[i].x = s.points[i].x;
 		points[i].y = s.points[i].y;
@@ -1517,9 +1518,12 @@ GdaPolyLine::GdaPolyLine(Shapefile::PolyLineContents* pc_s)
 	n = pc->num_points;
 
 	points = new wxPoint[n];
+    points_o = new wxRealPoint[n];
 	for (int i=0; i<n; i++) {
 		points[i].x = (int) pc->points[i].x;
 		points[i].y = (int) pc->points[i].y;
+        points_o[i].x = pc->points[i].x;
+        points_o[i].y = pc->points[i].y;
 	}
 	
 	//int chunk_index = 0;  // will have the initial index of each part

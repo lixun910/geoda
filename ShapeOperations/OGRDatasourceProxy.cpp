@@ -44,8 +44,8 @@ OGRDatasourceProxy::OGRDatasourceProxy(wxString _ds_name, GdaConst::DataSourceTy
     ds_name = _ds_name;
     ds_type = _ds_type;
    
-    const char* pszDsPath = GET_ENCODED_FILENAME(ds_name);
-
+    const char* pszDsPath = ds_name.mb_str(wxConvUTF8);
+    //const char* pszDsPath = ds_name.c_str();
     wxString msg;
     msg << _("Failed to open data source. Please check the data/datasource and "
              "check if the data type/format is supported by GeoDa.\n\nTip: you "
@@ -53,38 +53,51 @@ OGRDatasourceProxy::OGRDatasourceProxy(wxString _ds_name, GdaConst::DataSourceTy
              "instructions at:\n http://geodacenter.github.io/formats.html");
     
     if (ds_type == GdaConst::ds_unknown) {
-        throw GdaException(GET_ENCODED_FILENAME(msg));
+        throw GdaException(msg);
     }
     
     CPLErrorReset();
     
     if (ds_type == GdaConst::ds_csv) {
         if (GdaConst::gda_ogr_csv_header == 0) {
-            const char *papszOpenOptions[255] = {"AUTODETECT_TYPE=YES", "EMPTY_STRING_AS_NULL=YES", "HEADERS=NO"};
-            ds = (GDALDataset*) GDALOpenEx(pszDsPath, GDAL_OF_VECTOR|GDAL_OF_UPDATE, NULL, papszOpenOptions, NULL);
+            const char *papszOpenOptions[255] = {"AUTODETECT_TYPE=YES",
+                "EMPTY_STRING_AS_NULL=YES", "HEADERS=NO"};
+            ds = (GDALDataset*) GDALOpenEx(pszDsPath,
+                                           GDAL_OF_VECTOR|GDAL_OF_UPDATE,
+                                           NULL, papszOpenOptions, NULL);
         } else if (GdaConst::gda_ogr_csv_header == 1) {
-            const char *papszOpenOptions[255] = {"AUTODETECT_TYPE=YES", "EMPTY_STRING_AS_NULL=YES", "HEADERS=YES"};
-            ds = (GDALDataset*) GDALOpenEx(pszDsPath, GDAL_OF_VECTOR|GDAL_OF_UPDATE, NULL, papszOpenOptions, NULL);
+            const char *papszOpenOptions[255] = {"AUTODETECT_TYPE=YES",
+                "EMPTY_STRING_AS_NULL=YES", "HEADERS=YES"};
+            ds = (GDALDataset*) GDALOpenEx(pszDsPath,
+                                           GDAL_OF_VECTOR|GDAL_OF_UPDATE,
+                                           NULL, papszOpenOptions, NULL);
         } else {
-            const char *papszOpenOptions[255] = {"AUTODETECT_TYPE=YES", "EMPTY_STRING_AS_NULL=YES"};
-            ds = (GDALDataset*) GDALOpenEx(pszDsPath, GDAL_OF_VECTOR|GDAL_OF_UPDATE, NULL, papszOpenOptions, NULL);
+            const char *papszOpenOptions[255] = {"AUTODETECT_TYPE=YES",
+                "EMPTY_STRING_AS_NULL=YES"};
+            ds = (GDALDataset*) GDALOpenEx(pszDsPath,
+                                           GDAL_OF_VECTOR|GDAL_OF_UPDATE,
+                                           NULL, papszOpenOptions, NULL);
         }
-    } else if(ds_type == GdaConst::ds_shapefile) {
-        //const char* papszOpenOptions[255] = {"ENCODING=CP936"};
-        //ds = (GDALDataset*) GDALOpenEx(pszDsPath, GDAL_OF_VECTOR|GDAL_OF_UPDATE, NULL, papszOpenOptions, NULL);
-        ds = (GDALDataset*) GDALOpenEx(pszDsPath, GDAL_OF_VECTOR|GDAL_OF_UPDATE, NULL, NULL, NULL);
+    } else if (ds_type == GdaConst::ds_osm) {
+        const char* papszOpenOptions[255] = {"OGR_INTERLEAVED_READING=YES"};
+        ds = (GDALDataset*) GDALOpenEx(pszDsPath,
+                                       GDAL_OF_VECTOR|GDAL_OF_UPDATE,
+                                       NULL, NULL, NULL);
     } else {
-        ds = (GDALDataset*) GDALOpenEx(pszDsPath, GDAL_OF_VECTOR|GDAL_OF_UPDATE, NULL, NULL, NULL);
+        ds = (GDALDataset*) GDALOpenEx(pszDsPath,
+                                       GDAL_OF_VECTOR|GDAL_OF_UPDATE,
+                                       NULL, NULL, NULL);
     }
     
     is_writable = true;
 	if (!ds) {
         // try without UPDATE
-        ds = (GDALDataset*) GDALOpenEx(pszDsPath, GDAL_OF_VECTOR, NULL, NULL, NULL);
+        ds = (GDALDataset*) GDALOpenEx(pszDsPath, GDAL_OF_VECTOR,
+                                       NULL, NULL, NULL);
         
         if (ds==0) {
             wxString error_detail(CPLGetLastErrorMsg(), wxConvUTF8);
-            if ( error_detail.length() == 0 || error_detail == "Unknown") {
+            if ( error_detail.IsEmpty() || error_detail == "Unknown") {
             } else {
                 msg << _("\n\nDetails: ") << error_detail;
             }
@@ -117,7 +130,8 @@ OGRDatasourceProxy::OGRDatasourceProxy(wxString format, wxString dest_datasource
 	poDriver = GetGDALDriverManager()->GetDriverByName(pszFormat);
 	
 	if( poDriver == NULL ){
-		error_message << "The format \"" << format << "\" is not supported (or read-only) by GeoDa";
+        error_message << "The format \"" << format;
+        error_message << "\" is not supported (or read-only) by GeoDa";
         if (GeneralWxUtils::isMac()) {
             error_message << " on Mac OSX";
         } else if (GeneralWxUtils::isWindows()) {

@@ -1497,14 +1497,16 @@ bool Project::InitFromOgrLayer()
    
 	// OK. ReadLayer() is running in a seperate thread.
 	// This gives us a chance to get its progress for a Progress window.
-	layer_proxy = OGRDataAdapter::GetInstance().T_ReadLayer(datasource_name, ds_type, layername.ToStdString());
+	layer_proxy = OGRDataAdapter::GetInstance().T_ReadLayer(datasource_name,
+                                                            ds_type,
+                                                            layername);
 	
 	OGRwkbGeometryType eGType = layer_proxy->GetShapeType();
     
 	if ( eGType == wkbLineString || eGType == wkbMultiLineString ) {
-		open_err_msg << _("GeoDa does not support datasource with line data at this time.  Please choose a datasource with either point or polygon data.");
-		throw GdaException(open_err_msg.c_str());
-		return false;
+		//open_err_msg << _("GeoDa does not support datasource with line data at this time.  Please choose a datasource with either point or polygon data.");
+		//throw GdaException(open_err_msg.c_str());
+		//return false;
 	}
 	
 	int prog_n_max = layer_proxy->n_rows;

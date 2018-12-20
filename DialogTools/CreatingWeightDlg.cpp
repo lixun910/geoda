@@ -1244,7 +1244,13 @@ void CreatingWeightDlg::OnCreateClick( wxCommandEvent& event )
 {
     wxLogMessage("Click CreatingWeightDlg::OnCreateClick");
     try {
+        if (project->main_data.header.shape_type == Shapefile::POLY_LINE) {
+            wxString msg = _("GeoDa can't create weights for line type data set in current version.");
+            wxMessageDialog dlg(this, msg , _("Error"), wxOK | wxICON_ERROR);
+            return;
+        }
         CreateWeights();
+
     } catch(GdaException e) {
         wxString msg;
         msg << e.what();

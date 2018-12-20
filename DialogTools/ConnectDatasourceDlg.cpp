@@ -867,8 +867,7 @@ IDataSource* ConnectDatasourceDlg::CreateDataSource()
         // File  tab selected
 		wxString fn = ds_file_path.GetFullPath();
 		if (fn.IsEmpty()) {
-			throw GdaException(
-                wxString("Please select a datasource file.").mb_str());
+			throw GdaException("Please select a datasource file.");
 		}
 #if defined(_WIN64) || defined(__amd64__)
         if (m_ds_filepath_txt->GetValue().StartsWith("PGeo:")) {
@@ -887,8 +886,7 @@ IDataSource* ConnectDatasourceDlg::CreateDataSource()
         {
             PromptDSLayers(datasource);
             if (layer_name.IsEmpty()) {
-                throw GdaException(
-                    wxString("Layer/Table name could not be empty. Please select a layer/table.").mb_str());
+                throw GdaException("Layer/Table name could not be empty. Please select a layer/table.");
             }
         }
 		

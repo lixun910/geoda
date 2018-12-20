@@ -741,7 +741,17 @@ void GdaConst::init()
 	datasrc_field_regex[ds_shapefile] = default_field_name_regex;
 	datasrc_field_illegal_regex[ds_shapefile] = default_field_name_illegal_regex;
 	datasrc_field_casesensitive[ds_shapefile] = false;
-	
+
+    datasrc_str_to_type["OSM"] = ds_osm;
+    datasrc_type_to_prefix[ds_osm] = "";
+    datasrc_type_to_fullname[ds_osm] = "OSM";
+    datasrc_table_lens[ds_osm] = 128;
+    datasrc_field_lens[ds_osm] = 128;
+    datasrc_field_warning[ds_osm] = db_field_warning;
+    datasrc_field_regex[ds_osm] = db_field_name_regex;
+    datasrc_field_illegal_regex[ds_osm] = db_field_name_illegal_regex;
+    datasrc_field_casesensitive[ds_osm] = true;
+
 	datasrc_str_to_type["FileGDB"] = ds_esri_file_geodb;
 	datasrc_type_to_prefix[ds_esri_file_geodb] = "";
 	datasrc_type_to_fullname[ds_esri_file_geodb] = "ESRI File GeoDatabase";
@@ -933,10 +943,6 @@ void GdaConst::init()
     datasrc_field_casesensitive[ds_ods] = false;
 	
 	//not supported yet
-	//datasrc_str_to_type["OSM"] = ds_osm;
-	//datasrc_type_to_prefix[ds_xls] = "";
-	//datasrc_type_to_fullname[ds_xls] = "OSM";
-	
 	//datasrc_str_to_type["MSSQLSpatial"] = ds_ms_sql;
 	//datasrc_type_to_prefix[ds_ms_sql] = "MSSQL:";
 	//datasrc_type_to_fullname[ds_ms_sql] = "Microsoft SQL Server";

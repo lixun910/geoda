@@ -205,12 +205,15 @@ maplayer_state(project_s->GetMapLayerState())
                              project->main_data.header.bbox_x_max,
                              project->main_data.header.bbox_y_max);
 	selectable_fill_color = GdaConst::map_default_fill_colour;
-	if (project->main_data.header.shape_type == Shapefile::POINT_TYP) {
-		selectable_shps_type = points;
-		highlight_color = *wxRED;
-	} else {
-		selectable_shps_type = polygons;
-		highlight_color = GdaConst::map_default_highlight_colour;
+	if (project->main_data.header.shape_type == Shapefile::POLYGON) {
+        selectable_shps_type = polygons;
+        highlight_color = GdaConst::map_default_highlight_colour;
+    } else if (project->main_data.header.shape_type == Shapefile::POLY_LINE) {
+        selectable_shps_type = polylines;
+        highlight_color = GdaConst::map_default_highlight_colour;
+    } else {
+        selectable_shps_type = points;
+        highlight_color = *wxRED;
 	}
 	use_category_brushes = true;
 	cat_classif_def.cat_classif_type = theme_type;
