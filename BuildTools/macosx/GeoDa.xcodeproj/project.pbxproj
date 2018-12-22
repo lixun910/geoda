@@ -46,6 +46,8 @@
 		A19483A22118BE8F009A87A2 /* MapLayoutView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A19483A02118BE8E009A87A2 /* MapLayoutView.cpp */; };
 		A19F51501756A11E006E31B4 /* plugins in Resources */ = {isa = PBXBuildFile; fileRef = A19F514D1756A11E006E31B4 /* plugins */; };
 		A1AC05BF1C8645F300B6FE5F /* AdjustYAxisDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1AC05BD1C8645F300B6FE5F /* AdjustYAxisDlg.cpp */; };
+		A1AE503621CE03CE000AF0C4 /* Downloader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1AE503221CE03CE000AF0C4 /* Downloader.cpp */; };
+		A1AE503721CE03CE000AF0C4 /* Roads.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1AE503321CE03CE000AF0C4 /* Roads.cpp */; };
 		A1B04ADD1B1921710045AA6F /* basemap_cache in CopyFiles */ = {isa = PBXBuildFile; fileRef = A1B04ADC1B1921710045AA6F /* basemap_cache */; };
 		A1B13EE31C3EDFF90064AD87 /* BasemapConfDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1B13EE21C3EDFF90064AD87 /* BasemapConfDlg.cpp */; };
 		A1B93AC017D18735007F8195 /* ProjectConf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1B93ABF17D18735007F8195 /* ProjectConf.cpp */; };
@@ -387,6 +389,10 @@
 		A19F514D1756A11E006E31B4 /* plugins */ = {isa = PBXFileReference; lastKnownFileType = folder; name = plugins; path = BuildTools/macosx/plugins; sourceTree = "<group>"; };
 		A1AC05BD1C8645F300B6FE5F /* AdjustYAxisDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AdjustYAxisDlg.cpp; sourceTree = "<group>"; };
 		A1AC05BE1C8645F300B6FE5F /* AdjustYAxisDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AdjustYAxisDlg.h; sourceTree = "<group>"; };
+		A1AE503221CE03CE000AF0C4 /* Downloader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Downloader.cpp; sourceTree = "<group>"; };
+		A1AE503321CE03CE000AF0C4 /* Roads.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Roads.cpp; sourceTree = "<group>"; };
+		A1AE503421CE03CE000AF0C4 /* Roads.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Roads.h; sourceTree = "<group>"; };
+		A1AE503521CE03CE000AF0C4 /* Downloader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Downloader.h; sourceTree = "<group>"; };
 		A1B04ADC1B1921710045AA6F /* basemap_cache */ = {isa = PBXFileReference; lastKnownFileType = folder; name = basemap_cache; path = BuildTools/CommonDistFiles/basemap_cache; sourceTree = "<group>"; };
 		A1B13EE11C3EDFF90064AD87 /* BasemapConfDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BasemapConfDlg.h; sourceTree = "<group>"; };
 		A1B13EE21C3EDFF90064AD87 /* BasemapConfDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BasemapConfDlg.cpp; sourceTree = "<group>"; };
@@ -944,6 +950,17 @@
 			path = ogl;
 			sourceTree = "<group>";
 		};
+		A1AE503121CE0370000AF0C4 /* osm */ = {
+			isa = PBXGroup;
+			children = (
+				A1AE503221CE03CE000AF0C4 /* Downloader.cpp */,
+				A1AE503521CE03CE000AF0C4 /* Downloader.h */,
+				A1AE503321CE03CE000AF0C4 /* Roads.cpp */,
+				A1AE503421CE03CE000AF0C4 /* Roads.h */,
+			);
+			path = osm;
+			sourceTree = "<group>";
+		};
 		A40AB91A20F5336600F94543 /* arizona */ = {
 			isa = PBXGroup;
 			children = (
@@ -1130,6 +1147,7 @@
 		DD7974650F1D1B0700496A84 /* ../../ */ = {
 			isa = PBXGroup;
 			children = (
+				A1AE503121CE0370000AF0C4 /* osm */,
 				A14735A721A5F6CE00CA69B2 /* Weights */,
 				A10EF2ED21273E4900564FE1 /* visualization */,
 				A19483772118BA8B009A87A2 /* ogl */,
@@ -1779,6 +1797,7 @@
 				DD7976BD0F1D2CA800496A84 /* ML_im.cpp in Sources */,
 				DD7976BE0F1D2CA800496A84 /* PowerLag.cpp in Sources */,
 				A414C88B207BED2700520546 /* MatfileReader.cpp in Sources */,
+				A1AE503621CE03CE000AF0C4 /* Downloader.cpp in Sources */,
 				DD7976BF0F1D2CA800496A84 /* PowerSymLag.cpp in Sources */,
 				DD7976C10F1D2CA800496A84 /* smile2.cpp in Sources */,
 				DD7976C20F1D2CA800496A84 /* SparseMatrix.cpp in Sources */,
@@ -1899,6 +1918,7 @@
 				A4ED7D552097F114008685D6 /* kd_pr_search.cpp in Sources */,
 				A1E7813A178A90A100CC1037 /* OGRFieldProxy.cpp in Sources */,
 				A1E7813B178A90A100CC1037 /* OGRLayerProxy.cpp in Sources */,
+				A1AE503721CE03CE000AF0C4 /* Roads.cpp in Sources */,
 				DD2A6FE0178C7F7C00197093 /* DataSource.cpp in Sources */,
 				A1F1BA5C178D3B46005A46E5 /* GdaCache.cpp in Sources */,
 				DD92D22417BAAF2300F8FE01 /* TimeEditorDlg.cpp in Sources */,
