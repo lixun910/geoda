@@ -516,14 +516,20 @@ ExportDataDlg::CreateOGRLayer(wxString& ds_name,
                     geometries.push_back(new GdaPoint(wxRealPoint(pc->x, pc->y)));
             }
             shape_type = Shapefile::POINT_TYP;
-        }
-        else if (project_p->main_data.header.shape_type == Shapefile::POLYGON) {
+        } else if (project_p->main_data.header.shape_type == Shapefile::POLYGON) {
             PolygonContents* pc;
             for (int i=0; i<num_obs; i++) {
                 pc = (PolygonContents*)project_p->main_data.records[i].contents_p;
                 geometries.push_back(new GdaPolygon(pc));
             }
 			shape_type = Shapefile::POLYGON;
+        } else if (project_p->main_data.header.shape_type == Shapefile::POLY_LINE) {
+            PolyLineContents* pc;
+            for (int i=0; i<num_obs; i++) {
+                pc = (PolyLineContents*)project_p->main_data.records[i].contents_p;
+                geometries.push_back(new GdaPolyLine(pc));
+            }
+            shape_type = Shapefile::POLY_LINE;
         }
     } else {
         // create datasource from geometries only

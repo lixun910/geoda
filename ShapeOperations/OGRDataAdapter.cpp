@@ -214,15 +214,25 @@ OGRDataAdapter::MakeOGRGeometries(vector<GdaShape*>& geometries,
             break;
         } else if ( shape_type == Shapefile::POLYGON ) {
             GdaPolygon* poly = (GdaPolygon*) geometries[id];
-            if (poly->isNull()) {
-                
-            } else {
-                int numParts     = poly->n_count;
+            if (poly->isNull() == false) {
+                int numParts = poly->n_count;
                 if ( numParts == 1 ) {
                     if (eGType != wkbMultiPolygon)
                         eGType = wkbPolygon;
                 } else {
                     eGType = wkbMultiPolygon;
+                    break;
+                }
+            }
+        } else if ( shape_type == Shapefile::POLY_LINE) {
+            GdaPolyLine* poly = (GdaPolyLine*) geometries[id];
+            if (poly->isNull() == false) {
+                int numParts = poly->n_count;
+                if ( numParts == 1 ) {
+                    if (eGType != wkbMultiLineString)
+                        eGType = wkbLineString;
+                } else {
+                    eGType = wkbMultiLineString;
                     break;
                 }
             }
@@ -302,6 +312,62 @@ OGRDataAdapter::MakeOGRGeometries(vector<GdaShape*>& geometries,
                         multi_polygon->addGeometryDirectly(polygon);
                     }
                     ogr_geometries.push_back(multi_polygon);
+                }
+            }
+        } else if ( shape_type == Shapefile::POLY_LINE ) {
+            
+            GdaPolyLine* poly = (GdaPolyLine*) geometries[id];
+            if (poly->isNull()) {
+                OGRLineString* line = (OGRLineString*)OGRGeometryFactory::createGeometry(eGType);
+                ogr_geometries.push_back(line);
+                
+            } else {
+                int numParts = poly->n_count;
+                int numPoints = poly->n;
+                double x, y;
+                if ( numParts == 1 ) {
+                    OGRLineString* line = (OGRLineString*)OGRGeometryFactory::createGeometry(wkbLineString);
+                    for ( int j = 0; j < numPoints; j++ ) {
+                        if ( poly->points_o != NULL ) {
+                            // for created centroids or other geometries, the actual
+                            // points are stored in points_o wxRealPoint[].
+                            // Note: GdaPolygon::count[] constantly has size = 1 in
+                            // current design, see GdaPolygon class
+                            x = poly->points_o[j].x;
+                            y = poly->points_o[j].y;
+                        } else {
+                            x = poly->pc->points[j].x;
+                            y = poly->pc->points[j].y;
+                        }
+                        OGRPoint pt;
+                        pt.setX(x);
+                        pt.setY(y);
+                        line->addPoint(&pt);
+                    }
+                    if (eGType == wkbMultiLineString) {
+                        OGRMultiLineString* multi_line = (OGRMultiLineString*)OGRGeometryFactory::createGeometry(wkbMultiLineString);
+                        multi_line->addGeometryDirectly(line);
+                        ogr_geometries.push_back(multi_line);
+                    } else {
+                        ogr_geometries.push_back(line);
+                    }
+                } else {
+                    OGRMultiLineString* multi_line = (OGRMultiLineString*)OGRGeometryFactory::createGeometry(wkbMultiLineString);
+                    for ( int num_part = 0; num_part < numParts; num_part++ ) {
+                        OGRLineString* line = (OGRLineString*)OGRGeometryFactory::createGeometry(wkbLineString);
+                        vector<wxInt32> startIndexes = poly->pc->parts;
+                        startIndexes.push_back(numPoints);
+                        for ( size_t j = startIndexes[num_part];
+                             j < startIndexes[num_part+1]; j++ )
+                        {
+                            
+                            x = poly->pc->points[j].x;
+                            y = poly->pc->points[j].y;
+                            line->addPoint(x,y);
+                        }
+                        multi_line->addGeometryDirectly(line);
+                    }
+                    ogr_geometries.push_back(multi_line);
                 }
             }
         }

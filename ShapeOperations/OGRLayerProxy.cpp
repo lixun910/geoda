@@ -760,9 +760,7 @@ OGRLayerProxy::AddFeatures(vector<OGRGeometry*>& geometries,
             // get underneath column position (no group and time =0)
             int col_pos = table->GetColIdx(fname, ignore_case);
           
-            if (col_pos < 0) {
-                continue;
-            }
+            if (col_pos < 0) continue;
             
             vector<bool> undefs;
             
