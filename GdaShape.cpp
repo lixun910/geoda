@@ -931,7 +931,8 @@ bool GdaCircle::pointWithin(const wxPoint& pt)
 
 bool GdaCircle::regionIntersect(const wxRegion& r)
 {
-	return false;
+    if (null_shape) return false;
+    return r.Contains(center) != wxOutRegion;
 }
 
 void GdaCircle::applyScaleTrans(const GdaScaleTrans& A)
@@ -1053,7 +1054,8 @@ void GdaRectangle::Update(wxPoint pt1, wxPoint pt2)
 
 bool GdaRectangle::regionIntersect(const wxRegion& r)
 {
-	return false;
+    if (null_shape) return false;
+    return r.Contains(center) != wxOutRegion;
 }
 
 void GdaRectangle::applyScaleTrans(const GdaScaleTrans& A)
@@ -1262,10 +1264,8 @@ bool GdaPolygon::pointWithin(const wxPoint& pt)
 
 bool GdaPolygon::regionIntersect(const wxRegion& r)
 {
-	//wxRegion reg(region);
-	//reg.Intersect(r);
-	//return !reg.IsEmpty();
-	return false;
+    if (null_shape) return false;
+    return r.Contains(center) != wxOutRegion;
 }
 
 void GdaPolygon::applyScaleTrans(const GdaScaleTrans& A)
@@ -1639,8 +1639,7 @@ bool GdaPolyLine::pointWithin(const wxPoint& pt)
 	for (int j=0, its=n-1; j<its; j++) {
 		hp.x = (points[j].x + points[j+1].x)/2.0;
 		hp.y = (points[j].y + points[j+1].y)/2.0;
-		hp_rad = GenUtils::distance(points[j],
-									points[j+1])/2.0;
+		hp_rad = GenUtils::distance(points[j],points[j+1])/2.0;
 		if ((GenUtils::pointToLineDist(pt, points[j], points[j+1]) <= r) &&
 			(GenUtils::distance(hp, pt) <= hp_rad + r)) return true;
 	}
@@ -1649,6 +1648,10 @@ bool GdaPolyLine::pointWithin(const wxPoint& pt)
 
 bool GdaPolyLine::regionIntersect(const wxRegion& r)
 {
+    if (null_shape) return false;
+    for (size_t i=0; i<n; ++i) {
+        if (r.Contains(points[i])!=wxOutRegion) return true;
+    }
 	return false;
 }
 
@@ -1948,7 +1951,8 @@ bool GdaSpline::regionIntersect(const wxRegion& r)
 	//wxRegion reg(region);
 	//reg.Intersect(r);
 	//return !reg.IsEmpty();
-	return false;
+    if (null_shape) return false;
+    return r.Contains(center) != wxOutRegion;
 }
 
 void GdaSpline::applyScaleTrans(const GdaScaleTrans& A)
@@ -2029,7 +2033,8 @@ bool GdaRay::pointWithin(const wxPoint& pt)
 
 bool GdaRay::regionIntersect(const wxRegion& r)
 {
-	return false;
+    if (null_shape) return false;
+    return r.Contains(center) != wxOutRegion;
 }
 
 void GdaRay::applyScaleTrans(const GdaScaleTrans& A)

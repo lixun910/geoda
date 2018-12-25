@@ -877,8 +877,7 @@ void MapCanvas::DrawLayer0()
     // draw basemap, background, and all other maps
     wxMemoryDC dc;
     
-	if (isDrawBasemap) 
-	{
+	if (isDrawBasemap) {
         // use a special color for mask transparency: 244, 243, 242c
         wxColour maskColor(MASK_R, MASK_G, MASK_B);
         wxBrush maskBrush(maskColor);
@@ -910,8 +909,7 @@ void MapCanvas::DrawLayer0()
 void MapCanvas::DrawLayer1()
 {
     // draw highlight
-    if (layer1_bm == NULL)
-        return;
+    if (layer1_bm == NULL) return;
     wxMemoryDC dc(*layer1_bm);
     dc.Clear();
     if (isDrawBasemap) {
@@ -926,8 +924,7 @@ void MapCanvas::DrawLayer1()
 void MapCanvas::DrawLayer2()
 {
     // draw foreground
-    if (layer2_bm == NULL)
-        return;
+    if (layer2_bm == NULL) return;
     wxMemoryDC dc;
     dc.SelectObject(*layer2_bm);
     dc.SetBackground(*wxWHITE_BRUSH);
@@ -1656,8 +1653,7 @@ void MapCanvas::NewCustomCatClassif()
                   Gda::dbl_int_pair_cmp_less);
     }
 
-    if (var_info.empty())
-        return;
+    if (var_info.empty()) return;
     
 	// Fully update cat_classif_def fields according to current
 	// categorization state
@@ -1684,14 +1680,12 @@ void MapCanvas::NewCustomCatClassif()
     GdaFrame* gda_frame = GdaFrame::GetGdaFrame();
 	CatClassifFrame* ccf = gda_frame->GetCatClassifFrame(this->useScientificNotation);
     
-	if (!ccf)
-        return;
+	if (!ccf) return;
     
 	CatClassifState* ccs = ccf->PromptNew(cat_classif_def, "",
                                           var_info[0].name,
                                           var_info[0].time);
-	if (!ccs)
-        return;
+	if (!ccs) return;
     
 	if (custom_classif_state)
         custom_classif_state->removeObserver(this);
@@ -1747,18 +1741,15 @@ MapCanvas::ChangeMapType(CatClassification::CatClassifType new_map_theme,
 		if (!ccm)
             return false;
 		CatClassifState* new_ccs = ccm->FindClassifState(custom_classif_title);
-		if (!new_ccs)
-            return false;
-		if (custom_classif_state == new_ccs)
-            return false;
+		if (!new_ccs) return false;
+		if (custom_classif_state == new_ccs) return false;
 		if (custom_classif_state)
             custom_classif_state->removeObserver(this);
 		custom_classif_state = new_ccs;
 		custom_classif_state->registerObserver(this);
 		cat_classif_def = custom_classif_state->GetCatClassif();
 	} else {
-		if (custom_classif_state)
-            custom_classif_state->removeObserver(this);
+		if (custom_classif_state) custom_classif_state->removeObserver(this);
 		custom_classif_state = 0;
 	}
 	
@@ -1782,8 +1773,7 @@ MapCanvas::ChangeMapType(CatClassification::CatClassifType new_map_theme,
         
 	} else if (new_num_vars == 1) {
 		if (num_vars == 0) {
-			if (!use_new_var_info_and_col_ids)
-                return false;
+			if (!use_new_var_info_and_col_ids) return false;
 			var_info.resize(1);
 			data.resize(1);
             s_data.resize(1);
@@ -1835,12 +1825,10 @@ MapCanvas::ChangeMapType(CatClassification::CatClassifType new_map_theme,
 		// For Rates, new var_info and col_id vectors should
 		// always be passed in and num_cateogries, new_map_theme and
 		// new_map_smoothing are assumed to be valid.
-		if (!use_new_var_info_and_col_ids)
-            return false;
+		if (!use_new_var_info_and_col_ids) return false;
 
         // for rates, the variable has to be numeric
         IS_VAR_STRING = false;
-        
 		var_info.clear();
 		data.clear();
 		var_info.resize(2);
@@ -2651,7 +2639,6 @@ void MapCanvas::DisplayNeighbors()
     if (display_neighbors) {
         display_map_with_graph = true;
         display_weights_graph = false;
-    } else {
     }
     PopulateCanvas();
 }
@@ -2903,7 +2890,6 @@ void MapCanvas::UpdateStatusBar()
             }
         }
     }
-	
 	sb->SetStatusText(s);
 }
 

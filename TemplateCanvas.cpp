@@ -1860,8 +1860,8 @@ void TemplateCanvas::UpdateSelectionPoints(bool shiftdown, bool pointsel)
 			for (int i=0; i<hl_size; i++) {
                 if ( !_IsShpValid(i))
                     continue;
-				bool contains = (rect.Contains(selectable_shps[i]->center) !=
-								 wxOutRegion);
+				//bool contains = (rect.Contains(selectable_shps[i]->center) != wxOutRegion);
+                bool contains = selectable_shps[i]->regionIntersect(rect);
 				if (!shiftdown) {
 					if (contains) {
                         if (!hs[i]) {
@@ -2178,6 +2178,7 @@ void TemplateCanvas::UpdateSelectionPolylines(bool shiftdown, bool pointsel)
 			uleft.y = uright.y;
 			lright.x = uright.x;
 			lright.y = lleft.y;
+            wxRect rect(uleft, lright);
 			for (int i=0; i<hl_size; i++) {
                 if ( !_IsShpValid(i))
                     continue;
@@ -2190,7 +2191,8 @@ void TemplateCanvas::UpdateSelectionPolylines(bool shiftdown, bool pointsel)
 					if (GenGeomAlgs::LineSegsIntersect(pt, next_pt,lleft, uleft) ||
 						GenGeomAlgs::LineSegsIntersect(pt, next_pt, uleft, uright) ||
 						GenGeomAlgs::LineSegsIntersect(pt, next_pt, uright, lright) ||
-						GenGeomAlgs::LineSegsIntersect(pt, next_pt, lright, lleft))
+						GenGeomAlgs::LineSegsIntersect(pt, next_pt, lright, lleft) ||
+                        rect.Contains(pt) || rect.Contains(next_pt))
 					{
 						contains = true;
 						break;
