@@ -92,6 +92,8 @@ public:
     
     bool IsPointTypeData() { return main_data.header.shape_type == Shapefile::POINT_TYP;}
 
+    int GetShapeType() { return main_data.header.shape_type; }
+
 	/** Get the current project filename with absolute path.  If project
 	 file is not set, then empty string is returned. */
 	wxString GetProjectFullPath();

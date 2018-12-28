@@ -69,6 +69,7 @@ class BackgroundMapLayer : public AssociateLayerInt
 {
     int num_obs;
     Shapefile::ShapeType shape_type;
+    vector<wxString> int_str_field_names;
     vector<wxString> field_names;
     vector<wxString> key_names;
     
@@ -147,7 +148,9 @@ public:
     void SetFieldNames(vector<wxString>& names);
     vector<wxString> GetIntegerFieldNames();
     bool GetIntegerColumnData(wxString field_name, vector<wxInt64>& data);
-    
+
+    vector<wxString> GetIntAndStringFieldNames();
+
     void drawLegend(wxDC& dc, int x, int y, int w, int h);
 };
 

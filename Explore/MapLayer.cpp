@@ -43,6 +43,7 @@ BackgroundMapLayer::BackgroundMapLayer(wxString name,
     // this is for map boundary only
     shape_type = layer_proxy->GetOGRGeometries(geoms, sr);
     field_names = layer_proxy->GetIntegerFieldNames();
+    int_str_field_names = layer_proxy->GetIntegerAndStringFieldNames();
     key_names = layer_proxy->GetIntegerAndStringFieldNames();
     for (int i=0; i<shapes.size(); i++) {
         highlight_flags.push_back(false);
@@ -311,6 +312,11 @@ bool BackgroundMapLayer::GetKeyColumnData(wxString field_name, vector<wxString>&
 vector<wxString> BackgroundMapLayer::GetIntegerFieldNames()
 {
     return field_names;
+}
+
+vector<wxString> BackgroundMapLayer::GetIntAndStringFieldNames()
+{
+    return int_str_field_names;
 }
 
 vector<wxString> BackgroundMapLayer::GetKeyNames()

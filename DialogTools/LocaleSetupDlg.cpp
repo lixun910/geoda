@@ -87,7 +87,8 @@ void LocaleSetupDlg::OnResetSysLocale( wxCommandEvent& event )
     m_txt_thousands->SetValue(thousands_sep);
     m_txt_decimal->SetValue(decimal_point);
     
-    wxString msg = _("Reset to system locale successfully. Please re-open current project with system locale.");
+    wxString msg = _("Reset to system locale successfully. Please re-open "
+                     "current project with system locale.");
     wxMessageDialog msg_dlg(this, msg,
                            _("Reset to system locale information"),
                            wxOK | wxOK_DEFAULT | wxICON_INFORMATION);
@@ -109,7 +110,8 @@ void LocaleSetupDlg::OnOkClick( wxCommandEvent& event )
                            (const char*)decimal_point.mb_str());
    
     if (need_reopen) {
-        wxString msg = _("Locale for numbers has been setup successfully. Please re-open current project to enable this locale.");
+        wxString msg = _("Locale for numbers has been setup successfully. "
+                         "Please re-open current project to enable this locale.");
         wxMessageDialog msg_dlg(this, msg,
                                "Setup locale",
                                wxOK | wxOK_DEFAULT | wxICON_INFORMATION);

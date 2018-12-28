@@ -107,7 +107,8 @@ void CountPointsInPolygon::sub_run(int start, int end)
         }
     }
 }
-AssignPolygonToPoint::AssignPolygonToPoint(BackgroundMapLayer* _ml, Project* _project, vector<wxInt64>& _poly_ids)
+AssignPolygonToPoint::AssignPolygonToPoint(BackgroundMapLayer* _ml,
+                                Project* _project, vector<wxInt64>& _poly_ids)
 : SpatialJoinWorker(_ml, _project)
 {
     poly_ids = _poly_ids;
@@ -159,7 +160,8 @@ SpatialJoinDlg::SpatialJoinDlg(wxWindow* parent, Project* _project)
     project = _project;
     panel = new wxPanel(this, -1);
     
-    wxString info = _("Please select a map layer to apply spatial join to current map (%s):");
+    wxString info = _("Please select a map layer to apply "
+                      "spatial join to current map (%s):");
     info = wxString::Format(info, project->GetProjectTitle());
     wxStaticText* st = new wxStaticText(panel, wxID_ANY, info);
     
@@ -176,9 +178,12 @@ SpatialJoinDlg::SpatialJoinDlg(wxWindow* parent, Project* _project)
     cbox->Add(mbox, 0, wxALIGN_CENTER | wxALL, 10);
     panel->SetSizerAndFit(cbox);
     
-    wxButton* add_btn = new wxButton(this, XRCID("IDC_SPATIALJOIN_ADD_LAYER"), _("Add Map Layer"), wxDefaultPosition,  wxDefaultSize, wxBU_EXACTFIT);
-    wxButton* ok_btn = new wxButton(this, wxID_ANY, _("OK"), wxDefaultPosition,  wxDefaultSize, wxBU_EXACTFIT);
-    wxButton* cancel_btn = new wxButton(this, wxID_CANCEL, _("Close"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+    wxButton* add_btn = new wxButton(this, XRCID("IDC_SPATIALJOIN_ADD_LAYER"),
+        _("Add Map Layer"), wxDefaultPosition,  wxDefaultSize, wxBU_EXACTFIT);
+    wxButton* ok_btn = new wxButton(this, wxID_ANY, _("OK"), wxDefaultPosition,
+                                    wxDefaultSize, wxBU_EXACTFIT);
+    wxButton* cancel_btn = new wxButton(this, wxID_CANCEL, _("Close"),
+                            wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
     
     wxBoxSizer* hbox = new wxBoxSizer(wxHORIZONTAL);
     hbox->Add(add_btn, 0, wxALIGN_CENTER | wxALL, 5);
@@ -259,9 +264,13 @@ void SpatialJoinDlg::OnAddMapLayer(wxCommandEvent& e)
     wxString datasource_name = datasource->GetOGRConnectStr();
     GdaConst::DataSourceType ds_type = datasource->GetType();
     
-    BackgroundMapLayer* map_layer = project->AddMapLayer(datasource_name, ds_type, layer_name);
+    BackgroundMapLayer* map_layer = project->AddMapLayer(datasource_name,
+                                                         ds_type, layer_name);
     if (map_layer == NULL) {
-        wxMessageDialog dlg (this, _("GeoDa could not load this layer. \nPlease check if the datasource is valid and not table only."), _("Load Layer Failed."), wxOK | wxICON_ERROR);
+        wxMessageDialog dlg (this, _("GeoDa could not load this layer. \n"
+                                     "Please check if the datasource is valid "
+                                     "and not table only."),
+                             _("Load Layer Failed."), wxOK | wxICON_ERROR);
         dlg.ShowModal();
     } else {
         map_list->Append(layer_name);
@@ -295,7 +304,10 @@ void SpatialJoinDlg::OnOK(wxCommandEvent& e)
         int n = ml->GetNumRecords();
         if (project->IsPointTypeData() &&
             ml->GetShapeType() == Shapefile::POINT_TYP) {
-            wxMessageDialog dlg (this, _("Spatial Join can not be applied on two points layers. Please select another layer."), _("Warning"), wxOK | wxICON_INFORMATION);
+            wxMessageDialog dlg (this, _("Spatial Join can not be applied on "
+                                         "two points layers. Please select "
+                                         "another layer."),
+                                 _("Warning"), wxOK | wxICON_INFORMATION);
             dlg.ShowModal();
             return;
         }
@@ -314,7 +326,10 @@ void SpatialJoinDlg::OnOK(wxCommandEvent& e)
                 wxString field_name = field_list->GetString(field_idx);
                 bool success = ml->GetIntegerColumnData(field_name, poly_ids);
                 if ( !success || poly_ids.size() != n) {
-                    wxMessageDialog dlg (this, _("Select field is not integer type. Default record order will be used instead."), _("Warning"), wxOK | wxICON_INFORMATION);
+                    wxMessageDialog dlg (this, _("Select field is not integer "
+                                                 "type. Default record order "
+                                                 "will be used instead."),
+                                         _("Warning"), wxOK | wxICON_INFORMATION);
                     dlg.ShowModal();
                     poly_ids.clear();
                 }

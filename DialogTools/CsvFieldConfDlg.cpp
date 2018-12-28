@@ -47,10 +47,7 @@
 #include <sstream>
 
 
-#include "../logger.h"
 #include "../GeneralWxUtils.h"
-#include "../GdaException.h"
-#include "../ShapeOperations/OGRDataAdapter.h"
 #include "LocaleSetupDlg.h"
 #include "CsvFieldConfDlg.h"
 

@@ -125,7 +125,7 @@
 #include "DialogTools/SkaterDlg.h"
 #include "DialogTools/PreferenceDlg.h"
 #include "DialogTools/SpatialJoinDlg.h"
-
+#include "DialogTools/RoadDistancesDlg.h"
 #include "Explore/CatClassification.h"
 #include "Explore/CovSpView.h"
 #include "Explore/CorrelParamsDlg.h"
@@ -896,9 +896,11 @@ bool GdaFrame::OnCloseProject(bool ignore_unsaved_changes)
         
         
         if (project_p->IsDataTypeChanged()) {
-            wxString msg = _("Geometries have been added to existing Table-only data source. Do you want to save them as a new datasource?");
+            wxString msg = _("Geometries have been added to existing Table-only"
+                             " data source. Do you want to save them as a new"
+                             " datasource?");
             wxMessageDialog show_export_dlg(this, msg, _("Geometries not saved"),
-                                            wxYES_NO|wxYES_DEFAULT|wxICON_QUESTION);
+                                        wxYES_NO|wxYES_DEFAULT|wxICON_QUESTION);
             if (show_export_dlg.ShowModal() == wxID_YES) {
                 // e.g. dbf, add geometries (points), to shapefile
                 ExportDataDlg dlg(this, project_p);
@@ -2625,6 +2627,48 @@ void GdaFrame::OnHtmlEntry6(wxCommandEvent& event) { OnHtmlEntry(6); }
 void GdaFrame::OnHtmlEntry7(wxCommandEvent& event) { OnHtmlEntry(7); }
 void GdaFrame::OnHtmlEntry8(wxCommandEvent& event) { OnHtmlEntry(8); }
 void GdaFrame::OnHtmlEntry9(wxCommandEvent& event) { OnHtmlEntry(9); }
+
+void GdaFrame::OnOSMDownloadData(wxCommandEvent& event)
+{
+
+}
+
+void GdaFrame::OnOSMComputeDistanceMatrix(wxCommandEvent& event)
+{
+    wxLogMessage("In GdaFrame::OnOSMComputeDistanceMatrix()");
+
+    Project* p = GetProject();
+    if (p == NULL) return;
+    TableInterface* table_int = p->GetTableInt();
+    if (table_int == NULL) return;
+
+    bool valid_input = true;
+    wxString error_msg;
+    if (p->GetShapeType() != Shapefile::POLY_LINE) {
+        error_msg = _("Distance Matrix can be only computed on a road network "
+                      " dataset. Please load a road network data and try "
+                      " again.");
+        valid_input = false;
+    }
+    if (p->bg_maps.empty() && p->fg_maps.empty()) {
+        error_msg = _("Please load a query point dataset as a new layer to"
+                      " compute the travel distance.");
+        valid_input = false;
+    }
+    if (valid_input == false) {
+        wxMessageDialog dlg(this, error_msg, _("Error"),
+                            wxOK|wxICON_INFORMATION);
+        dlg.ShowModal();
+        return;
+    }
+    RoadDistancesDlg dlg(this, p);
+    dlg.ShowModal();
+}
+
+void GdaFrame::OnOSMTravelMap(wxCommandEvent& event)
+{
+
+}
 
 void GdaFrame::OnGeneratePointShpFile(wxCommandEvent& event)
 {
@@ -6609,6 +6653,9 @@ BEGIN_EVENT_TABLE(GdaFrame, wxFrame)
     EVT_MENU(XRCID("ID_SHAPE_POLYGONS_FROM_GRID"), GdaFrame::OnShapePolygonsFromGrid)
     EVT_MENU(XRCID("ID_SHAPE_POLYGONS_FROM_BOUNDARY"), GdaFrame::OnShapePolygonsFromBoundary)
     EVT_MENU(XRCID("ID_POINTS_FROM_TABLE"), GdaFrame::OnGeneratePointShpFile)
+    EVT_MENU(XRCID("ID_OSM_DOWNLOAD_DATA"), GdaFrame::OnOSMDownloadData)
+    EVT_MENU(XRCID("ID_OSM_DIST_MATRIX"), GdaFrame::OnOSMComputeDistanceMatrix)
+    EVT_MENU(XRCID("ID_OSM_TRAVEL_MAP"), GdaFrame::OnOSMTravelMap)
     // Table menu items
     EVT_MENU(XRCID("ID_SHOW_TIME_CHOOSER"), GdaFrame::OnShowTimeChooser)
     EVT_MENU(XRCID("ID_SHOW_DATA_MOVIE"), GdaFrame::OnShowDataMovie)

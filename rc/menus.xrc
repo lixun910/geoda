@@ -67,6 +67,18 @@
           <label>Create Grid</label>
         </object>
       </object>
+      <object class="wxMenu" name="ID_MENU">
+          <label>OpenStreetMap</label>
+          <object class="wxMenuItem" name="ID_OSM_DOWNLOAD_DATA">
+              <label>Download OSM data</label>
+          </object>
+          <object class="wxMenuItem" name="ID_OSM_TRAVEL_MAP">
+              <label>Travel Distance Map</label>
+          </object>
+          <object class="wxMenuItem" name="ID_OSM_DIST_MATRIX">
+              <label>Compute Travel Distance Matrix</label>
+          </object>
+      </object>
     </object>
     <object class="wxMenu" name="ID_MENU">
       <label>T&amp;able</label>
