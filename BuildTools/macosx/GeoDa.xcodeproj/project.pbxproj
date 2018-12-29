@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		A10EF2F021273E7E00564FE1 /* AbstractCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10EF2EE21273E7E00564FE1 /* AbstractCanvas.cpp */; };
+		A110E96021D7294C00F19BCC /* dijkstra.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = A188EA2E21D6EE0B00D5EFE7 /* dijkstra.cl */; };
 		A11B85BC1B18DC9C008B64EA /* Basemap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A11B85BB1B18DC9C008B64EA /* Basemap.cpp */; };
 		A11F1B7F184FDFB3006F5F98 /* OGRColumn.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A11F1B7D184FDFB3006F5F98 /* OGRColumn.cpp */; };
 		A11F1B821850437A006F5F98 /* OGRTableOperation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A11F1B801850437A006F5F98 /* OGRTableOperation.cpp */; };
@@ -31,6 +32,9 @@
 		A16BA470183D626200D3B7DA /* DatasourceDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A16BA46E183D626200D3B7DA /* DatasourceDlg.cpp */; };
 		A186F0A11C16508A00AEBA13 /* GdaCartoDB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A186F09F1C16508A00AEBA13 /* GdaCartoDB.cpp */; };
 		A188EA2B21D58F5600D5EFE7 /* RoadDistancesDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A188EA2921D58F5500D5EFE7 /* RoadDistancesDlg.cpp */; };
+		A188EA3121D6EE0B00D5EFE7 /* TravelTool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A188EA2C21D6EE0B00D5EFE7 /* TravelTool.cpp */; };
+		A188EA3221D6EE0B00D5EFE7 /* dijkstra.cl in Sources */ = {isa = PBXBuildFile; fileRef = A188EA2E21D6EE0B00D5EFE7 /* dijkstra.cl */; };
+		A188EA3321D6EE0B00D5EFE7 /* oclDijkstraKernel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A188EA2F21D6EE0B00D5EFE7 /* oclDijkstraKernel.cpp */; };
 		A1894C3F213F29DC00718FFC /* SpatialJoinDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1894C3D213F29DC00718FFC /* SpatialJoinDlg.cpp */; };
 		A19483932118BAAA009A87A2 /* composit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A194837A2118BAA7009A87A2 /* composit.cpp */; };
 		A19483942118BAAA009A87A2 /* divided.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A194837E2118BAA7009A87A2 /* divided.cpp */; };
@@ -303,6 +307,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 6;
 			files = (
+				A110E96021D7294C00F19BCC /* dijkstra.cl in CopyFiles */,
 				A1311C6720FFDF7100008D7F /* localjc_kernel.cl in CopyFiles */,
 				A47F792520AA0885000AFE57 /* distmat_kernel.cl in CopyFiles */,
 				A47F792620AA0885000AFE57 /* lisa_kernel.cl in CopyFiles */,
@@ -357,6 +362,11 @@
 		A186F0A01C16508A00AEBA13 /* GdaCartoDB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GdaCartoDB.h; sourceTree = "<group>"; };
 		A188EA2921D58F5500D5EFE7 /* RoadDistancesDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RoadDistancesDlg.cpp; sourceTree = "<group>"; };
 		A188EA2A21D58F5500D5EFE7 /* RoadDistancesDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RoadDistancesDlg.h; sourceTree = "<group>"; };
+		A188EA2C21D6EE0B00D5EFE7 /* TravelTool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TravelTool.cpp; sourceTree = "<group>"; };
+		A188EA2D21D6EE0B00D5EFE7 /* oclDijkstraKernel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = oclDijkstraKernel.h; sourceTree = "<group>"; };
+		A188EA2E21D6EE0B00D5EFE7 /* dijkstra.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.opencl; path = dijkstra.cl; sourceTree = "<group>"; };
+		A188EA2F21D6EE0B00D5EFE7 /* oclDijkstraKernel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = oclDijkstraKernel.cpp; sourceTree = "<group>"; };
+		A188EA3021D6EE0B00D5EFE7 /* TravelTool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TravelTool.h; sourceTree = "<group>"; };
 		A1894C3D213F29DC00718FFC /* SpatialJoinDlg.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SpatialJoinDlg.cpp; sourceTree = "<group>"; };
 		A1894C3E213F29DC00718FFC /* SpatialJoinDlg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SpatialJoinDlg.h; sourceTree = "<group>"; };
 		A1894C41213F806700718FFC /* MapLayerStateObserver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MapLayerStateObserver.h; sourceTree = "<group>"; };
@@ -956,6 +966,11 @@
 		A1AE503121CE0370000AF0C4 /* osm */ = {
 			isa = PBXGroup;
 			children = (
+				A188EA2E21D6EE0B00D5EFE7 /* dijkstra.cl */,
+				A188EA2F21D6EE0B00D5EFE7 /* oclDijkstraKernel.cpp */,
+				A188EA2D21D6EE0B00D5EFE7 /* oclDijkstraKernel.h */,
+				A188EA2C21D6EE0B00D5EFE7 /* TravelTool.cpp */,
+				A188EA3021D6EE0B00D5EFE7 /* TravelTool.h */,
 				A1AE503221CE03CE000AF0C4 /* Downloader.cpp */,
 				A1AE503521CE03CE000AF0C4 /* Downloader.h */,
 				A1AE503321CE03CE000AF0C4 /* Roads.cpp */,
@@ -1860,6 +1875,7 @@
 				DD7D5C711427F89B00DCFE5C /* LisaCoordinator.cpp in Sources */,
 				A4A763F41F69FB3B00EE79DD /* ColocationMapView.cpp in Sources */,
 				A16BA470183D626200D3B7DA /* DatasourceDlg.cpp in Sources */,
+				A188EA3221D6EE0B00D5EFE7 /* dijkstra.cl in Sources */,
 				DDA8D55214479228008156FB /* ScatterNewPlotView.cpp in Sources */,
 				DD6456CA14881EA700AABF59 /* TimeChooserDlg.cpp in Sources */,
 				DD203F9D14C0C960006A731B /* MapNewView.cpp in Sources */,
@@ -1940,6 +1956,7 @@
 				DD92853D17F5FE2E00B9481A /* VarGroup.cpp in Sources */,
 				A4E138BB1F71D6B800433256 /* GeocodingDlg.cpp in Sources */,
 				A1FD8C19186908B800C35C41 /* CustomClassifPtree.cpp in Sources */,
+				A188EA3321D6EE0B00D5EFE7 /* oclDijkstraKernel.cpp in Sources */,
 				DD40B083181894F20084173C /* VarGroupingEditorDlg.cpp in Sources */,
 				DD7B2A9D185273FF00727A91 /* SaveButtonManager.cpp in Sources */,
 				A4596B512033DDFF00C9BCC8 /* AbstractClusterMap.cpp in Sources */,
@@ -1983,6 +2000,7 @@
 				DD6C9EB61A03FD0C00F124F1 /* VarsChooserDlg.cpp in Sources */,
 				DD6C9EB71A03FD0C00F124F1 /* VarsChooserObservable.cpp in Sources */,
 				DDC906921A129CFF002334D2 /* SimpleAxisCanvas.cpp in Sources */,
+				A188EA3121D6EE0B00D5EFE7 /* TravelTool.cpp in Sources */,
 				DDC906931A129CFF002334D2 /* SimpleHistCanvas.cpp in Sources */,
 				DDC906941A129CFF002334D2 /* SimpleScatterPlotCanvas.cpp in Sources */,
 				DD76D1331A151C4E00A01FA5 /* LineChartView.cpp in Sources */,
@@ -2088,6 +2106,7 @@
 					"-D__WXDEBUG__",
 					"-DDEBUG",
 					"-DEIGEN_NO_DEBUG",
+					"-D__GEODA__",
 				);
 				OTHER_LDFLAGS = (
 					"-L/usr/lib",

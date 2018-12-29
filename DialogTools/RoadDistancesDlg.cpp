@@ -10,7 +10,7 @@
 #include "../ShpFile.h"
 #include "../Project.h"
 #include "../Explore/MapLayer.hpp"
-
+#include "../osm/TravelTool.h"
 #include "RoadDistancesDlg.h"
 
 using namespace std;
@@ -149,6 +149,8 @@ void RoadDistancesDlg::OnOK(wxCommandEvent& e)
 
         vector<OGRFeature*> roads = project->layer_proxy->data;
         vector<OGRFeature*> query_points = ml->layer_proxy->data;
+
+        OSMTools::TravelTool travel(roads, query_points);
         EndDialog(wxID_OK);
     }
 }
