@@ -70,6 +70,8 @@
 		A1E7813B178A90A100CC1037 /* OGRLayerProxy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1E78137178A90A100CC1037 /* OGRLayerProxy.cpp */; };
 		A1EBC88F1CD2B2FD001DCFE9 /* AutoUpdateDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1EBC88D1CD2B2FD001DCFE9 /* AutoUpdateDlg.cpp */; };
 		A1EF332F18E35D8300E19375 /* LocaleSetupDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1EF332D18E35D8300E19375 /* LocaleSetupDlg.cpp */; };
+		A1EFCB3421DAE4D300E23D56 /* sssp.cl in Sources */ = {isa = PBXBuildFile; fileRef = A1EFCB3321DAE4D200E23D56 /* sssp.cl */; };
+		A1EFCB3821DB0B9300E23D56 /* sssp.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = A1EFCB3321DAE4D200E23D56 /* sssp.cl */; };
 		A1F1BA5C178D3B46005A46E5 /* GdaCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1F1BA5A178D3B46005A46E5 /* GdaCache.cpp */; };
 		A1F1BA99178D46B8005A46E5 /* cache.sqlite in CopyFiles */ = {isa = PBXBuildFile; fileRef = A1F1BA98178D46B8005A46E5 /* cache.sqlite */; };
 		A1FD8C19186908B800C35C41 /* CustomClassifPtree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1FD8C17186908B800C35C41 /* CustomClassifPtree.cpp */; };
@@ -307,6 +309,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 6;
 			files = (
+				A1EFCB3821DB0B9300E23D56 /* sssp.cl in CopyFiles */,
 				A110E96021D7294C00F19BCC /* dijkstra.cl in CopyFiles */,
 				A1311C6720FFDF7100008D7F /* localjc_kernel.cl in CopyFiles */,
 				A47F792520AA0885000AFE57 /* distmat_kernel.cl in CopyFiles */,
@@ -437,6 +440,7 @@
 		A1EBC88E1CD2B2FD001DCFE9 /* AutoUpdateDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AutoUpdateDlg.h; sourceTree = "<group>"; };
 		A1EF332D18E35D8300E19375 /* LocaleSetupDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LocaleSetupDlg.cpp; sourceTree = "<group>"; };
 		A1EF332E18E35D8300E19375 /* LocaleSetupDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocaleSetupDlg.h; sourceTree = "<group>"; };
+		A1EFCB3321DAE4D200E23D56 /* sssp.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.opencl; path = sssp.cl; sourceTree = "<group>"; };
 		A1F1BA5A178D3B46005A46E5 /* GdaCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GdaCache.cpp; sourceTree = "<group>"; };
 		A1F1BA5B178D3B46005A46E5 /* GdaCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GdaCache.h; sourceTree = "<group>"; };
 		A1F1BA98178D46B8005A46E5 /* cache.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; name = cache.sqlite; path = BuildTools/CommonDistFiles/cache.sqlite; sourceTree = "<group>"; };
@@ -966,6 +970,7 @@
 		A1AE503121CE0370000AF0C4 /* osm */ = {
 			isa = PBXGroup;
 			children = (
+				A1EFCB3321DAE4D200E23D56 /* sssp.cl */,
 				A188EA2E21D6EE0B00D5EFE7 /* dijkstra.cl */,
 				A188EA2F21D6EE0B00D5EFE7 /* oclDijkstraKernel.cpp */,
 				A188EA2D21D6EE0B00D5EFE7 /* oclDijkstraKernel.h */,
@@ -1904,6 +1909,7 @@
 				DD4E8B86164818A70014F1E7 /* ConnectivityHistView.cpp in Sources */,
 				A4F5D61F1F4EA0D2007ADF25 /* AbstractClusterDlg.cpp in Sources */,
 				DD8FACE11649595D007598CE /* DataMovieDlg.cpp in Sources */,
+				A1EFCB3421DAE4D300E23D56 /* sssp.cl in Sources */,
 				DDA462FF164D785500EBBD8F /* TableState.cpp in Sources */,
 				A4ED7D562097F114008685D6 /* kd_search.cpp in Sources */,
 				A19483A22118BE8F009A87A2 /* MapLayoutView.cpp in Sources */,

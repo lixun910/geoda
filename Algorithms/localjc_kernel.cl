@@ -14,7 +14,14 @@ float wang_rnd(uint seed)
     return ((float)seed)/(float)maxint;
 }
 
-__kernel void localjc(const int n, const int permutations, const unsigned long last_seed, const unsigned long num_vars, __global unsigned short *zz,  __global unsigned short *local_jc,  __global unsigned short *num_nbrs, __global unsigned short *nbr_idx, __global float *p) {
+__kernel void localjc(const int n, const int permutations,
+                      const unsigned long last_seed,
+                      const unsigned long num_vars,
+                      __global unsigned short *zz,
+                      __global unsigned short *local_jc,
+                      __global unsigned short *num_nbrs,
+                      __global unsigned short *nbr_idx,
+                      __global float *p) {
     // Get the index of the current element
     int i = get_global_id(0);
     if (i >= n) {
