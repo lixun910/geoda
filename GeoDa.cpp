@@ -157,18 +157,17 @@
 #include "Explore/WebViewExampleWin.h"
 #include "Explore/Basemap.h"
 #include "Explore/ColocationMapView.h"
-
+#include "Explore/NetworkMapCanvas.h"
 #include "Regression/DiagnosticReport.h"
-
 #include "ShapeOperations/CsvFileUtils.h"
 #include "ShapeOperations/WeightsManager.h"
 #include "ShapeOperations/WeightsManState.h"
 #include "ShapeOperations/OGRDataAdapter.h"
-
 #include "VarCalc/CalcHelp.h"
 #include "Algorithms/redcap.h"
 #include "Algorithms/geocoding.h"
 #include "Algorithms/fastcluster.h"
+#include "osm/uiRoadDownload.h"
 
 #include "wxTranslationHelper.h"
 #include "GdaException.h"
@@ -2630,7 +2629,19 @@ void GdaFrame::OnHtmlEntry9(wxCommandEvent& event) { OnHtmlEntry(9); }
 
 void GdaFrame::OnOSMDownloadData(wxCommandEvent& event)
 {
-
+    wxLogMessage("In GdaFrame::OnOSMDownloadData()");
+    Project* p = GetProject();
+    OSMTools::uiRoadDownload* ui;
+    if (p == NULL) {
+        ui = new OSMTools::uiRoadDownload();
+    } else {
+        double minx, miny, maxx, maxy;
+        p->GetMapExtent(minx, miny, maxx, maxy);
+        ui = new OSMTools::uiRoadDownload( maxx, minx, miny, maxy);
+    }
+    if (ui) {
+        ui->Show(true);
+    }
 }
 
 void GdaFrame::OnOSMComputeDistanceMatrix(wxCommandEvent& event)
@@ -2667,7 +2678,25 @@ void GdaFrame::OnOSMComputeDistanceMatrix(wxCommandEvent& event)
 
 void GdaFrame::OnOSMTravelMap(wxCommandEvent& event)
 {
+    wxLogMessage("In GdaFrame::OnOSMTravelMap()");
 
+    Project* p = GetProject();
+    if (p == NULL) return;
+
+    wxString error_msg;
+    if (p->GetShapeType() != Shapefile::POLY_LINE) {
+        error_msg = _("Travel Map can be only visualized on a road network "
+                      " dataset. Please load a road network data and try "
+                      " again.");
+        wxMessageDialog dlg(this, error_msg, _("Error"),
+                            wxOK|wxICON_INFORMATION);
+        dlg.ShowModal();
+        return;
+    }
+
+    NetworkMapFrame* nf = new NetworkMapFrame(GdaFrame::gda_frame, p,
+                                              wxDefaultPosition,
+                                              GdaConst::map_default_size);
 }
 
 void GdaFrame::OnGeneratePointShpFile(wxCommandEvent& event)

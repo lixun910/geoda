@@ -150,7 +150,9 @@ void RoadDistancesDlg::OnOK(wxCommandEvent& e)
         vector<OGRFeature*> roads = project->layer_proxy->data;
         vector<OGRFeature*> query_points = ml->layer_proxy->data;
 
-        OSMTools::TravelTool travel(roads, query_points);
+        OSMTools::TravelTool travel(roads);
+        travel.GetDistanceMatrix(query_points);
+        
         EndDialog(wxID_OK);
     }
 }

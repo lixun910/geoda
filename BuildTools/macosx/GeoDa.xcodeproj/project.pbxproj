@@ -70,10 +70,10 @@
 		A1E7813B178A90A100CC1037 /* OGRLayerProxy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1E78137178A90A100CC1037 /* OGRLayerProxy.cpp */; };
 		A1EBC88F1CD2B2FD001DCFE9 /* AutoUpdateDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1EBC88D1CD2B2FD001DCFE9 /* AutoUpdateDlg.cpp */; };
 		A1EF332F18E35D8300E19375 /* LocaleSetupDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1EF332D18E35D8300E19375 /* LocaleSetupDlg.cpp */; };
-		A1EFCB3421DAE4D300E23D56 /* sssp.cl in Sources */ = {isa = PBXBuildFile; fileRef = A1EFCB3321DAE4D200E23D56 /* sssp.cl */; };
-		A1EFCB3821DB0B9300E23D56 /* sssp.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = A1EFCB3321DAE4D200E23D56 /* sssp.cl */; };
 		A1F1BA5C178D3B46005A46E5 /* GdaCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1F1BA5A178D3B46005A46E5 /* GdaCache.cpp */; };
 		A1F1BA99178D46B8005A46E5 /* cache.sqlite in CopyFiles */ = {isa = PBXBuildFile; fileRef = A1F1BA98178D46B8005A46E5 /* cache.sqlite */; };
+		A1FA3AF121DDA700002A158C /* uiRoadDownload.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1FA3AEF21DDA700002A158C /* uiRoadDownload.cpp */; };
+		A1FA3AF421DDAF63002A158C /* NetworkMapCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1FA3AF321DDAF63002A158C /* NetworkMapCanvas.cpp */; };
 		A1FD8C19186908B800C35C41 /* CustomClassifPtree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1FD8C17186908B800C35C41 /* CustomClassifPtree.cpp */; };
 		A40A6A7E20226B3C003CDD79 /* PreferenceDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A40A6A7D20226B3B003CDD79 /* PreferenceDlg.cpp */; };
 		A40AB92120F559F500F94543 /* scatterplot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A40AB92020F559F500F94543 /* scatterplot.cpp */; };
@@ -234,7 +234,6 @@
 		DD7D5C711427F89B00DCFE5C /* LisaCoordinator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DD7D5C6F1427F89B00DCFE5C /* LisaCoordinator.cpp */; };
 		DD7E91D3151A8F3A001AAC4C /* LisaScatterPlotView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DD7E91D2151A8F3A001AAC4C /* LisaScatterPlotView.cpp */; };
 		DD817EA819676AF100228B0A /* WeightsManState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DD817EA619676AF100228B0A /* WeightsManState.cpp */; };
-		DD8183C3197054CA00228B0A /* WeightsMapCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DD8183C1197054CA00228B0A /* WeightsMapCanvas.cpp */; };
 		DD8183C81970619800228B0A /* WeightsManDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DD8183C61970619800228B0A /* WeightsManDlg.cpp */; };
 		DD81857C19709B7800228B0A /* ConnectivityMapView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DD81857A19709B7800228B0A /* ConnectivityMapView.cpp */; };
 		DD88CF081A4253B700803196 /* CovSpView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DD88CF051A4253B700803196 /* CovSpView.cpp */; };
@@ -309,7 +308,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 6;
 			files = (
-				A1EFCB3821DB0B9300E23D56 /* sssp.cl in CopyFiles */,
 				A110E96021D7294C00F19BCC /* dijkstra.cl in CopyFiles */,
 				A1311C6720FFDF7100008D7F /* localjc_kernel.cl in CopyFiles */,
 				A47F792520AA0885000AFE57 /* distmat_kernel.cl in CopyFiles */,
@@ -440,10 +438,13 @@
 		A1EBC88E1CD2B2FD001DCFE9 /* AutoUpdateDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AutoUpdateDlg.h; sourceTree = "<group>"; };
 		A1EF332D18E35D8300E19375 /* LocaleSetupDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LocaleSetupDlg.cpp; sourceTree = "<group>"; };
 		A1EF332E18E35D8300E19375 /* LocaleSetupDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocaleSetupDlg.h; sourceTree = "<group>"; };
-		A1EFCB3321DAE4D200E23D56 /* sssp.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.opencl; path = sssp.cl; sourceTree = "<group>"; };
 		A1F1BA5A178D3B46005A46E5 /* GdaCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GdaCache.cpp; sourceTree = "<group>"; };
 		A1F1BA5B178D3B46005A46E5 /* GdaCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GdaCache.h; sourceTree = "<group>"; };
 		A1F1BA98178D46B8005A46E5 /* cache.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; name = cache.sqlite; path = BuildTools/CommonDistFiles/cache.sqlite; sourceTree = "<group>"; };
+		A1FA3AEF21DDA700002A158C /* uiRoadDownload.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = uiRoadDownload.cpp; sourceTree = "<group>"; };
+		A1FA3AF021DDA700002A158C /* uiRoadDownload.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = uiRoadDownload.h; sourceTree = "<group>"; };
+		A1FA3AF221DDAF63002A158C /* NetworkMapCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkMapCanvas.h; sourceTree = "<group>"; };
+		A1FA3AF321DDAF63002A158C /* NetworkMapCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NetworkMapCanvas.cpp; sourceTree = "<group>"; };
 		A1FD8C17186908B800C35C41 /* CustomClassifPtree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CustomClassifPtree.cpp; path = DataViewer/CustomClassifPtree.cpp; sourceTree = "<group>"; };
 		A1FD8C18186908B800C35C41 /* CustomClassifPtree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CustomClassifPtree.h; path = DataViewer/CustomClassifPtree.h; sourceTree = "<group>"; };
 		A40A6A7C20226B3B003CDD79 /* PreferenceDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PreferenceDlg.h; sourceTree = "<group>"; };
@@ -758,8 +759,6 @@
 		DD817EA619676AF100228B0A /* WeightsManState.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WeightsManState.cpp; sourceTree = "<group>"; };
 		DD817EA719676AF100228B0A /* WeightsManState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WeightsManState.h; sourceTree = "<group>"; };
 		DD817EA919676B7900228B0A /* WeightsManStateObserver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WeightsManStateObserver.h; sourceTree = "<group>"; };
-		DD8183C1197054CA00228B0A /* WeightsMapCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WeightsMapCanvas.cpp; sourceTree = "<group>"; };
-		DD8183C2197054CA00228B0A /* WeightsMapCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WeightsMapCanvas.h; sourceTree = "<group>"; };
 		DD8183C61970619800228B0A /* WeightsManDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WeightsManDlg.cpp; sourceTree = "<group>"; };
 		DD8183C71970619800228B0A /* WeightsManDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WeightsManDlg.h; sourceTree = "<group>"; };
 		DD81857A19709B7800228B0A /* ConnectivityMapView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConnectivityMapView.cpp; sourceTree = "<group>"; };
@@ -970,7 +969,8 @@
 		A1AE503121CE0370000AF0C4 /* osm */ = {
 			isa = PBXGroup;
 			children = (
-				A1EFCB3321DAE4D200E23D56 /* sssp.cl */,
+				A1FA3AEF21DDA700002A158C /* uiRoadDownload.cpp */,
+				A1FA3AF021DDA700002A158C /* uiRoadDownload.h */,
 				A188EA2E21D6EE0B00D5EFE7 /* dijkstra.cl */,
 				A188EA2F21D6EE0B00D5EFE7 /* oclDijkstraKernel.cpp */,
 				A188EA2D21D6EE0B00D5EFE7 /* oclDijkstraKernel.h */,
@@ -1405,6 +1405,8 @@
 		DD7975B70F1D2A9000496A84 /* Explore */ = {
 			isa = PBXGroup;
 			children = (
+				A1FA3AF321DDAF63002A158C /* NetworkMapCanvas.cpp */,
+				A1FA3AF221DDAF63002A158C /* NetworkMapCanvas.h */,
 				A4596B502033DDFF00C9BCC8 /* AbstractClusterMap.cpp */,
 				A4596B4F2033DDFF00C9BCC8 /* AbstractClusterMap.h */,
 				A4596B4D2033DB8E00C9BCC8 /* AbstractCoordinator.cpp */,
@@ -1510,8 +1512,6 @@
 				DD6C9EB51A03FD0C00F124F1 /* VarsChooserObserver.h */,
 				DD26CBE219A41A480092C0F2 /* WebViewExampleWin.cpp */,
 				DD26CBE319A41A480092C0F2 /* WebViewExampleWin.h */,
-				DD8183C2197054CA00228B0A /* WeightsMapCanvas.h */,
-				DD8183C1197054CA00228B0A /* WeightsMapCanvas.cpp */,
 				A11B85BA1B18DC89008B64EA /* Basemap.h */,
 				A11B85BB1B18DC9C008B64EA /* Basemap.cpp */,
 				DD203F9B14C0C960006A731B /* MapNewView.cpp */,
@@ -1829,6 +1829,7 @@
 				DD7976C20F1D2CA800496A84 /* SparseMatrix.cpp in Sources */,
 				DD7976C30F1D2CA800496A84 /* SparseRow.cpp in Sources */,
 				A47F792220AA082A000AFE57 /* lisa_kernel.cl in Sources */,
+				A1FA3AF421DDAF63002A158C /* NetworkMapCanvas.cpp in Sources */,
 				DD7976C40F1D2CA800496A84 /* SparseVector.cpp in Sources */,
 				DD7976C50F1D2CA800496A84 /* Weights.cpp in Sources */,
 				DD7976F30F1D2D3100496A84 /* Randik.cpp in Sources */,
@@ -1909,7 +1910,6 @@
 				DD4E8B86164818A70014F1E7 /* ConnectivityHistView.cpp in Sources */,
 				A4F5D61F1F4EA0D2007ADF25 /* AbstractClusterDlg.cpp in Sources */,
 				DD8FACE11649595D007598CE /* DataMovieDlg.cpp in Sources */,
-				A1EFCB3421DAE4D300E23D56 /* sssp.cl in Sources */,
 				DDA462FF164D785500EBBD8F /* TableState.cpp in Sources */,
 				A4ED7D562097F114008685D6 /* kd_search.cpp in Sources */,
 				A19483A22118BE8F009A87A2 /* MapLayoutView.cpp in Sources */,
@@ -1922,6 +1922,7 @@
 				DD60546816A83EEF0004BF02 /* CatClassifManager.cpp in Sources */,
 				A4E5FE191F624D5600D75662 /* AggregateDlg.cpp in Sources */,
 				A45DBDF51EDDEDAD00C2AA8A /* cluster.cpp in Sources */,
+				A1FA3AF121DDA700002A158C /* uiRoadDownload.cpp in Sources */,
 				A4368CDC1FABBBC60099FA9B /* mds.cpp in Sources */,
 				DD64925C16DFF63400B3B0AB /* GeoDa.cpp in Sources */,
 				A47FC9DB1F74DE1600BEFBF2 /* MLJCCoordinator.cpp in Sources */,
@@ -1982,7 +1983,6 @@
 				DDA4F0A4196311A9007645E2 /* WeightsMetaInfo.cpp in Sources */,
 				DDA4F0AD196315AF007645E2 /* WeightUtils.cpp in Sources */,
 				DD817EA819676AF100228B0A /* WeightsManState.cpp in Sources */,
-				DD8183C3197054CA00228B0A /* WeightsMapCanvas.cpp in Sources */,
 				DD8183C81970619800228B0A /* WeightsManDlg.cpp in Sources */,
 				A47614AE20759EAD00D9F3BE /* arcgis_swm.cpp in Sources */,
 				A14735BC21A65F1800CA69B2 /* brute.cpp in Sources */,
