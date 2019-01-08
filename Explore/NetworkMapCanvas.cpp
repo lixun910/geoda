@@ -52,6 +52,102 @@ NetworkMapCanvas::~NetworkMapCanvas()
     delete travel;
 }
 
+void NetworkMapCanvas::OnMouseEvent(wxMouseEvent& event)
+{
+    int screen_x = event.GetX();
+    int screen_y = event.GetY();
+    wxPoint screen_pos(screen_x, screen_y);
+    wxRealPoint map_pos;
+    last_scale_trans.transform_back(screen_pos, map_pos);
+
+    if (event.LeftDClick()) {
+        // pick "from location"
+        from_pt.setX(map_pos.x);
+        from_pt.setY(map_pos.y);
+        has_start_loc = true;
+
+        OGREnvelope extent;
+        project->GetMapExtent(extent);
+        double hexagon_radius = 1600; // meter
+        bool create_hexagons = true;
+
+        travel->QueryHexMap(from_pt, extent, hexagon_radius, hexagons, costs,
+                            create_hexagons);
+        layer0_valid = false;
+        DrawLayers();
+        Refresh();
+
+    } else if (event.LeftDown()) {
+        // "to location" of current mouse position
+        to_pt.setX(map_pos.x);
+        to_pt.setY(map_pos.y);
+        if (travel && has_start_loc && from_pt.Equals(&to_pt) == false &&
+            from_pt.getX() != 0 && from_pt.getY() != 0) {
+            path.clear();
+            std::vector<int> way_ids;
+            int cost = travel->Query(from_pt, to_pt, path, way_ids);
+            if (way_ids.empty() == false && cost >= 0) {
+                layer1_valid = false;
+                DrawLayers();
+                // update status text
+                wxStatusBar* sb = 0;
+                if (template_frame) sb = template_frame->GetStatusBar();
+                wxString current_txt = sb->GetStatusText();
+                int insert_pos = current_txt.Find("cost=");
+                if ( insert_pos != wxNOT_FOUND) {
+                    current_txt = current_txt.SubString(0, insert_pos);
+                }
+                current_txt << "cost=" << cost;
+                sb->SetStatusText(current_txt);
+            }
+
+        }
+    }
+}
+
+void NetworkMapCanvas::DrawLayer0()
+{
+    // draw hexagon distance map
+    for (size_t i=0; i<hexagons.size(); ++i) {
+        for (size_t j=0; j< hexagons[i].size(); ++j) {
+            OGRPolygon poly = hexagons[i][j];
+            GdaPolygon* gda_poly = OGRLayerProxy::OGRGeomToGdaShape(&poly);
+            gda_poly->setBrush(*wxBLUE_BRUSH);
+            background_shps.push_back(gda_poly);
+        }
+    }
+
+    MapCanvas::DrawLayer0();
+}
+
+void NetworkMapCanvas::DrawLayer2()
+{
+    MapCanvas::DrawLayer2();
+
+    wxMemoryDC dc;
+    dc.SelectObject(*layer2_bm);
+    // draw foreground
+    wxPen pen(*wxRED, 1);
+    dc.SetPen(pen);
+    wxRealPoint pt1, pt2;
+    wxPoint screen_pt1, screen_pt2;
+    OGRPoint pt;
+    for (size_t i=0; i<path.size(); ++i) {
+        OGRLineString line = path[i];
+        for (size_t j=0; j<line.getNumPoints()-1; ++j) {
+            line.getPoint(j, &pt);
+            pt1.x = pt.getX();
+            pt1.y = pt.getY();
+            last_scale_trans.transform(pt1, &screen_pt1);
+            line.getPoint(j+1, &pt);
+            pt2.x = pt.getX();
+            pt2.y = pt.getY();
+            last_scale_trans.transform(pt2, &screen_pt2);
+            dc.DrawLine(screen_pt1, screen_pt2);
+        }
+    }
+}
+
 IMPLEMENT_CLASS(NetworkMapFrame, MapFrame)
 BEGIN_EVENT_TABLE(NetworkMapFrame, MapFrame)
 END_EVENT_TABLE()

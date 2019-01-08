@@ -21,6 +21,7 @@
 #define __GEODA_CENTER_NETWORK_MAP_CANVAS_H__
 
 #include <wx/wx.h>
+#include <ogrsf_frmts.h>
 
 #include "../osm/TravelTool.h"
 #include "../GdaConst.h"
@@ -37,6 +38,11 @@ public:
                      const wxSize& size = wxDefaultSize);
     virtual ~NetworkMapCanvas();
 
+    /** The function handles all mouse events. */
+    virtual void OnMouseEvent(wxMouseEvent& event);
+    virtual void DrawLayer0();
+    virtual void DrawLayer2();
+    
     //virtual void DisplayRightClickMenu(const wxPoint& pos);
     //virtual wxString GetCanvasTitle();
     //virtual wxString GetVariableNames();
@@ -51,6 +57,13 @@ public:
 
 protected:
     OSMTools::TravelTool* travel;
+    OGRPoint from_pt;
+    OGRPoint to_pt;
+    bool has_start_loc;
+    std::vector<OGRLineString> path;
+    int paint_path_thickness;
+    std::vector<std::vector<OGRPolygon> > hexagons;
+    std::vector<std::vector<int> > costs;
     
     DECLARE_EVENT_TABLE()
 };

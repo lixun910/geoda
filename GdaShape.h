@@ -30,6 +30,7 @@
 #include <wx/region.h>
 #include <wx/string.h>
 #include <cmath>
+#include <ogrsf_frmts.h>
 
 #include "Explore/Basemap.h"
 #include "ShpFile.h"

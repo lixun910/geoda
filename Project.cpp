@@ -1118,6 +1118,15 @@ void Project::GetMapExtent(double& minx, double& miny, double& maxx, double& max
     }
 }
 
+void Project::GetMapExtent(OGREnvelope& env)
+{
+    wxLogMessage("Project::GetMapExtent()");
+
+    if (layer_proxy) {
+        layer_proxy->GetExtent(env.MinX, env.MinY, env.MaxX, env.MaxY);
+    }
+}
+
 void Project::GetCentroids(std::vector<double>& x, std::vector<double>& y)
 {
 	wxLogMessage("Project::GetCentroids(std::vector<double>& x, std::vector<double>& y)");

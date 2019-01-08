@@ -32,6 +32,7 @@
 #include <boost/property_tree/ptree_fwd.hpp>
 #include <boost/shared_ptr.hpp>
 #include <wx/filename.h>
+#include <ogrsf_frmts.h>
 
 #include "DataViewer/DataSource.h"
 #include "DataViewer/PtreeInterface.h"
@@ -165,7 +166,8 @@ public:
 	const std::vector<GdaShape*>& GetVoronoiPolygons();
     GdaPolygon* GetMapBoundary();
 	void GetMapExtent(double& minx, double& miny, double& maxx, double& maxy);
-    
+    void GetMapExtent(OGREnvelope& env);
+
 	double GetMin1nnDistEuc();
 	double GetMax1nnDistEuc();
 	double GetMaxDistEuc(); // diameter of convex hull

@@ -1219,6 +1219,7 @@ GdaPolygon::GdaPolygon(Shapefile::PolygonContents* pc_s)
 }
 
 
+
 GdaPolygon::~GdaPolygon()
 {
 	if (points) {
