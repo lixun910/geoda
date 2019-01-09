@@ -17,6 +17,7 @@
 		A1230E622130E783002AB30A /* MapLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1230E602130E783002AB30A /* MapLayer.cpp */; };
 		A1230E652130E81A002AB30A /* MapLayerTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1230E632130E81A002AB30A /* MapLayerTree.cpp */; };
 		A12E0F4F1705087A00B6059C /* OGRDataAdapter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A12E0F4E1705087A00B6059C /* OGRDataAdapter.cpp */; };
+		A12F1A3E21E56F6D00535157 /* map_marker.png in Resources */ = {isa = PBXBuildFile; fileRef = A12F1A3D21E56F6C00535157 /* map_marker.png */; };
 		A1311C6720FFDF7100008D7F /* localjc_kernel.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = A4E00F0F20FD8ECC0038BA80 /* localjc_kernel.cl */; };
 		A13B6B9418760CF100F93ACF /* SaveAsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A13B6B9318760CF100F93ACF /* SaveAsDlg.cpp */; };
 		A14735AA21A5F72D00CA69B2 /* DistUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A14735A921A5F72D00CA69B2 /* DistUtils.cpp */; };
@@ -60,6 +61,12 @@
 		A1C194A31B38FC67003DA7CA /* libc++.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A1C194A21B38FC67003DA7CA /* libc++.dylib */; };
 		A1C9F3ED18B55EE000E14394 /* FieldNameCorrectionDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1C9F3EC18B55EE000E14394 /* FieldNameCorrectionDlg.cpp */; };
 		A1CE3D331C1A427A0010F170 /* PublishDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1CE3D311C1A427A0010F170 /* PublishDlg.cpp */; };
+		A1D65AFD21E54E1500982656 /* gradient-pbj.png in Resources */ = {isa = PBXBuildFile; fileRef = A1D65AF721E54E1400982656 /* gradient-pbj.png */; };
+		A1D65AFE21E54E1500982656 /* gradient-classic.png in Resources */ = {isa = PBXBuildFile; fileRef = A1D65AF821E54E1400982656 /* gradient-classic.png */; };
+		A1D65AFF21E54E1500982656 /* gradient-pgaitch.png in Resources */ = {isa = PBXBuildFile; fileRef = A1D65AF921E54E1400982656 /* gradient-pgaitch.png */; };
+		A1D65B0021E54E1500982656 /* gradient-fire.png in Resources */ = {isa = PBXBuildFile; fileRef = A1D65AFA21E54E1500982656 /* gradient-fire.png */; };
+		A1D65B0121E54E1500982656 /* gradient-omg.png in Resources */ = {isa = PBXBuildFile; fileRef = A1D65AFB21E54E1500982656 /* gradient-omg.png */; };
+		A1D65B0221E54E1500982656 /* gradient-RdYIBu.png in Resources */ = {isa = PBXBuildFile; fileRef = A1D65AFC21E54E1500982656 /* gradient-RdYIBu.png */; };
 		A1D82DEF174D3EB6003DE20A /* ConnectDatasourceDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1D82DEE174D3EB6003DE20A /* ConnectDatasourceDlg.cpp */; };
 		A1DA623A17BCBC070070CAAB /* AutoCompTextCtrl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1DA623817BCBC070070CAAB /* AutoCompTextCtrl.cpp */; };
 		A1E5BC841DBFE661005739E9 /* ReportBugDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1E5BC831DBFE661005739E9 /* ReportBugDlg.cpp */; };
@@ -306,7 +313,7 @@
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
-			dstSubfolderSpec = 6;
+			dstSubfolderSpec = 7;
 			files = (
 				A110E96021D7294C00F19BCC /* dijkstra.cl in CopyFiles */,
 				A1311C6720FFDF7100008D7F /* localjc_kernel.cl in CopyFiles */,
@@ -339,6 +346,7 @@
 		A1230E642130E81A002AB30A /* MapLayerTree.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MapLayerTree.hpp; sourceTree = "<group>"; };
 		A12E0F4D1705087A00B6059C /* OGRDataAdapter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGRDataAdapter.h; sourceTree = "<group>"; };
 		A12E0F4E1705087A00B6059C /* OGRDataAdapter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OGRDataAdapter.cpp; sourceTree = "<group>"; };
+		A12F1A3D21E56F6C00535157 /* map_marker.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = map_marker.png; path = BuildTools/CommonDistFiles/web_plugins/map_marker.png; sourceTree = "<group>"; };
 		A13B6B9218760CF100F93ACF /* SaveAsDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SaveAsDlg.h; sourceTree = "<group>"; };
 		A13B6B9318760CF100F93ACF /* SaveAsDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SaveAsDlg.cpp; sourceTree = "<group>"; };
 		A14735A821A5F72D00CA69B2 /* DistUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DistUtils.h; sourceTree = "<group>"; };
@@ -418,6 +426,12 @@
 		A1C9F3EC18B55EE000E14394 /* FieldNameCorrectionDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FieldNameCorrectionDlg.cpp; sourceTree = "<group>"; };
 		A1CE3D311C1A427A0010F170 /* PublishDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PublishDlg.cpp; sourceTree = "<group>"; };
 		A1CE3D321C1A427A0010F170 /* PublishDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PublishDlg.h; sourceTree = "<group>"; };
+		A1D65AF721E54E1400982656 /* gradient-pbj.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gradient-pbj.png"; sourceTree = "<group>"; };
+		A1D65AF821E54E1400982656 /* gradient-classic.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gradient-classic.png"; sourceTree = "<group>"; };
+		A1D65AF921E54E1400982656 /* gradient-pgaitch.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gradient-pgaitch.png"; sourceTree = "<group>"; };
+		A1D65AFA21E54E1500982656 /* gradient-fire.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gradient-fire.png"; sourceTree = "<group>"; };
+		A1D65AFB21E54E1500982656 /* gradient-omg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gradient-omg.png"; sourceTree = "<group>"; };
+		A1D65AFC21E54E1500982656 /* gradient-RdYIBu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gradient-RdYIBu.png"; sourceTree = "<group>"; };
 		A1D82DED174D3EB6003DE20A /* ConnectDatasourceDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectDatasourceDlg.h; sourceTree = "<group>"; };
 		A1D82DEE174D3EB6003DE20A /* ConnectDatasourceDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConnectDatasourceDlg.cpp; sourceTree = "<group>"; };
 		A1DA623817BCBC070070CAAB /* AutoCompTextCtrl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AutoCompTextCtrl.cpp; sourceTree = "<group>"; };
@@ -969,6 +983,12 @@
 		A1AE503121CE0370000AF0C4 /* osm */ = {
 			isa = PBXGroup;
 			children = (
+				A1D65AF821E54E1400982656 /* gradient-classic.png */,
+				A1D65AFA21E54E1500982656 /* gradient-fire.png */,
+				A1D65AFB21E54E1500982656 /* gradient-omg.png */,
+				A1D65AF721E54E1400982656 /* gradient-pbj.png */,
+				A1D65AF921E54E1400982656 /* gradient-pgaitch.png */,
+				A1D65AFC21E54E1500982656 /* gradient-RdYIBu.png */,
 				A1FA3AEF21DDA700002A158C /* uiRoadDownload.cpp */,
 				A1FA3AF021DDA700002A158C /* uiRoadDownload.h */,
 				A188EA2E21D6EE0B00D5EFE7 /* dijkstra.cl */,
@@ -1170,6 +1190,7 @@
 		DD7974650F1D1B0700496A84 /* ../../ */ = {
 			isa = PBXGroup;
 			children = (
+				A12F1A3D21E56F6C00535157 /* map_marker.png */,
 				A1AE503121CE0370000AF0C4 /* osm */,
 				A14735A721A5F6CE00CA69B2 /* Weights */,
 				A10EF2ED21273E4900564FE1 /* visualization */,
@@ -1747,6 +1768,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DD5A579716E53EC40047DBB1 /* GeoDa.icns in Resources */,
+				A1D65AFF21E54E1500982656 /* gradient-pgaitch.png in Resources */,
 				A4D9A31F1E4D5F3800EF584C /* gdaldata in Resources */,
 				A19F51501756A11E006E31B4 /* plugins in Resources */,
 				A4404A05208E9E390007753D /* lang in Resources */,
@@ -1754,19 +1776,25 @@
 				A496C9A81E6A43C0008F87DD /* BaltimoreHomeSales.png in Resources */,
 				A496C9AA1E6A43CC008F87DD /* BostonHomeSales.png in Resources */,
 				A496C9AC1E6A43D0008F87DD /* BuenosAiresElections.png in Resources */,
+				A1D65AFE21E54E1500982656 /* gradient-classic.png in Resources */,
 				A496C9AE1E6A43D6008F87DD /* ColombiaMalaria.png in Resources */,
+				A1D65AFD21E54E1500982656 /* gradient-pbj.png in Resources */,
 				A496C9B01E6A43DA008F87DD /* ColumbusCrime.png in Resources */,
+				A1D65B0021E54E1500982656 /* gradient-fire.png in Resources */,
 				A496C9B21E6A43E5008F87DD /* Milwaukee2000Census.png in Resources */,
 				A1230E5F212DF54D002AB30A /* switch-off.png in Resources */,
 				A496C9B41E6A43E8008F87DD /* NAT.png in Resources */,
+				A12F1A3E21E56F6D00535157 /* map_marker.png in Resources */,
 				A496C9B61E6A43EE008F87DD /* NepalAid.png in Resources */,
 				A496C9B91E6A43FA008F87DD /* no_map.png in Resources */,
 				A496C9BB1E6A43FE008F87DD /* NYCData.png in Resources */,
+				A1D65B0121E54E1500982656 /* gradient-omg.png in Resources */,
 				A496C9BD1E6A4402008F87DD /* PhoenixACS.png in Resources */,
 				A496C9BF1E6A4405008F87DD /* SanFranCrime.png in Resources */,
 				A496C9C11E6A440A008F87DD /* SIDSNC.png in Resources */,
 				A496C9C51E6A441D008F87DD /* watermark-20.png in Resources */,
 				A4404A0F209270FB0007753D /* pofiles in Resources */,
+				A1D65B0221E54E1500982656 /* gradient-RdYIBu.png in Resources */,
 				A496C9C31E6A4417008F87DD /* USHomicides.png in Resources */,
 				A1230E5E212DF54D002AB30A /* switch-on.png in Resources */,
 				A4DB2CBC1EEA3A3E00BD4A54 /* Guerry.png in Resources */,

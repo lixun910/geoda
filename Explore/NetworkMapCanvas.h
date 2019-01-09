@@ -56,6 +56,7 @@ public:
     //virtual void SetWeightsId(boost::uuids::uuid id) { weights_id = id; }
 
 protected:
+    OSMTools::GradientColor* gradient_color;
     OSMTools::TravelTool* travel;
     OGRPoint from_pt;
     OGRPoint to_pt;
@@ -64,6 +65,9 @@ protected:
     int paint_path_thickness;
     std::vector<std::vector<OGRPolygon> > hexagons;
     std::vector<std::vector<int> > costs;
+    wxBitmap marker_img;
+    void CreateHexMap();
+    void DrawTravelPath();
     
     DECLARE_EVENT_TABLE()
 };

@@ -18,6 +18,7 @@
  */
 #include <wx/splitter.h>
 #include <wx/xrc/xmlres.h>
+#include <boost/foreach.hpp>
 
 #include "../logger.h"
 #include "../Project.h"
@@ -42,6 +43,17 @@ NetworkMapCanvas::NetworkMapCanvas(wxWindow *parent,
             1, boost::uuids::nil_uuid(), pos, size)
 {
     vector<OGRFeature*>& roads = project->layer_proxy->data;
+
+    wxString gradient_png_path = GenUtils::GetSamplesDir();
+    {
+    gradient_png_path << "gradient-fire.png";
+    }
+    gradient_color = new OSMTools::GradientColor(gradient_png_path);
+
+    wxString map_marker_path = GenUtils::GetSamplesDir();
+    map_marker_path << "map_marker.png";
+    marker_img.LoadFile(map_marker_path, wxBITMAP_TYPE_PNG);
+
     travel = new OSMTools::TravelTool(roads);
     travel->BuildCPUGraph();
 }
@@ -50,6 +62,7 @@ NetworkMapCanvas::~NetworkMapCanvas()
 {
     wxLogMessage("In NetworkMapCanvas::~NetworkMapCanvas");
     delete travel;
+    delete gradient_color;
 }
 
 void NetworkMapCanvas::OnMouseEvent(wxMouseEvent& event)
@@ -66,53 +79,77 @@ void NetworkMapCanvas::OnMouseEvent(wxMouseEvent& event)
         from_pt.setY(map_pos.y);
         has_start_loc = true;
 
-        OGREnvelope extent;
-        project->GetMapExtent(extent);
-        double hexagon_radius = 1600; // meter
-        bool create_hexagons = true;
+        CreateHexMap();
 
-        travel->QueryHexMap(from_pt, extent, hexagon_radius, hexagons, costs,
-                            create_hexagons);
-        layer0_valid = false;
-        DrawLayers();
-        Refresh();
-
-    } else if (event.LeftDown()) {
+    } else if (has_start_loc && event.LeftDown()) {
         // "to location" of current mouse position
         to_pt.setX(map_pos.x);
         to_pt.setY(map_pos.y);
         if (travel && has_start_loc && from_pt.Equals(&to_pt) == false &&
             from_pt.getX() != 0 && from_pt.getY() != 0) {
-            path.clear();
-            std::vector<int> way_ids;
-            int cost = travel->Query(from_pt, to_pt, path, way_ids);
-            if (way_ids.empty() == false && cost >= 0) {
-                layer1_valid = false;
-                DrawLayers();
-                // update status text
-                wxStatusBar* sb = 0;
-                if (template_frame) sb = template_frame->GetStatusBar();
-                wxString current_txt = sb->GetStatusText();
-                int insert_pos = current_txt.Find("cost=");
-                if ( insert_pos != wxNOT_FOUND) {
-                    current_txt = current_txt.SubString(0, insert_pos);
-                }
-                current_txt << "cost=" << cost;
-                sb->SetStatusText(current_txt);
-            }
-
+            DrawTravelPath();
         }
+    } else {
+        MapCanvas::OnMouseEvent(event);
+    }
+}
+
+void NetworkMapCanvas::CreateHexMap()
+{
+    OGREnvelope extent;
+    project->GetMapExtent(extent);
+    double hexagon_radius = 160; // meter
+    bool create_hexagons = true;
+
+    travel->QueryHexMap(from_pt, extent, hexagon_radius, hexagons, costs,
+                        create_hexagons);
+    layer0_valid = false;
+    DrawLayers();
+    Refresh();
+}
+
+void NetworkMapCanvas::DrawTravelPath()
+{
+    path.clear();
+    std::vector<int> way_ids;
+    int cost = travel->Query(from_pt, to_pt, path, way_ids);
+    if (way_ids.empty() == false && cost >= 0) {
+
+        layer1_valid = false;
+        DrawLayers();
+        // update status text
+        wxStatusBar* sb = 0;
+        if (template_frame) sb = template_frame->GetStatusBar();
+        wxString current_txt;
+        current_txt << "cost=" << cost;
+        sb->SetStatusText(current_txt);
     }
 }
 
 void NetworkMapCanvas::DrawLayer0()
 {
     // draw hexagon distance map
+    int max_cost = INT_MIN;
+    for (size_t i=0; i<costs.size(); ++i) {
+        for (size_t j=0; j< costs[i].size(); ++j) {
+            if (costs[i][j] < INT_MAX && costs[i][j] > max_cost) {
+                max_cost = costs[i][j];
+            }
+        }
+    }
+    BOOST_FOREACH( GdaShape* shp, background_shps ) { delete shp; }
+    background_shps.clear();
+
     for (size_t i=0; i<hexagons.size(); ++i) {
         for (size_t j=0; j< hexagons[i].size(); ++j) {
             OGRPolygon poly = hexagons[i][j];
             GdaPolygon* gda_poly = OGRLayerProxy::OGRGeomToGdaShape(&poly);
-            gda_poly->setBrush(*wxBLUE_BRUSH);
+            double val = (double)costs[i][j] / (double)max_cost;
+            if (val > 1) val = 1;
+            wxColour color = gradient_color->GetColor(val);
+            wxBrush brush(color);
+            gda_poly->setBrush(brush);
+            gda_poly->setPen(*wxTRANSPARENT_PEN);
             background_shps.push_back(gda_poly);
         }
     }
@@ -146,6 +183,11 @@ void NetworkMapCanvas::DrawLayer2()
             dc.DrawLine(screen_pt1, screen_pt2);
         }
     }
+
+    wxPoint screen_pos;
+    wxRealPoint map_pos(from_pt.getX(), from_pt.getY());
+    last_scale_trans.transform(map_pos, &screen_pos);
+    dc.DrawBitmap(marker_img, screen_pos.x - 16, screen_pos.y -32);
 }
 
 IMPLEMENT_CLASS(NetworkMapFrame, MapFrame)
