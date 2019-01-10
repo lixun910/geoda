@@ -710,8 +710,54 @@ Shapefile::ShapeType OGRLayerProxy::GetGdaGeometries(vector<GdaShape*>& geoms,
                 }
             }
             geoms.push_back(new GdaPolygon(pc));
+
+        } else if (eType == wkbLineString) {
+            Shapefile::PolyLineContents* pc = new Shapefile::PolyLineContents();
+            pc->shape_type = Shapefile::POLY_LINE;
+            if (geometry) {
+                if (feature_counter == 0)
+                    shape_type = Shapefile::POLY_LINE;
+                OGRLineString* poRing = (OGRLineString*)geometry;
+                // Access line string nodes for example :
+                int num_pts = poRing->getNumPoints();
+                pc->num_parts = 1;
+                pc->num_points = num_pts;
+                pc->points.resize(num_pts);
+                OGRPoint p;
+                for(int i = 0;  i < num_pts; i++) {
+                    poRing->getPoint(i, &p);
+                    pc->points[i].x = p.getX();
+                    pc->points[i].y = p.getY();
+                }
+            }
+            geoms.push_back(new GdaPolyLine(pc));
+
+        } else if (eType == wkbMultiLineString) {
+            Shapefile::PolyLineContents* pc = new Shapefile::PolyLineContents();
+            pc->shape_type = Shapefile::POLY_LINE;
+            if (geometry) {
+                if (feature_counter == 0)
+                    shape_type = Shapefile::POLY_LINE;
+                OGRGeometryCollection *poCol = (OGRGeometryCollection*) geometry;
+                int num_col = poCol->getNumGeometries();
+                pc->num_parts = num_col;
+                pc->num_points = 0;
+                for(size_t i=0; i< num_col; ++i) {
+                    OGRGeometry* ogrGeom = poCol->getGeometryRef(i);
+                    OGRLineString* poRing = static_cast<OGRLineString*>(ogrGeom);
+                    int num_pts = poRing->getNumPoints();
+                    pc->num_points += num_pts;
+                    OGRPoint pt;
+                    for(int i = 0;  i < num_pts; i++) {
+                        poRing->getPoint(i, &pt);
+                        Shapefile::Point p(pt.getX(), pt.getY());
+                        pc->points.push_back(p);
+                    }
+                }
+            }
+            geoms.push_back(new GdaPolyLine(pc));
         } else {
-            wxString msg = _("GeoDa does not support datasource with line data at this time.  Please choose a datasource with either point or polygon data.");
+            wxString msg = _("GeoDa does not support datasource with other geometry type  at this time.  Please choose a datasource with either point or polygon data.");
             throw GdaException(msg.mb_str());
         }
     }

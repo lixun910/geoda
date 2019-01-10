@@ -120,9 +120,36 @@ TravelMapConfigureDlg::TravelMapConfigureDlg(wxWindow* parent,
     
     Center();
     
-    //map_list->Bind(wxEVT_CHOICE, &TravelMapConfigureDlg::OnLayerSelect, this);
     ok_btn->Bind(wxEVT_BUTTON, &TravelMapConfigureDlg::OnOK, this);
 
+    InitDataSetup();
+}
+
+void TravelMapConfigureDlg::InitDataSetup()
+{
+    TableInterface* table_int = project->GetTableInt();
+    int n_cols = table_int->GetNumberCols();
+    for (size_t i=0; i<n_cols; ++i) {
+        co_field_speed->Append(table_int->GetColName(i));
+        co_field_highway->Append(table_int->GetColName(i));
+        co_field_oneway->Append(table_int->GetColName(i));
+    }
+
+    int col_idx = table_int->FindColId("highway");
+    if ( col_idx>= 0) {
+        cb_field_highway->SetValue(true);
+        co_field_highway->SetSelection(col_idx);
+    }
+    col_idx = table_int->FindColId("oneway");
+    if ( col_idx>= 0) {
+        cb_field_oneway->SetValue(true);
+        co_field_oneway->SetSelection(col_idx);
+    }
+    col_idx = table_int->FindColId("maxspeed");
+    if ( col_idx>= 0) {
+        cb_field_speed->SetValue(true);
+        co_field_speed->SetSelection(col_idx);
+    }
 }
 
 void TravelMapConfigureDlg::OnOK(wxCommandEvent& e)
@@ -236,7 +263,7 @@ void TravelMapConfigureDlg::InitGrid()
         "grade5",
         "roundabout"
     };
-    int max_speeds[35] = {32, 96, 48, 48, 80, 40, 48, 32, 40, 40, 32, 32, 24,
+    double max_speeds[35] = {32, 96, 48, 48, 80, 40, 28, 22, 20, 20, 12, 12, 14,
         16, 16, 32, 3.2, 3.2, 3.2, 8, 16, 3.2, 3.2, 3.2, 0.16, 24, 16, 16, 16,
         16, 16, 16, 16, 16, 40
     };

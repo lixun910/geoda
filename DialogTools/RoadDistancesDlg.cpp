@@ -111,9 +111,25 @@ RoadDistancesDlg::RoadDistancesDlg(wxWindow* parent,
     road_v_sizer->Add(gd_speed, 1, wxEXPAND| wxALL, 10);
     road_page->SetSizer(road_v_sizer);
 
+    cb_use_gpu = new wxCheckBox(this, -1, _("Use CPU+GPU hybrid solution. The ratio of GPU task:"));
+    tc_gpu_ratio = new wxTextCtrl(this, -1, "0.2");
+    wxBoxSizer* hbox6 = new wxBoxSizer(wxHORIZONTAL);
+    hbox6->Add(cb_use_gpu, 0, wxALIGN_CENTER | wxALL, 5);
+    hbox6->Add(tc_gpu_ratio, 0, wxALIGN_CENTER | wxALL, 5);
+
+    int num_gpu = OSMTools::TravelTool::DetectGPU();
+    if (num_gpu < 2) {
+        cb_use_gpu->SetValue(false);
+        cb_use_gpu->Disable();
+        tc_gpu_ratio->Disable();
+    } else {
+        cb_use_gpu->SetValue(true);
+    }
+
     vbox = new wxBoxSizer(wxVERTICAL);
     vbox->Add(cbox, 0, wxALL, 15);
     vbox->Add(nb, 1, wxEXPAND | wxALL, 10);
+    vbox->Add(hbox6, 0, wxALL, 10);
     vbox->Add(hbox, 0, wxALIGN_CENTER | wxALL, 10);
     
     SetSizer(vbox);
@@ -127,6 +143,35 @@ RoadDistancesDlg::RoadDistancesDlg(wxWindow* parent,
     InitMapList();
     field_st->Disable();
     field_list->Disable();
+
+    InitDataSetup();
+}
+
+void RoadDistancesDlg::InitDataSetup()
+{
+    TableInterface* table_int = project->GetTableInt();
+    int n_cols = table_int->GetNumberCols();
+    for (size_t i=0; i<n_cols; ++i) {
+        co_field_speed->Append(table_int->GetColName(i));
+        co_field_highway->Append(table_int->GetColName(i));
+        co_field_oneway->Append(table_int->GetColName(i));
+    }
+
+    int col_idx = table_int->FindColId("highway");
+    if ( col_idx>= 0) {
+        cb_field_highway->SetValue(true);
+        co_field_highway->SetSelection(col_idx);
+    }
+    col_idx = table_int->FindColId("oneway");
+    if ( col_idx>= 0) {
+        cb_field_oneway->SetValue(true);
+        co_field_oneway->SetSelection(col_idx);
+    }
+    col_idx = table_int->FindColId("maxspeed");
+    if ( col_idx>= 0) {
+        cb_field_speed->SetValue(true);
+        co_field_speed->SetSelection(col_idx);
+    }
 }
 
 void RoadDistancesDlg::InitMapList()
@@ -207,6 +252,10 @@ void RoadDistancesDlg::OnOK(wxCommandEvent& e)
             dlg.ShowModal();
             return;
         }
+        wxString txt_gpu_ratio  = tc_gpu_ratio->GetValue();
+        double gpu_ratio;
+        txt_gpu_ratio.ToDouble(&gpu_ratio);
+
         wxString filter = "Binary file (*.bin)|*.bin";
 
         wxFileDialog save_dlg(this, "Save Distance Matrix to a file", "", "",
@@ -225,8 +274,8 @@ void RoadDistancesDlg::OnOK(wxCommandEvent& e)
         double default_speed = GetDefaultSpeed();
         double penalty = GetSpeedPenalty();
         std::map<wxString, double> speed_limits = GetSpeedLimitDict();
-        OSMTools::TravelTool travel(roads, 0, default_speed, penalty, speed_limits);
-
+        OSMTools::TravelTool travel(roads, default_speed, penalty, speed_limits);
+        if (cb_use_gpu->IsChecked()) travel.SetGPURatio(gpu_ratio);
         travel.GetDistanceMatrix(query_points, out_fname);
 
         wxString msg = wxString::Format(_("Distance Matrix Saved Successfully in %ld ms."),
@@ -310,7 +359,7 @@ void RoadDistancesDlg::InitGrid()
         "grade5",
         "roundabout"
     };
-    int max_speeds[35] = {32, 96, 48, 48, 80, 40, 48, 32, 40, 40, 32, 32, 24,
+    double max_speeds[35] = {32, 96, 48, 48, 80, 40, 48, 32, 40, 40, 32, 32, 24,
         16, 16, 32, 3.2, 3.2, 3.2, 8, 16, 3.2, 3.2, 3.2, 0.16, 24, 16, 16, 16,
         16, 16, 16, 16, 16, 40
     };

@@ -27,6 +27,8 @@ public:
 
     void InitGrid();
 
+    void InitDataSetup();
+    
     std::map<wxString, double> GetSpeedLimitDict();
 
     double GetRadius();
@@ -34,7 +36,7 @@ public:
     double GetDefaultSpeed();
 
     double GetSpeedPenalty();
-    
+
 protected:
     Project* project;
 

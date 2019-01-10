@@ -56,11 +56,9 @@ default_speed(_default_speed), penalty(_penalty)
     
     vector<OGRFeature*>& roads = project->layer_proxy->data;
 
-    wxString gradient_png_path = GenUtils::GetSamplesDir();
-    {
-    gradient_png_path << "gradient-fire.png";
-    }
-    gradient_color = new OSMTools::GradientColor(gradient_png_path);
+    //wxString gradient_png_path = GenUtils::GetSamplesDir();
+    //gradient_png_path << "gradient-fire.png";
+    //gradient_color = new OSMTools::GradientColor(gradient_png_path);
 
     // color/labels categories
     // 5, 10, 15, 20, 25, 30, 40, 50, 60, >60
@@ -90,7 +88,7 @@ default_speed(_default_speed), penalty(_penalty)
     map_marker_path << "map_marker.png";
     marker_img.LoadFile(map_marker_path, wxBITMAP_TYPE_PNG);
 
-    travel = new OSMTools::TravelTool(roads, radius, default_speed, penalty,
+    travel = new OSMTools::TravelTool(roads, default_speed, penalty,
                                       speed_limit_dict);
     travel->BuildCPUGraph();
 
@@ -110,7 +108,7 @@ NetworkMapCanvas::~NetworkMapCanvas()
 {
     wxLogMessage("In NetworkMapCanvas::~NetworkMapCanvas");
     delete travel;
-    delete gradient_color;
+    //delete gradient_color;
 }
 
 void NetworkMapCanvas::DisplayRightClickMenu(const wxPoint& pos)
@@ -150,7 +148,7 @@ wxColour NetworkMapCanvas::GetColorByCost(int cost)
             return color_vec[i];
         }
     }
-    if (cost > 1000) return wxColour(255,255,255,0);
+    if (cost > 10000) return wxColour(255,255,255,0);
     return color_vec[9];
 }
 

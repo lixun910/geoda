@@ -33,6 +33,8 @@ public:
 
     void InitGrid();
 
+    void InitDataSetup();
+
     std::map<wxString, double> GetSpeedLimitDict();
 
     double GetRadius();
@@ -61,6 +63,8 @@ protected:
     wxGrid* gd_speed;
     wxTextCtrl* tc_default_speed;
     wxTextCtrl* tc_speed_penalty;
+    wxCheckBox* cb_use_gpu;
+    wxTextCtrl* tc_gpu_ratio;
 };
 
 #endif

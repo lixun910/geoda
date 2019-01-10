@@ -11,7 +11,8 @@ default:	compile-geoda
 
 app:  build-geoda-mac
 
-compile-geoda:	weights-target ogl-target io-target algorithms-target dataviewer-target dialogtools-target \
+compile-geoda:	weights-target ogl-target io-target algorithms-target \
+                osm-target dataviewer-target dialogtools-target \
 		knn-target explore-target libgdiam-target regression-target \
 		shapeoperations-target resource-target varcalc-target \
 		geoda-target
@@ -21,6 +22,9 @@ test:
 
 resource-target:
 	(cd $(GeoDa_ROOT)/rc; $(MAKE) xrc; $(MAKE))
+
+osm-target:
+	(cd $(GeoDa_ROOT)/osm; $(MAKE))
 
 weights-target:
 	(cd $(GeoDa_ROOT)/Weights; $(MAKE))
@@ -75,6 +79,7 @@ build-geoda-mac:
 	cp $(GeoDa_ROOT)/BuildTools/CommonDistFiles/web_plugins/*.* build/GeoDa.app/Contents/Resources/
 	cp $(GeoDa_ROOT)/BuildTools/CommonDistFiles/cache.sqlite build/GeoDa.app/Contents/MacOS
 	cp $(GeoDa_ROOT)/Algorithms/lisa_kernel.cl build/GeoDa.app/Contents/MacOS
+	cp $(GeoDa_ROOT)/osm/*.cl build/GeoDa.app/Contents/MacOS
 	cp -rf $(GeoDa_ROOT)/internationalization/lang build/GeoDa.app/Contents/MacOS
 	$(LD) $(LDFLAGS) $(GeoDa_OBJ) $(LIBS) -o build/GeoDa.app/Contents/MacOS/GeoDa
 	cp run.sh build/GeoDa.app/Contents/MacOS/run.sh

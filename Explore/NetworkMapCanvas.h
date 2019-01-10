@@ -62,7 +62,7 @@ public:
     //virtual void SetWeightsId(boost::uuids::uuid id) { weights_id = id; }
 
 protected:
-    OSMTools::GradientColor* gradient_color;
+    //OSMTools::GradientColor* gradient_color;
     OSMTools::TravelTool* travel;
     OGRPoint from_pt;
     OGRPoint to_pt;
