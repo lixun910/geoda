@@ -34,6 +34,10 @@ public:
     NetworkMapCanvas(wxWindow *parent,
                      TemplateFrame* frame,
                      Project* project,
+                     double radius,
+                     double default_speed,
+                     double penalty,
+                     std::map<wxString, double> speed_limit_dict,
                      const wxPoint& pos = wxDefaultPosition,
                      const wxSize& size = wxDefaultSize);
     virtual ~NetworkMapCanvas();
@@ -71,6 +75,10 @@ protected:
     bool b_draw_hex_map;
     bool b_draw_travel_path;
 
+    double radius;
+    double default_speed;
+    double penalty;
+
     int num_cats;
     std::vector<wxColour> color_vec;
     std::vector<wxColour> color_labels;
@@ -92,6 +100,10 @@ class NetworkMapFrame : public MapFrame
 public:
 
     NetworkMapFrame(wxFrame *parent, Project* project,
+                    double radius,
+                    double default_speed,
+                    double penalty,
+                    std::map<wxString, double> speed_limit_dict,
                  const wxPoint& pos = wxDefaultPosition,
                  const wxSize& size = GdaConst::map_default_size,
                  const long style = wxDEFAULT_FRAME_STYLE);

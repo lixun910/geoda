@@ -28,7 +28,7 @@
 #include <sstream>
 #include <iomanip>
 #include <stdlib.h>
-
+#include <map>
 
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
@@ -126,6 +126,7 @@
 #include "DialogTools/PreferenceDlg.h"
 #include "DialogTools/SpatialJoinDlg.h"
 #include "DialogTools/RoadDistancesDlg.h"
+#include "DialogTools/TravelMapDlg.h"
 #include "Explore/CatClassification.h"
 #include "Explore/CovSpView.h"
 #include "Explore/CorrelParamsDlg.h"
@@ -2694,9 +2695,18 @@ void GdaFrame::OnOSMTravelMap(wxCommandEvent& event)
         return;
     }
 
-    NetworkMapFrame* nf = new NetworkMapFrame(GdaFrame::gda_frame, p,
+    TravelMapConfigureDlg dlg(this, p);
+    if (dlg.ShowModal() == wxID_OK) {
+        double radius = dlg.GetRadius();
+        double default_speed = dlg.GetDefaultSpeed();
+        double penalty = dlg.GetSpeedPenalty();
+        std::map<wxString, double> speed_limits = dlg.GetSpeedLimitDict();
+        NetworkMapFrame* nf = new NetworkMapFrame(GdaFrame::gda_frame, p,
+                                                  radius, default_speed,
+                                                  penalty, speed_limits,
                                               wxDefaultPosition,
                                               GdaConst::map_default_size);
+    }
 }
 
 void GdaFrame::OnGeneratePointShpFile(wxCommandEvent& event)

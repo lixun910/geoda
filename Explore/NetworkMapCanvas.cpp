@@ -36,12 +36,17 @@ END_EVENT_TABLE()
 NetworkMapCanvas::NetworkMapCanvas(wxWindow *parent,
                                    TemplateFrame* t_frame,
                                    Project* project,
+                                   double _radius,
+                                   double _default_speed,
+                                   double _penalty,
+                                   std::map<wxString, double> speed_limit_dict,
                                    const wxPoint& pos,
                                    const wxSize& size)
 : MapCanvas(parent, t_frame, project, std::vector<GdaVarTools::VarInfo>(0),
             std::vector<int>(0), CatClassification::no_theme, no_smoothing,
             1, boost::uuids::nil_uuid(), pos, size),
-b_draw_hex_map(false), b_draw_travel_path(false)
+b_draw_hex_map(false), b_draw_travel_path(false), radius(_radius),
+default_speed(_default_speed), penalty(_penalty)
 {
     is_hide = true; // hide main map
     tran_unhighlighted = (1-0.4) * 255; // change default transparency
@@ -85,13 +90,13 @@ b_draw_hex_map(false), b_draw_travel_path(false)
     map_marker_path << "map_marker.png";
     marker_img.LoadFile(map_marker_path, wxBITMAP_TYPE_PNG);
 
-    travel = new OSMTools::TravelTool(roads);
+    travel = new OSMTools::TravelTool(roads, radius, default_speed, penalty,
+                                      speed_limit_dict);
     travel->BuildCPUGraph();
 
     // set map center as start location for a hex drive map
     OGREnvelope extent;
     project->GetMapExtent(extent);
-    double hexagon_radius = 300; // meter
     bool create_hexagons = true;
     from_pt.setX(extent.MinX/2.0 + extent.MaxX/2.0);
     from_pt.setY(extent.MinY/2.0 + extent.MaxY/2.0);
@@ -141,7 +146,7 @@ wxColour NetworkMapCanvas::GetColorByCost(int cost)
     int time[9] = {5, 10, 15, 20, 25, 30, 40, 50, 60};
 
     for (size_t i=0; i<9; ++i) {
-        if (cost*1.6 < time[i] * 60) {
+        if (cost < time[i] * 60) {
             return color_vec[i];
         }
     }
@@ -226,7 +231,7 @@ void NetworkMapCanvas::CreateHexMap()
 {
     OGREnvelope extent;
     project->GetMapExtent(extent);
-    double hexagon_radius = 160; // meter
+    double hexagon_radius = radius; // meter
     bool create_hexagons = true;
 
     travel->QueryHexMap(from_pt, extent, hexagon_radius, hexagons, costs,
@@ -304,7 +309,7 @@ void NetworkMapCanvas::DrawTravelPath()
         wxStatusBar* sb = 0;
         if (template_frame) sb = template_frame->GetStatusBar();
         wxString current_txt;
-        current_txt << "cost=" << cost*2 << " seconds";
+        current_txt << "cost=" << cost << " seconds";
         sb->SetStatusText(current_txt);
     }
 }
@@ -360,6 +365,10 @@ BEGIN_EVENT_TABLE(NetworkMapFrame, MapFrame)
 EVT_ACTIVATE(NetworkMapFrame::OnActivate)
 END_EVENT_TABLE()
 NetworkMapFrame::NetworkMapFrame(wxFrame *parent, Project* project,
+                                 double radius,
+                                 double default_speed,
+                                 double penalty,
+                                 std::map<wxString, double> speed_limit_dict,
                                  const wxPoint& pos, const wxSize& size,
                                  const long style)
 : MapFrame(parent, project, pos, size, style)
@@ -372,7 +381,9 @@ NetworkMapFrame::NetworkMapFrame(wxFrame *parent, Project* project,
     splitter_win->SetMinimumPaneSize(10);
 
     wxPanel* rpanel = new wxPanel(splitter_win);
-    template_canvas = new NetworkMapCanvas(rpanel, this, project);
+    template_canvas = new NetworkMapCanvas(rpanel, this, project, radius,
+                                           default_speed, penalty,
+                                           speed_limit_dict);
     template_canvas->SetScrollRate(1,1);
     wxBoxSizer* rbox = new wxBoxSizer(wxVERTICAL);
     rbox->Add(template_canvas, 1, wxEXPAND);

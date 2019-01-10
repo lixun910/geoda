@@ -79,6 +79,7 @@
 		A1EF332F18E35D8300E19375 /* LocaleSetupDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1EF332D18E35D8300E19375 /* LocaleSetupDlg.cpp */; };
 		A1F1BA5C178D3B46005A46E5 /* GdaCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1F1BA5A178D3B46005A46E5 /* GdaCache.cpp */; };
 		A1F1BA99178D46B8005A46E5 /* cache.sqlite in CopyFiles */ = {isa = PBXBuildFile; fileRef = A1F1BA98178D46B8005A46E5 /* cache.sqlite */; };
+		A1F4EBE621E6F729002E0578 /* TravelMapDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1F4EBE521E6F728002E0578 /* TravelMapDlg.cpp */; };
 		A1FA3AF121DDA700002A158C /* uiRoadDownload.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1FA3AEF21DDA700002A158C /* uiRoadDownload.cpp */; };
 		A1FA3AF421DDAF63002A158C /* NetworkMapCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1FA3AF321DDAF63002A158C /* NetworkMapCanvas.cpp */; };
 		A1FD8C19186908B800C35C41 /* CustomClassifPtree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1FD8C17186908B800C35C41 /* CustomClassifPtree.cpp */; };
@@ -455,6 +456,8 @@
 		A1F1BA5A178D3B46005A46E5 /* GdaCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GdaCache.cpp; sourceTree = "<group>"; };
 		A1F1BA5B178D3B46005A46E5 /* GdaCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GdaCache.h; sourceTree = "<group>"; };
 		A1F1BA98178D46B8005A46E5 /* cache.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; name = cache.sqlite; path = BuildTools/CommonDistFiles/cache.sqlite; sourceTree = "<group>"; };
+		A1F4EBE421E6F728002E0578 /* TravelMapDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TravelMapDlg.h; sourceTree = "<group>"; };
+		A1F4EBE521E6F728002E0578 /* TravelMapDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TravelMapDlg.cpp; sourceTree = "<group>"; };
 		A1FA3AEF21DDA700002A158C /* uiRoadDownload.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = uiRoadDownload.cpp; sourceTree = "<group>"; };
 		A1FA3AF021DDA700002A158C /* uiRoadDownload.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = uiRoadDownload.h; sourceTree = "<group>"; };
 		A1FA3AF221DDAF63002A158C /* NetworkMapCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkMapCanvas.h; sourceTree = "<group>"; };
@@ -1287,6 +1290,8 @@
 		DD7974FE0F1D296F00496A84 /* DialogTools */ = {
 			isa = PBXGroup;
 			children = (
+				A1F4EBE521E6F728002E0578 /* TravelMapDlg.cpp */,
+				A1F4EBE421E6F728002E0578 /* TravelMapDlg.h */,
 				A188EA2921D58F5500D5EFE7 /* RoadDistancesDlg.cpp */,
 				A188EA2A21D58F5500D5EFE7 /* RoadDistancesDlg.h */,
 				A4ED7D59209A6B81008685D6 /* HDBScanDlg.cpp */,
@@ -1989,6 +1994,7 @@
 				DD92851F17F5FD4500B9481A /* VarOrderMapper.cpp in Sources */,
 				A4ED7D572097F114008685D6 /* kd_util.cpp in Sources */,
 				DD92853D17F5FE2E00B9481A /* VarGroup.cpp in Sources */,
+				A1F4EBE621E6F729002E0578 /* TravelMapDlg.cpp in Sources */,
 				A4E138BB1F71D6B800433256 /* GeocodingDlg.cpp in Sources */,
 				A1FD8C19186908B800C35C41 /* CustomClassifPtree.cpp in Sources */,
 				A188EA3321D6EE0B00D5EFE7 /* oclDijkstraKernel.cpp in Sources */,

@@ -1,35 +1,29 @@
 //
-//  RoadDistancesDlg
+//  TravelMapConfigureDlg
 //  GeoDa
 //
 //  Created by Xun Li on 9/4/18.
 //
 
-#ifndef __GEODA_ROADDISTANCESDLG__
-#define __GEODA_ROADDISTANCESDLG__
+#ifndef __GEODA_TRAVEL_MAP_CONFIGURE_DLG__
+#define __GEODA_TRAVEL_MAP_CONFIGURE_DLG__
 
 #include <vector>
 #include <map>
+#include <boost/unordered_map.hpp>
 #include <wx/dialog.h>
-#include <wx/grid.h>
 #include <wx/choice.h>
 #include "../SpatialIndTypes.h"
 
 class Project;
 
-class RoadDistancesDlg : public wxDialog
+class TravelMapConfigureDlg : public wxDialog
 {
 public:
-    RoadDistancesDlg(wxWindow* parent, Project* project,
-                   const wxString& title = _("Road Distances Dialog"));
+    TravelMapConfigureDlg(wxWindow* parent, Project* project,
+                   const wxString& title = _("Travel Map Configure Dialog"));
     
     void OnOK(wxCommandEvent& e);
-
-    void OnLayerSelect(wxCommandEvent& e);
-    
-    void InitMapList();
-
-    void UpdateFieldList(wxString name);
 
     void InitGrid();
 
@@ -43,14 +37,9 @@ public:
     
 protected:
     Project* project;
-    std::vector<wxString> point_layer_names;
 
-    wxChoice* map_list;
-    wxChoice* field_list;
-    wxStaticText* field_st;
-    wxBoxSizer* vbox;
-    wxBoxSizer* cbox;
-    wxPanel* panel;
+    wxChoice* co_map_type;
+    wxTextCtrl* tc_radius;
 
     wxCheckBox* cb_field_highway;
     wxChoice* co_field_highway;
