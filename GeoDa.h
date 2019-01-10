@@ -193,6 +193,7 @@ public:
 	void OnOSMDownloadData(wxCommandEvent& event);
     void OnOSMComputeDistanceMatrix(wxCommandEvent& event);
     void OnOSMTravelMap(wxCommandEvent& event);
+    void OnOSMSnapPointsToRoad(wxCommandEvent& event);
 	void OnRegressionClassic(wxCommandEvent& event);
 	void OnPublish(wxCommandEvent& event);
 	void OnCondPlotChoices(wxCommandEvent& event);

@@ -81,6 +81,8 @@
 		A1F1BA99178D46B8005A46E5 /* cache.sqlite in CopyFiles */ = {isa = PBXBuildFile; fileRef = A1F1BA98178D46B8005A46E5 /* cache.sqlite */; };
 		A1F4EBE621E6F729002E0578 /* TravelMapDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1F4EBE521E6F728002E0578 /* TravelMapDlg.cpp */; };
 		A1F4EBE921E7CE54002E0578 /* RoadWeights.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1F4EBE721E7CE54002E0578 /* RoadWeights.cpp */; };
+		A1F4EBEC21E7ECFA002E0578 /* RoadUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1F4EBEA21E7ECFA002E0578 /* RoadUtils.cpp */; };
+		A1F4EBEF21E7F77F002E0578 /* SnapPointsToRoadDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1F4EBED21E7F77F002E0578 /* SnapPointsToRoadDlg.cpp */; };
 		A1FA3AF121DDA700002A158C /* uiRoadDownload.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1FA3AEF21DDA700002A158C /* uiRoadDownload.cpp */; };
 		A1FA3AF421DDAF63002A158C /* NetworkMapCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1FA3AF321DDAF63002A158C /* NetworkMapCanvas.cpp */; };
 		A1FD8C19186908B800C35C41 /* CustomClassifPtree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1FD8C17186908B800C35C41 /* CustomClassifPtree.cpp */; };
@@ -461,6 +463,10 @@
 		A1F4EBE521E6F728002E0578 /* TravelMapDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TravelMapDlg.cpp; sourceTree = "<group>"; };
 		A1F4EBE721E7CE54002E0578 /* RoadWeights.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RoadWeights.cpp; sourceTree = "<group>"; };
 		A1F4EBE821E7CE54002E0578 /* RoadWeights.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RoadWeights.h; sourceTree = "<group>"; };
+		A1F4EBEA21E7ECFA002E0578 /* RoadUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RoadUtils.cpp; sourceTree = "<group>"; };
+		A1F4EBEB21E7ECFA002E0578 /* RoadUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RoadUtils.h; sourceTree = "<group>"; };
+		A1F4EBED21E7F77F002E0578 /* SnapPointsToRoadDlg.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SnapPointsToRoadDlg.cpp; sourceTree = "<group>"; };
+		A1F4EBEE21E7F77F002E0578 /* SnapPointsToRoadDlg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SnapPointsToRoadDlg.h; sourceTree = "<group>"; };
 		A1FA3AEF21DDA700002A158C /* uiRoadDownload.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = uiRoadDownload.cpp; sourceTree = "<group>"; };
 		A1FA3AF021DDA700002A158C /* uiRoadDownload.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = uiRoadDownload.h; sourceTree = "<group>"; };
 		A1FA3AF221DDAF63002A158C /* NetworkMapCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkMapCanvas.h; sourceTree = "<group>"; };
@@ -1008,6 +1014,8 @@
 				A1AE503521CE03CE000AF0C4 /* Downloader.h */,
 				A1AE503321CE03CE000AF0C4 /* Roads.cpp */,
 				A1AE503421CE03CE000AF0C4 /* Roads.h */,
+				A1F4EBEA21E7ECFA002E0578 /* RoadUtils.cpp */,
+				A1F4EBEB21E7ECFA002E0578 /* RoadUtils.h */,
 			);
 			path = osm;
 			sourceTree = "<group>";
@@ -1429,6 +1437,8 @@
 				DD8183C61970619800228B0A /* WeightsManDlg.cpp */,
 				A1894C3D213F29DC00718FFC /* SpatialJoinDlg.cpp */,
 				A1894C3E213F29DC00718FFC /* SpatialJoinDlg.h */,
+				A1F4EBED21E7F77F002E0578 /* SnapPointsToRoadDlg.cpp */,
+				A1F4EBEE21E7F77F002E0578 /* SnapPointsToRoadDlg.h */,
 			);
 			path = DialogTools;
 			sourceTree = "<group>";
@@ -1911,6 +1921,7 @@
 				DD89C87413D86BC7006C068D /* FieldNewCalcBinDlg.cpp in Sources */,
 				DD89C87513D86BC7006C068D /* FieldNewCalcLagDlg.cpp in Sources */,
 				A45DBDF41EDDEDAD00C2AA8A /* pca.cpp in Sources */,
+				A1F4EBEC21E7ECFA002E0578 /* RoadUtils.cpp in Sources */,
 				DD89C87613D86BC7006C068D /* FieldNewCalcRateDlg.cpp in Sources */,
 				DD89C87713D86BC7006C068D /* FieldNewCalcSheetDlg.cpp in Sources */,
 				DD89C87813D86BC7006C068D /* FieldNewCalcUniDlg.cpp in Sources */,
@@ -2074,6 +2085,7 @@
 				A19483932118BAAA009A87A2 /* composit.cpp in Sources */,
 				A19483992118BAAA009A87A2 /* canvas.cpp in Sources */,
 				A14735BB21A65F1800CA69B2 /* bd_pr_search.cpp in Sources */,
+				A1F4EBEF21E7F77F002E0578 /* SnapPointsToRoadDlg.cpp in Sources */,
 				DDFFC7F21AC1C7CF00F7DD6D /* HighlightState.cpp in Sources */,
 				DD9373F71AC1FEAA0066AF21 /* PolysToContigWeights.cpp in Sources */,
 				DDCCB5CC1AD47C200067D6C4 /* SimpleBinsHistCanvas.cpp in Sources */,

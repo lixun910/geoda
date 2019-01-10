@@ -127,6 +127,7 @@
 #include "DialogTools/SpatialJoinDlg.h"
 #include "DialogTools/RoadDistancesDlg.h"
 #include "DialogTools/TravelMapDlg.h"
+#include "DialogTools/SnapPointsToRoadDlg.h"
 #include "Explore/CatClassification.h"
 #include "Explore/CovSpView.h"
 #include "Explore/CorrelParamsDlg.h"
@@ -2707,6 +2708,39 @@ void GdaFrame::OnOSMTravelMap(wxCommandEvent& event)
                                               wxDefaultPosition,
                                               GdaConst::map_default_size);
     }
+}
+
+void GdaFrame::OnOSMSnapPointsToRoad(wxCommandEvent& event)
+{
+    wxLogMessage("In GdaFrame::OnOSMSnapPointsToRoad()");
+
+    Project* p = GetProject();
+    if (p == NULL) return;
+    TableInterface* table_int = p->GetTableInt();
+    if (table_int == NULL) return;
+
+    bool valid_input = true;
+    wxString error_msg;
+    if (p->GetShapeType() != Shapefile::POLY_LINE) {
+        error_msg = _("Snapping points can be only applied on a road network "
+                      " dataset. Please load a road network data and try "
+                      " again.");
+        valid_input = false;
+    }
+    if (p->bg_maps.empty() && p->fg_maps.empty()) {
+        error_msg = _("Please load a query point dataset as a new layer to"
+                      " apply snapping on road network.");
+        valid_input = false;
+    }
+    if (valid_input == false) {
+        wxMessageDialog dlg(this, error_msg, _("Error"),
+                            wxOK|wxICON_INFORMATION);
+        dlg.ShowModal();
+        return;
+    }
+
+    SnapPointsToRoadDlg dlg(this, p);
+    dlg.ShowModal();
 }
 
 void GdaFrame::OnGeneratePointShpFile(wxCommandEvent& event)
@@ -6695,6 +6729,7 @@ BEGIN_EVENT_TABLE(GdaFrame, wxFrame)
     EVT_MENU(XRCID("ID_OSM_DOWNLOAD_DATA"), GdaFrame::OnOSMDownloadData)
     EVT_MENU(XRCID("ID_OSM_DIST_MATRIX"), GdaFrame::OnOSMComputeDistanceMatrix)
     EVT_MENU(XRCID("ID_OSM_TRAVEL_MAP"), GdaFrame::OnOSMTravelMap)
+    EVT_MENU(XRCID("ID_OSM_SNAP_POINTS"), GdaFrame::OnOSMSnapPointsToRoad)
     // Table menu items
     EVT_MENU(XRCID("ID_SHOW_TIME_CHOOSER"), GdaFrame::OnShowTimeChooser)
     EVT_MENU(XRCID("ID_SHOW_DATA_MOVIE"), GdaFrame::OnShowDataMovie)

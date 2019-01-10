@@ -78,6 +78,9 @@
           <object class="wxMenuItem" name="ID_OSM_DIST_MATRIX">
               <label>Compute Travel Distance Matrix</label>
           </object>
+          <object class="wxMenuItem" name="ID_OSM_SNAP_POINTS">
+              <label>Snap Points to Roads</label>
+          </object>
       </object>
     </object>
     <object class="wxMenu" name="ID_MENU">
