@@ -21,7 +21,7 @@ LIBS	=	$(WXLIBS) \
             $(GEODA_HOME)/libraries/include/boost/stage/lib/libboost_system.a \
 	    $(GEODA_HOME)/libraries/lib/libjson_spirit.a
 
-
+USER_DEFS = -D__GEODA__
 BOOST_HEADER = -I$(GEODA_HOME)/libraries/include/boost 
 
 EIGEN_HEADER = -I$(GEODA_HOME)/libraries/include/eigen3

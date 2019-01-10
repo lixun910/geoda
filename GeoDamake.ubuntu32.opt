@@ -22,6 +22,7 @@ LIBS = $(WXLIBS) \
         -L$(GEODA_HOME)/libraries/lib -lgdal -lcurl -lcares \
         -L/usr/lib/i386-linux-gnu/mesa -lGL -lGLU -lglut -L/usr/lib/i386-linux-gnu -lrtmp -lidn -lrt -lssl
 
+USER_DEFS = -D__GEODA__
 BOOST_HEADER = -I$(GEODA_HOME)/libraries/include/boost 
 
 EIGEN_HEADER = -I$(GEODA_HOME)/libraries/include/eigen3

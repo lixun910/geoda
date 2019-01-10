@@ -23,6 +23,7 @@ LIBS = $(WXLIBS) \
 # Note: Library -lrtmp causes a missing library problem at runtime on
 #       Ubuntu 14.10 and later.
 
+USER_DEFS = -D__GEODA__
 BOOST_HEADER = -I$(GEODA_HOME)/libraries/include/boost 
 
 EIGEN_HEADER = -I$(GEODA_HOME)/libraries/include/eigen3

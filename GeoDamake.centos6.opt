@@ -21,6 +21,7 @@ LIBS = $(WXLIBS) \
         -L$(GEODA_HOME)/libraries/lib -lgdal -lcurl -lcares \
         -L/lib64 -lGL -lGLU -lidn -lrt -lssl -lidn -lwebkitgtk-1.0
 
+USER_DEFS = -D__GEODA__
 BOOST_HEADER = -I$(GEODA_HOME)/libraries/include/boost 
 
 GDAL_HEADER = -I$(GEODA_HOME)/libraries/include -I/usr/include

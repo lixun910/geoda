@@ -10,7 +10,11 @@ default:	compile-geoda
 
 app:  build-geoda-mac
 
-compile-geoda:	geoda-target knn-target algorithms-target dataviewer-target dialogtools-target explore-target libgdiam-target regression-target shapeoperations-target resource-target varcalc-target
+compile-geoda:	ogl-target io-target algorithms-target \
+                osm-target dataviewer-target dialogtools-target \
+		knn-target explore-target libgdiam-target regression-target \
+		shapeoperations-target resource-target varcalc-target \
+		geoda-target
 
 conf = `./libraries/bin/wx-config --libs`
 
@@ -20,8 +24,20 @@ test1:
 resource-target:
 	(cd $(GeoDa_ROOT)/rc; $(MAKE) xrc; $(MAKE))
 
+osm-target:
+	(cd $(GeoDa_ROOT)/osm; $(MAKE))
+
+weights-target:
+	(cd $(GeoDa_ROOT)/Weights; $(MAKE))
+
+ogl-target:
+	(cd $(GeoDa_ROOT)/ogl; $(MAKE))
+
 knn-target:
 	(cd $(GeoDa_ROOT)/kNN; $(MAKE))
+
+io-target:
+	(cd $(GeoDa_ROOT)/io; $(MAKE))
 
 algorithms-target:
 	(cd $(GeoDa_ROOT)/Algorithms; $(MAKE))
@@ -62,11 +78,14 @@ build-geoda-mac:
 	cp run.sh build/run.sh
 	chmod +x build/run.sh
 	cp GeoDa.desktop build/GeoDa.desktop
+	cp -rf $(GeoDa_ROOT)/internationalization/lang/* build/lang
 	cp $(GeoDa_ROOT)/BuildTools/CommonDistFiles/cache.sqlite build/cache.sqlite
 	cp -rf $(GeoDa_ROOT)/BuildTools/CommonDistFiles/web_plugins/* build/web_plugins/
 	cp $(GeoDa_ROOT)/BuildTools/CommonDistFiles/GeoDa.png build/GeoDa.png
 	cp $(GeoDa_ROOT)/rc/data_viewer_dialogs.xrc build/Resources
 	cp $(GeoDa_ROOT)/rc/dialogs.xrc build/Resources
+	cp $(GeoDa_ROOT)/Algorithms/lisa_kernel.cl build/
+	cp $(GeoDa_ROOT)/osm/*.cl build/
 	cp $(GeoDa_ROOT)/rc/GeoDa.icns build/Resources
 	cp $(GeoDa_ROOT)/rc/menus.xrc build/Resources
 	cp $(GeoDa_ROOT)/rc/toolbar.xrc build/Resources
