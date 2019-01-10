@@ -365,7 +365,8 @@ namespace GDA {
         XYFraction* LatLngToRawXY(LatLng &latlng);
         LatLng* XYToLatLng(XYFraction &xy, bool isLL=false);
         void LatLngToXY(double lng, double lat, int &x, int &y);
-        
+        void ScreenToLatLng(int x, int y, double& lng, double& lat);
+
         wxString GetTileUrl(int x, int y);
         wxString GetTilePath(int x, int y);
         

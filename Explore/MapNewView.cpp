@@ -940,7 +940,6 @@ void MapCanvas::DrawLayer2()
     BOOST_FOREACH( GdaShape* shp, foreground_shps ) {
         shp->paintSelf(dc);
     }
-    dc.SelectObject(wxNullBitmap);
     layer2_valid = true;
     if ( MapCanvas::has_thumbnail_saved == false) {
         if (isDrawBasemap && layerbase_valid == false) {

@@ -313,7 +313,7 @@
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
-			dstSubfolderSpec = 7;
+			dstSubfolderSpec = 6;
 			files = (
 				A110E96021D7294C00F19BCC /* dijkstra.cl in CopyFiles */,
 				A1311C6720FFDF7100008D7F /* localjc_kernel.cl in CopyFiles */,

@@ -40,8 +40,10 @@ public:
 
     /** The function handles all mouse events. */
     virtual void OnMouseEvent(wxMouseEvent& event);
-    virtual void DrawLayer0();
     virtual void DrawLayer2();
+    virtual void PopulateCanvas();
+    virtual void DisplayRightClickMenu(const wxPoint& pos);
+    virtual void UpdateStatusBar();
     
     //virtual void DisplayRightClickMenu(const wxPoint& pos);
     //virtual wxString GetCanvasTitle();
@@ -66,9 +68,21 @@ protected:
     std::vector<std::vector<OGRPolygon> > hexagons;
     std::vector<std::vector<int> > costs;
     wxBitmap marker_img;
+    bool b_draw_hex_map;
+    bool b_draw_travel_path;
+
+    int num_cats;
+    std::vector<wxColour> color_vec;
+    std::vector<wxColour> color_labels;
+    CatClassification::ColorScheme color_type;
+
     void CreateHexMap();
     void DrawTravelPath();
-    
+
+    wxColour GetColorByCost(int cost);
+    void OnToggleRoadNetwork(wxCommandEvent& event);
+    void OnSetStartLocation(wxCommandEvent& event);
+
     DECLARE_EVENT_TABLE()
 };
 
@@ -83,7 +97,7 @@ public:
                  const long style = wxDEFAULT_FRAME_STYLE);
     virtual ~NetworkMapFrame();
 
-    //void OnActivate(wxActivateEvent& event);
+    void OnActivate(wxActivateEvent& event);
     //virtual void MapMenus();
     //virtual void UpdateOptionMenuItems();
     //virtual void UpdateContextMenuItems(wxMenu* menu);

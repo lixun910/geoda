@@ -704,6 +704,16 @@ void Basemap::LatLngToXY(double lng, double lat, int &x, int &y)
     }
 }
 
+void Basemap::ScreenToLatLng(int x, int y, double& lng, double& lat)
+{
+    XYFraction origXY((x + leftP + offsetX)/256.0, (y + topP + offsetY)/256.0);
+
+    LatLng* p0 = XYToLatLng(origXY, true);
+    lng = p0->lng;
+    lat = p0->lat;
+    delete p0;
+}
+
 wxString Basemap::GetTileUrl(int x, int y)
 {
     wxString url = basemapUrl;

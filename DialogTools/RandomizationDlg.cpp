@@ -305,7 +305,8 @@ void RandomizationPanel::OnMouse( wxMouseEvent& event )
 	if (event.RightUp()) {
 		wxMenu* popupMenu = new wxMenu(wxEmptyString);
 		popupMenu->Append(XRCID("RUN_RANDOM"), "Run");
-		Connect(XRCID("RUN_RANDOM"), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(RandomizationPanel::OnRunClick));
+		Connect(XRCID("RUN_RANDOM"), wxEVT_COMMAND_MENU_SELECTED,
+                wxCommandEventHandler(RandomizationPanel::OnRunClick));
 		PopupMenu(popupMenu, event.GetPosition());
 	}
 }
