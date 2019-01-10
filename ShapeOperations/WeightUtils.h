@@ -40,6 +40,9 @@ namespace WeightUtils {
     void LoadGwtInMan(WeightsManInterface* w_man_int, wxString filepath,
                       TableInterface* table_int, wxString id_field,
                       WeightsMetaInfo::WeightTypeEnum type);
+    void LoadGalInMan(WeightsManInterface* w_man_int, wxString filepath,
+                      TableInterface* table_int, wxString id_field,
+                      WeightsMetaInfo::WeightTypeEnum type);
 }
 
 #endif

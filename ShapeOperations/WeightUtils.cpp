@@ -903,4 +903,50 @@ void WeightUtils::LoadGwtInMan(WeightsManInterface* w_man_int,
     }
 }
 
+void WeightUtils::LoadGalInMan(WeightsManInterface* w_man_int,
+                               wxString filepath,
+                               TableInterface* table_int,
+                               wxString id_field,
+                               WeightsMetaInfo::WeightTypeEnum type)
+{
+    int rows = table_int->GetNumberRows();
+
+    WeightsMetaInfo wmi;
+
+    GalElement* tempGal = WeightUtils::ReadGal(filepath, table_int);
+    if (tempGal == NULL) {
+        return;
+    }
+
+    GalWeight* w = new GalWeight();
+    w->num_obs = rows;
+    w->wflnm = filepath;
+    w->gal = tempGal;
+    w->id_field = id_field;
+    w->is_symmetric = true;
+
+    w->GetNbrStats();
+    wmi.num_obs = w->GetNumObs();
+    wmi.id_var = id_field;
+    wmi.SetSymmetric(w->is_symmetric);
+    wmi.SetMinNumNbrs(w->GetMinNumNbrs());
+    wmi.SetMaxNumNbrs(w->GetMaxNumNbrs());
+    wmi.SetMeanNumNbrs(w->GetMeanNumNbrs());
+    wmi.SetMedianNumNbrs(w->GetMedianNumNbrs());
+    wmi.SetSparsity(w->GetSparsity());
+    wmi.SetDensity(w->GetDensity());
+    wmi.SetWeightsType(type);
+
+    WeightsMetaInfo e(wmi);
+    e.filename = filepath;
+
+    boost::uuids::uuid uid = w_man_int->RequestWeights(e);
+    if (uid.is_nil()) {
+        bool success = ((WeightsNewManager*) w_man_int)->AssociateGal(uid, w);
+        if (success) {
+            w_man_int->MakeDefault(uid);
+        }
+    }
+}
+
 

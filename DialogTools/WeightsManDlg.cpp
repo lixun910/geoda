@@ -42,6 +42,7 @@
 #include "../io/arcgis_swm.h"
 #include "../io/matlab_mat.h"
 #include "../io/weights_interface.h"
+#include "../Weights/RoadWeights.h"
 #include "WeightsManDlg.h"
 
 BEGIN_EVENT_TABLE(WeightsManFrame, TemplateFrame)
@@ -254,7 +255,32 @@ void WeightsManFrame::OnWListItemDeselect(wxListEvent& ev)
 void WeightsManFrame::OnCreateBtn(wxCommandEvent& ev)
 {
 	wxLogMessage("In WeightsManFrame::OnCreateBtn");
-	GdaFrame::GetGdaFrame()->OnToolsWeightsCreate(ev);
+    if (project_p->GetShapeType() == Shapefile::POLY_LINE) {
+        // special case for creating weights for line dataset
+        wxString msg = _("GeoDa only creates contiguity weights for line dataset (e.g. in road networks, only connected and intersected road segments will be treated as neighbors.) Click Yes to continue.");
+        wxMessageDialog dlg(this, msg, _("Information"), wxYES_NO|wxICON_INFORMATION);
+        if (dlg.ShowModal() == wxID_YES) {
+            wxString filter = "GAL|*.gal";
+            wxFileDialog save_dlg(NULL, _("Create a Weights File"),
+                                wxEmptyString,
+                                wxEmptyString, filter,
+                                wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+            if (save_dlg.ShowModal() == wxID_OK) {
+                wxFileName fname = wxFileName(save_dlg.GetPath());
+                wxString new_main_dir = fname.GetPathWithSep();
+                wxString new_main_name = fname.GetName();
+                wxString new_txt = new_main_dir + new_main_name+".gal";
+                vector<OGRFeature*> roads = project_p->layer_proxy->data;
+                GeoDa::RoadWeights road_weights(roads);
+                road_weights.CreateWeightsFile(new_txt);
+                // Load the weights file into Weights Manager
+                WeightUtils::LoadGalInMan(w_man_int, new_txt, table_int, "",
+                                          WeightsMetaInfo::WT_queen);
+            }
+        }
+    } else {
+        GdaFrame::GetGdaFrame()->OnToolsWeightsCreate(ev);
+    }
 }
 
 void WeightsManFrame::OnLoadBtn(wxCommandEvent& ev)
