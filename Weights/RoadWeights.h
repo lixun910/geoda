@@ -36,7 +36,7 @@ class RoadWeights
 
     boost::unordered_map<std::pair<double, double>, int> nodes_dict;
 
-    std::vector<std::vector<int> > node_to_edges;
+    std::vector<std::vector<int> > node_to_ways;
 };
 
 }

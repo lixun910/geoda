@@ -34,6 +34,8 @@ void RoadWeights::CreateWeightsFile(const wxString &w_file_path)
     OGRFeature* feature;
     OGRGeometry* geom;
     OGRLineString* line;
+    OGRMultiLineString* mline;
+    OGRGeometryCollection *poCol;
 
     size_t n_roads = roads.size();
 
@@ -46,25 +48,54 @@ void RoadWeights::CreateWeightsFile(const wxString &w_file_path)
     for (size_t i=0; i<n_roads; ++i) {
         feature = roads[i];
         geom = feature->GetGeometryRef();
-        line = (OGRLineString*) geom;
-        n_pts = line->getNumPoints();
         boost::unordered_map<int, int> nbr_ways;
-        for (size_t j=0; j<n_pts; ++j) {
-            OGRPoint pt;
-            line->getPoint(j, &pt);
-            rd_pt = std::make_pair(pt.getX(), pt.getY());
-            if (nodes_dict.find(rd_pt) == nodes_dict.end()) {
-                // should never be here
-                continue;
+        
+        if (mline = dynamic_cast<OGRMultiLineString*>(geom)) {
+            poCol = (OGRGeometryCollection*) geom;
+            for(size_t k=0; k< poCol->getNumGeometries(); ++k) {
+                line = (OGRLineString*)(poCol->getGeometryRef(k));
+                n_pts = line->getNumPoints();
+                boost::unordered_map<int, int> nbr_ways;
+                for (size_t j=0; j<n_pts; ++j) {
+                    OGRPoint pt;
+                    line->getPoint(j, &pt);
+                    rd_pt = std::make_pair(pt.getX(), pt.getY());
+                    if (nodes_dict.find(rd_pt) == nodes_dict.end()) {
+                        // should never be here
+                        continue;
+                    }
+                    node_idx = nodes_dict[rd_pt];
+                    std::vector<int>& way_ids = node_to_ways[node_idx];
+                    for (size_t k=0; k<way_ids.size(); ++k) {
+                        if ( i != way_ids[k]) {
+                            nbr_ways[way_ids[k]] = 1;
+                        }
+                    }
+                }
             }
-            node_idx = nodes_dict[rd_pt];
-            std::vector<int>& way_ids = node_to_edges[node_idx];
-            for (size_t k=0; k<way_ids.size(); ++k) {
-                if ( i != way_ids[k]) {
-                    nbr_ways[way_ids[k]] = 1;
+            mline = NULL;
+        } else {
+            line = (OGRLineString*) geom;
+            n_pts = line->getNumPoints();
+
+            for (size_t j=0; j<n_pts; ++j) {
+                OGRPoint pt;
+                line->getPoint(j, &pt);
+                rd_pt = std::make_pair(pt.getX(), pt.getY());
+                if (nodes_dict.find(rd_pt) == nodes_dict.end()) {
+                    // should never be here
+                    continue;
+                }
+                node_idx = nodes_dict[rd_pt];
+                std::vector<int>& way_ids = node_to_ways[node_idx];
+                for (size_t k=0; k<way_ids.size(); ++k) {
+                    if ( i != way_ids[k]) {
+                        nbr_ways[way_ids[k]] = 1;
+                    }
                 }
             }
         }
+
         wxString line1, line2;
         line1 << i << " " << nbr_ways.size();
         file.AddLine(line1);
@@ -86,7 +117,10 @@ void RoadWeights::ProcessRoads()
     OGRFeature* feature;
     OGRGeometry* geom;
     OGRLineString* line;
-    int i, j, idx, n_pts, node_count=0;
+    OGRMultiLineString* mline;
+    OGRGeometryCollection *poCol;
+    int i, j, k, idx, n_pts, node_count=0;
+    std::pair<double, double> rd_pt;
 
     // read ways
     for (i=0; i<n_roads; ++i) {
@@ -94,24 +128,49 @@ void RoadWeights::ProcessRoads()
         geom = feature->GetGeometryRef();
         std::vector<OGRPoint> e;
         if (geom && geom->IsEmpty() == false) {
-            line = (OGRLineString*) geom;
-            n_pts = line->getNumPoints();
-            for (j=0; j<n_pts; ++j) {
-                OGRPoint pt;
-                line->getPoint(j, &pt);
-                std::pair<double, double> rd_pt = std::make_pair(pt.getX(), pt.getY());
-                if (nodes_dict.find(rd_pt) == nodes_dict.end()) {
-                    nodes_dict[rd_pt] = node_count;
-                    std::vector<int> edge_ids;
-                    edge_ids.push_back(i);
-                    node_to_edges.push_back(edge_ids);
-                    nodes.push_back(pt);
-                    node_count ++;
-                } else {
-                    idx = nodes_dict[rd_pt];
-                    node_to_edges[idx].push_back(i);
+            if (mline = dynamic_cast<OGRMultiLineString*>(geom)) {
+                poCol = (OGRGeometryCollection*) geom;
+                for(k=0; k< poCol->getNumGeometries(); ++k) {
+                    line = (OGRLineString*)(poCol->getGeometryRef(k));
+                    n_pts = line->getNumPoints();
+                    for (j=0; j<n_pts; ++j) {
+                        OGRPoint pt;
+                        line->getPoint(j, &pt);
+                        rd_pt = std::make_pair(pt.getX(), pt.getY());
+                        if (nodes_dict.find(rd_pt) == nodes_dict.end()) {
+                            nodes_dict[rd_pt] = node_count;
+                            std::vector<int> edge_ids;
+                            edge_ids.push_back(i);
+                            node_to_ways.push_back(edge_ids);
+                            nodes.push_back(pt);
+                            node_count ++;
+                        } else {
+                            idx = nodes_dict[rd_pt];
+                            node_to_ways[idx].push_back(i);
+                        }
+                    }
                 }
-                e.push_back(pt); // todo: possible memory issue
+                mline = NULL;
+            } else {
+                line = (OGRLineString*) geom;
+                n_pts = line->getNumPoints();
+                for (j=0; j<n_pts; ++j) {
+                    OGRPoint pt;
+                    line->getPoint(j, &pt);
+                    rd_pt = std::make_pair(pt.getX(), pt.getY());
+                    if (nodes_dict.find(rd_pt) == nodes_dict.end()) {
+                        nodes_dict[rd_pt] = node_count;
+                        std::vector<int> edge_ids;
+                        edge_ids.push_back(i);
+                        node_to_ways.push_back(edge_ids);
+                        nodes.push_back(pt);
+                        node_count ++;
+                    } else {
+                        idx = nodes_dict[rd_pt];
+                        node_to_ways[idx].push_back(i);
+                    }
+                    e.push_back(pt); // todo: possible memory issue
+                }
             }
         }
         edges.push_back(e);
