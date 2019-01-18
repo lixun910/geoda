@@ -20,7 +20,6 @@ class MapLayerStateObserver;
 class SpatialJoinWorker
 {
 protected:
-    rtree_pt_2d_t rtree;
     vector<wxInt64> spatial_counts;
     Project* project;
     BackgroundMapLayer* ml;
@@ -43,13 +42,36 @@ class CountPointsInPolygon : public SpatialJoinWorker
 public:
     CountPointsInPolygon(BackgroundMapLayer* ml, Project* project);
     virtual void sub_run(int start, int end);
+protected:
+    rtree_pt_2d_t rtree;
+};
+
+class CountLinesInPolygon : public SpatialJoinWorker
+{
+public:
+    CountLinesInPolygon(BackgroundMapLayer* ml, Project* project);
+    virtual void sub_run(int start, int end);
+protected:
+    rtree_box_2d_t rtree;
 };
 
 class AssignPolygonToPoint : public SpatialJoinWorker
 {
+protected:
     vector<wxInt64> poly_ids;
+    rtree_pt_2d_t rtree;
 public:
     AssignPolygonToPoint(BackgroundMapLayer* ml, Project* project, vector<wxInt64>& poly_ids);
+    virtual void sub_run(int start, int end);
+};
+
+class AssignPolygonToLine : public SpatialJoinWorker
+{
+protected:
+    vector<wxInt64> poly_ids;
+    rtree_box_2d_t rtree;
+public:
+    AssignPolygonToLine(BackgroundMapLayer* ml, Project* project, vector<wxInt64>& poly_ids);
     virtual void sub_run(int start, int end);
 };
 

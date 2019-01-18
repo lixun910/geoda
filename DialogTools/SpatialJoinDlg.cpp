@@ -107,6 +107,7 @@ void CountPointsInPolygon::sub_run(int start, int end)
         }
     }
 }
+
 AssignPolygonToPoint::AssignPolygonToPoint(BackgroundMapLayer* _ml,
                                 Project* _project, vector<wxInt64>& _poly_ids)
 : SpatialJoinWorker(_ml, _project)
@@ -153,6 +154,95 @@ void AssignPolygonToPoint::sub_run(int start, int end)
     }
 }
 
+CountLinesInPolygon::CountLinesInPolygon(BackgroundMapLayer* _ml, Project* _project)
+: SpatialJoinWorker(_ml, _project)
+{
+    num_polygons = project->GetNumRecords();
+
+    // using selected layer (lines) to create rtree
+    int n = ml->shapes.size();
+    double x, y;
+    for (int i=0; i<n; i++) {
+        OGRGeometry* geom = ml->geoms[i];
+        OGREnvelope bbox;
+        geom->getEnvelope(&bbox);
+        pt_2d ll(bbox.MinX, bbox.MinY);
+        pt_2d ur(bbox.MaxX, bbox.MaxY);
+        box_2d b(ll, ur);
+        rtree.insert(std::make_pair(b, i));
+    }
+}
+
+void CountLinesInPolygon::sub_run(int start, int end)
+{
+    Shapefile::Main& main_data = project->main_data;
+    OGRLayerProxy* ogr_layer = project->layer_proxy;
+    Shapefile::PolygonContents* pc;
+    for (int i=start; i<=end; i++) {
+        pc = (Shapefile::PolygonContents*)main_data.records[i].contents_p;
+        // create a box, tl, br
+        box_2d b(pt_2d(pc->box[0], pc->box[1]),
+                 pt_2d(pc->box[2], pc->box[3]));
+        // query boxes in this box
+        std::vector<box_2d_val> q;
+        rtree.query(bgi::within(b), std::back_inserter(q));
+        OGRGeometry* ogr_poly = ogr_layer->GetGeometry(i);
+        for (int j=0; j<q.size(); j++) {
+            const box_2d_val& v = q[j];
+            int row_idx = v.second;
+            OGRGeometry* geom = ml->geoms[row_idx];
+            if (geom->Intersects(ogr_poly)) {
+                spatial_counts[i] += 1;
+            }
+        }
+    }
+}
+
+AssignPolygonToLine::AssignPolygonToLine(BackgroundMapLayer* _ml,
+                                         Project* _project,
+                                         vector<wxInt64>& _poly_ids)
+: SpatialJoinWorker(_ml, _project)
+{
+    poly_ids = _poly_ids;
+    num_polygons = ml->GetNumRecords();
+    // using current map(lines) to create rtree
+    Shapefile::Main& main_data = project->main_data;
+    Shapefile::PolyLineContents* pc;
+    int n = project->GetNumRecords();
+    std::vector<wxFloat64> box;
+    for (int i=0; i<n; i++) {
+        pc = (Shapefile::PolyLineContents*)main_data.records[i].contents_p;
+        box = pc->box;
+        pt_2d ll(box[0], box[1]);
+        pt_2d ur(box[2], box[3]);
+        box_2d b(ll, ur);
+        rtree.insert(std::make_pair(b, i));
+        spatial_counts[i] = -1;
+    }
+}
+
+void AssignPolygonToLine::sub_run(int start, int end)
+{
+    // for every polygon in sub-layer
+    for (int i=start; i<=end; i++) {
+        OGRGeometry* ogr_poly = ml->geoms[i];
+        // create a box, tl, br
+        OGREnvelope box;
+        ogr_poly->getEnvelope(&box);
+        box_2d b(pt_2d(box.MinX, box.MinY), pt_2d(box.MaxX, box.MaxY));
+        // query lines in this box
+        std::vector<box_2d_val> q;
+        rtree.query(bgi::intersects(b), std::back_inserter(q));
+        for (int j=0; j<q.size(); j++) {
+            const box_2d_val& v = q[j];
+            int row_idx = v.second;
+            OGRGeometry* geom = project->layer_proxy->GetGeometry(row_idx);
+            if (geom->Intersects(ogr_poly)) {
+                spatial_counts[row_idx] = poly_ids[i];
+            }
+        }
+    }
+}
 
 SpatialJoinDlg::SpatialJoinDlg(wxWindow* parent, Project* _project)
 : wxDialog(parent, wxID_ANY, "Spatial Join", wxDefaultPosition, wxSize(350, 250))
@@ -206,6 +296,9 @@ SpatialJoinDlg::SpatialJoinDlg(wxWindow* parent, Project* _project)
     InitMapList();
     field_st->Disable();
     field_list->Disable();
+
+    wxCommandEvent e;
+    OnLayerSelect(e);
 }
 
 void SpatialJoinDlg::InitMapList()
@@ -233,7 +326,7 @@ void SpatialJoinDlg::UpdateFieldList(wxString name)
     BackgroundMapLayer* ml = project->GetMapLayer(name);
     if (ml) {
         if (Shapefile::POLYGON == ml->GetShapeType() &&
-            project->IsPointTypeData()) {
+            project->GetShapeType() != Shapefile::POLYGON ) {
             // assign polygon to point
             field_list->Clear();
             vector<wxString> field_names = ml->GetIntegerFieldNames();
@@ -315,7 +408,9 @@ void SpatialJoinDlg::OnOK(wxCommandEvent& e)
         wxString field_name = "SC";
         
         SpatialJoinWorker* sj;
-        if (project->IsPointTypeData()) {
+        if (project->GetShapeType() == Shapefile::POINT_TYP ||
+            project->GetShapeType() == Shapefile::POLY_LINE) {
+            // working layer is Points/Lines
             vector<wxInt64> poly_ids;
             for (int i=0; i<n; i++) {
                 poly_ids.push_back(i);
@@ -334,11 +429,28 @@ void SpatialJoinDlg::OnOK(wxCommandEvent& e)
                     poly_ids.clear();
                 }
             }
-            sj = new AssignPolygonToPoint(ml, project, poly_ids);
+            if (project->GetShapeType() == Shapefile::POINT_TYP) {
+                sj = new AssignPolygonToPoint(ml, project, poly_ids);
+            } else if (project->GetShapeType() == Shapefile::POLY_LINE) {
+                sj = new AssignPolygonToLine(ml, project, poly_ids);
+            }
             label = "Spatial Assign";
             field_name = "SA";
+
         } else {
-            sj = new CountPointsInPolygon(ml, project);
+            // working layer is Polygon
+            if (ml->GetShapeType() == Shapefile::POINT_TYP) {
+                sj = new CountPointsInPolygon(ml, project);
+            } else if (ml->GetShapeType() == Shapefile::POLY_LINE) {
+                sj = new CountLinesInPolygon(ml, project);
+            } else {
+                wxMessageDialog dlg (this, _("Spatial Join can not be applied on "
+                                             "two polygon layers. Please select "
+                                             "another layer."),
+                                     _("Warning"), wxOK | wxICON_INFORMATION);
+                dlg.ShowModal();
+                return;
+            }
         }
         sj->Run();
         

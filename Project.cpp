@@ -1637,6 +1637,12 @@ BackgroundMapLayer* Project::AddMapLayer(wxString datasource_name, GdaConst::Dat
     return map_layer;
 }
 
+OGRGeometry* Project::GetOGRGeometry(int row_idx)
+{
+    if (layer_proxy == NULL) return NULL;
+    return layer_proxy->GetGeometry(row_idx);
+}
+
 int Project::GetMapLayerCount()
 {
     return bg_maps.size() + fg_maps.size();

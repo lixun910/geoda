@@ -219,7 +219,9 @@ public:
 	
 	const pairs_bimap_type& GetSharedPairsBimap();
 	void CleanupPairsHLState();
-	
+
+    OGRGeometry* GetOGRGeometry(int row_idx);
+
 	i_array_type* GetSharedCategoryScratch(int num_cats, int num_obs);
     
 	/** NOTE: This function needs a better home. */

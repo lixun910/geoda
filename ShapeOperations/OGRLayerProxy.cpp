@@ -724,11 +724,33 @@ Shapefile::ShapeType OGRLayerProxy::GetGdaGeometries(vector<GdaShape*>& geoms,
                 pc->num_points = num_pts;
                 pc->points.resize(num_pts);
                 OGRPoint p;
+                double min_x, min_y, max_x, max_y;
                 for(int i = 0;  i < num_pts; i++) {
                     poRing->getPoint(i, &p);
                     pc->points[i].x = p.getX();
                     pc->points[i].y = p.getY();
+                    if (i ==0 ) {
+                        min_x = p.getX();
+                        min_y = p.getY();
+                        max_x = p.getX();
+                        max_y = p.getY();
+                    } else {
+                        if (p.getX() < min_x) {
+                            min_x = p.getX();
+                        } else if (p.getX() > max_x) {
+                            max_x = p.getX();
+                        }
+                        if (p.getY() < min_y) {
+                            min_y = p.getY();
+                        } else if (p.getY() > max_y) {
+                            max_y = p.getY();
+                        }
+                    }
                 }
+                pc->box[0] = min_x;
+                pc->box[1] = min_y;
+                pc->box[2] = max_x;
+                pc->box[3] = max_y;
             }
             geoms.push_back(new GdaPolyLine(pc));
 
@@ -742,6 +764,7 @@ Shapefile::ShapeType OGRLayerProxy::GetGdaGeometries(vector<GdaShape*>& geoms,
                 int num_col = poCol->getNumGeometries();
                 pc->num_parts = num_col;
                 pc->num_points = 0;
+                double min_x, min_y, max_x, max_y;
                 for(size_t i=0; i< num_col; ++i) {
                     OGRGeometry* ogrGeom = poCol->getGeometryRef(i);
                     OGRLineString* poRing = static_cast<OGRLineString*>(ogrGeom);
@@ -752,8 +775,29 @@ Shapefile::ShapeType OGRLayerProxy::GetGdaGeometries(vector<GdaShape*>& geoms,
                         poRing->getPoint(i, &pt);
                         Shapefile::Point p(pt.getX(), pt.getY());
                         pc->points.push_back(p);
+                        if (i ==0 ) {
+                            min_x = pt.getX();
+                            min_y = pt.getY();
+                            max_x = pt.getX();
+                            max_y = pt.getY();
+                        } else {
+                            if (pt.getX() < min_x) {
+                                min_x = pt.getX();
+                            } else if (pt.getX() > max_x) {
+                                max_x = pt.getX();
+                            }
+                            if (pt.getY() < min_y) {
+                                min_y = pt.getY();
+                            } else if (pt.getY() > max_y) {
+                                max_y = pt.getY();
+                            }
+                        }
                     }
                 }
+                pc->box[0] = min_x;
+                pc->box[1] = min_y;
+                pc->box[2] = max_x;
+                pc->box[3] = max_y;
             }
             geoms.push_back(new GdaPolyLine(pc));
         } else {
@@ -1451,11 +1495,33 @@ bool OGRLayerProxy::ReadGeometries(Shapefile::Main& p_main)
                 pc->num_points = num_pts;
                 pc->points.resize(num_pts);
                 OGRPoint p;
+                double min_x, min_y, max_x, max_y;
                 for(int i = 0;  i < num_pts; i++) {
                     poRing->getPoint(i, &p);
                     pc->points[i].x = p.getX();
                     pc->points[i].y = p.getY();
+                    if (i ==0 ) {
+                        min_x = p.getX();
+                        min_y = p.getY();
+                        max_x = p.getX();
+                        max_y = p.getY();
+                    } else {
+                        if (p.getX() < min_x) {
+                            min_x = p.getX();
+                        } else if (p.getX() > max_x) {
+                            max_x = p.getX();
+                        }
+                        if (p.getY() < min_y) {
+                            min_y = p.getY();
+                        } else if (p.getY() > max_y) {
+                            max_y = p.getY();
+                        }
+                    }
                 }
+                pc->box[0] = min_x;
+                pc->box[1] = min_y;
+                pc->box[2] = max_x;
+                pc->box[3] = max_y;
             }
             p_main.records[feature_counter++].contents_p = pc;
 
@@ -1469,6 +1535,7 @@ bool OGRLayerProxy::ReadGeometries(Shapefile::Main& p_main)
                 int num_col = poCol->getNumGeometries();
                 pc->num_parts = num_col;
                 pc->num_points = 0;
+                double min_x, min_y, max_x, max_y;
                 for(size_t i=0; i< num_col; ++i) {
                     OGRGeometry* ogrGeom = poCol->getGeometryRef(i);
                     OGRLineString* poRing = static_cast<OGRLineString*>(ogrGeom);
@@ -1479,8 +1546,29 @@ bool OGRLayerProxy::ReadGeometries(Shapefile::Main& p_main)
                         poRing->getPoint(i, &pt);
                         Shapefile::Point p(pt.getX(), pt.getY());
                         pc->points.push_back(p);
+                        if (i ==0 ) {
+                            min_x = pt.getX();
+                            min_y = pt.getY();
+                            max_x = pt.getX();
+                            max_y = pt.getY();
+                        } else {
+                            if (pt.getX() < min_x) {
+                                min_x = pt.getX();
+                            } else if (pt.getX() > max_x) {
+                                max_x = pt.getX();
+                            }
+                            if (pt.getY() < min_y) {
+                                min_y = pt.getY();
+                            } else if (pt.getY() > max_y) {
+                                max_y = pt.getY();
+                            }
+                        }
                     }
                 }
+                pc->box[0] = min_x;
+                pc->box[1] = min_y;
+                pc->box[2] = max_x;
+                pc->box[3] = max_y;
             }
             p_main.records[feature_counter++].contents_p = pc;
             
