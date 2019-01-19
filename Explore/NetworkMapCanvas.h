@@ -63,7 +63,7 @@ public:
 
 protected:
     //OSMTools::GradientColor* gradient_color;
-    OSMTools::TravelTool* travel;
+    OSMTools::TravelHeatMap* travel;
     OGRPoint from_pt;
     OGRPoint to_pt;
     bool has_start_loc;

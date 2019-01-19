@@ -88,9 +88,9 @@ default_speed(_default_speed), penalty(_penalty)
     map_marker_path << "map_marker.png";
     marker_img.LoadFile(map_marker_path, wxBITMAP_TYPE_PNG);
 
-    travel = new OSMTools::TravelTool(roads, default_speed, penalty,
+    travel = new OSMTools::TravelHeatMap(roads, default_speed, penalty,
                                       speed_limit_dict);
-    travel->BuildCPUGraph();
+    //travel->BuildCPUGraph();
 
     // set map center as start location for a hex drive map
     OGREnvelope extent;

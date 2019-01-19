@@ -99,7 +99,7 @@ RoadDistancesDlg::RoadDistancesDlg(wxWindow* parent,
     hbox5->Add(tc_speed_penalty);
 
     gd_speed = new wxGrid(road_page, -1, wxDefaultPosition, wxSize(300, 150));
-    gd_speed->CreateGrid(35, 2, wxGrid::wxGridSelectRows);
+    gd_speed->CreateGrid(36, 2, wxGrid::wxGridSelectRows);
     gd_speed->EnableEditing(true);
     gd_speed->SetDefaultCellAlignment( wxALIGN_RIGHT, wxALIGN_TOP );
     gd_speed->SetColLabelValue(0, "Way Type");
@@ -117,7 +117,7 @@ RoadDistancesDlg::RoadDistancesDlg(wxWindow* parent,
     hbox6->Add(cb_use_gpu, 0, wxALIGN_CENTER | wxALL, 5);
     hbox6->Add(tc_gpu_ratio, 0, wxALIGN_CENTER | wxALL, 5);
 
-    int num_gpu = OSMTools::TravelTool::DetectGPU();
+    int num_gpu = OSMTools::TravelBass::DetectGPU();
     if (num_gpu < 2) {
         cb_use_gpu->SetValue(false);
         cb_use_gpu->Disable();
@@ -274,7 +274,8 @@ void RoadDistancesDlg::OnOK(wxCommandEvent& e)
         double default_speed = GetDefaultSpeed();
         double penalty = GetSpeedPenalty();
         std::map<wxString, double> speed_limits = GetSpeedLimitDict();
-        OSMTools::TravelTool travel(roads, default_speed, penalty, speed_limits);
+        OSMTools::TravelDistanceMatrix travel(roads, default_speed, penalty,
+                                              speed_limits);
         if (cb_use_gpu->IsChecked()) travel.SetGPURatio(gpu_ratio);
         travel.GetDistanceMatrix(query_points, out_fname);
 
@@ -322,7 +323,7 @@ std::map<wxString, double> RoadDistancesDlg::GetSpeedLimitDict()
 
 void RoadDistancesDlg::InitGrid()
 {
-    wxString way_types[35] = {
+    wxString way_types[36] = {
         "road",
         "motorway",
         "motorway_link",
@@ -350,6 +351,7 @@ void RoadDistancesDlg::InitGrid()
         "steps",
         "unclassified",
         "lane",
+        "track",
         "opposite_lane",
         "opposite",
         "grade1",
@@ -359,11 +361,11 @@ void RoadDistancesDlg::InitGrid()
         "grade5",
         "roundabout"
     };
-    double max_speeds[35] = {32, 96, 48, 48, 80, 40, 48, 32, 40, 40, 32, 32, 24,
-        16, 16, 32, 3.2, 3.2, 3.2, 8, 16, 3.2, 3.2, 3.2, 0.16, 24, 16, 16, 16,
-        16, 16, 16, 16, 16, 40
+    double max_speeds[36] = {15, 50, 30, 30, 35, 25, 25, 20, 20, 20, 20, 15,
+        12, 10, 7, 7, 2, 2, 2, 5, 10, 2, 2, 2, 0.1, 15, 10, 20, 10, 10, 10,
+        10, 10, 10, 10, 25
     };
-    int n = 35;
+    int n = 36;
     gd_speed->SetColumnWidth(0, 150);
     gd_speed->SetColumnWidth(1, 150);
     for (size_t i=0; i<n; ++i) {
