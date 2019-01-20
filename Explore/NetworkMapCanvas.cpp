@@ -153,7 +153,7 @@ wxColour NetworkMapCanvas::GetColorByCost(int cost)
             return color_vec[i];
         }
     }
-    if (cost > 10000) return wxColour(255,255,255,0);
+    if (cost > 100000) return wxColour(255,255,255,0);
     return color_vec[9];
 }
 
