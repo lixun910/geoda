@@ -2701,10 +2701,16 @@ void GdaFrame::OnOSMTravelMap(wxCommandEvent& event)
         double radius = dlg.GetRadius();
         double default_speed = dlg.GetDefaultSpeed();
         double penalty = dlg.GetSpeedPenalty();
+        wxString highway_type_field = dlg.GetHighwayTypeField();
+        wxString max_speed_field = dlg.GetMaxSpeedField();
+        wxString one_way_field = dlg.GetOneWayField();
         std::map<wxString, double> speed_limits = dlg.GetSpeedLimitDict();
         NetworkMapFrame* nf = new NetworkMapFrame(GdaFrame::gda_frame, p,
                                                   radius, default_speed,
                                                   penalty, speed_limits,
+                                                  highway_type_field,
+                                                  max_speed_field,
+                                                  one_way_field,
                                               wxDefaultPosition,
                                               GdaConst::map_default_size);
     }

@@ -89,12 +89,12 @@ RoadDistancesDlg::RoadDistancesDlg(wxWindow* parent,
     nb->AddPage(road_page, _("Speed Limit Setup"));
 
     wxBoxSizer *hbox4 = new wxBoxSizer(wxHORIZONTAL);
-    tc_default_speed = new wxTextCtrl(road_page, -1, "20");
+    tc_default_speed = new wxTextCtrl(road_page, -1, "10");
     hbox4->Add(new wxStaticText(road_page, -1, _("Default speed (km/hr):")));
     hbox4->Add(tc_default_speed);
 
     wxBoxSizer *hbox5 = new wxBoxSizer(wxHORIZONTAL);
-    tc_speed_penalty = new wxTextCtrl(road_page, -1, "1.8");
+    tc_speed_penalty = new wxTextCtrl(road_page, -1, "1.2");
     hbox5->Add(new wxStaticText(road_page, -1, _("Speed penalty:")));
     hbox5->Add(tc_speed_penalty);
 
@@ -274,8 +274,13 @@ void RoadDistancesDlg::OnOK(wxCommandEvent& e)
         double default_speed = GetDefaultSpeed();
         double penalty = GetSpeedPenalty();
         std::map<wxString, double> speed_limits = GetSpeedLimitDict();
+        wxString highway_type_field = GetHighwayTypeField();
+        wxString max_speed_field = GetMaxSpeedField();
+        wxString one_way_field = GetOneWayField();
+
         OSMTools::TravelDistanceMatrix travel(roads, default_speed, penalty,
-                                              speed_limits);
+                                              speed_limits, highway_type_field,
+                                              max_speed_field, one_way_field);
         if (cb_use_gpu->IsChecked()) travel.SetGPURatio(gpu_ratio);
         travel.GetDistanceMatrix(query_points, out_fname);
 
@@ -320,6 +325,23 @@ std::map<wxString, double> RoadDistancesDlg::GetSpeedLimitDict()
     return speed_limit_dict;
 }
 
+wxString RoadDistancesDlg::GetHighwayTypeField()
+{
+    if (cb_field_highway->IsChecked() == false) return wxEmptyString;
+    return co_field_highway->GetStringSelection();
+}
+
+wxString RoadDistancesDlg::GetMaxSpeedField()
+{
+    if (cb_field_speed->IsChecked() == false) return wxEmptyString;
+    return co_field_speed->GetStringSelection();
+}
+
+wxString RoadDistancesDlg::GetOneWayField()
+{
+    if (cb_field_oneway->IsChecked() == false) return wxEmptyString;
+    return co_field_oneway->GetStringSelection();
+}
 
 void RoadDistancesDlg::InitGrid()
 {

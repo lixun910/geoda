@@ -78,12 +78,12 @@ TravelMapConfigureDlg::TravelMapConfigureDlg(wxWindow* parent,
     nb->AddPage(road_page, _("Speed Limit Setup"));
 
     wxBoxSizer *hbox4 = new wxBoxSizer(wxHORIZONTAL);
-    tc_default_speed = new wxTextCtrl(road_page, -1, "20");
+    tc_default_speed = new wxTextCtrl(road_page, -1, "10");
     hbox4->Add(new wxStaticText(road_page, -1, _("Default speed (km/hr):")));
     hbox4->Add(tc_default_speed);
 
     wxBoxSizer *hbox5 = new wxBoxSizer(wxHORIZONTAL);
-    tc_speed_penalty = new wxTextCtrl(road_page, -1, "1.8");
+    tc_speed_penalty = new wxTextCtrl(road_page, -1, "1.2");
     hbox5->Add(new wxStaticText(road_page, -1, _("Speed penalty:")));
     hbox5->Add(tc_speed_penalty);
 
@@ -222,6 +222,24 @@ std::map<wxString, double> TravelMapConfigureDlg::GetSpeedLimitDict()
         }
     }
     return speed_limit_dict;
+}
+
+wxString TravelMapConfigureDlg::GetHighwayTypeField()
+{
+    if (cb_field_highway->IsChecked() == false) return wxEmptyString;
+    return co_field_highway->GetStringSelection();
+}
+
+wxString TravelMapConfigureDlg::GetMaxSpeedField()
+{
+    if (cb_field_speed->IsChecked() == false) return wxEmptyString;
+    return co_field_speed->GetStringSelection();
+}
+
+wxString TravelMapConfigureDlg::GetOneWayField()
+{
+    if (cb_field_oneway->IsChecked() == false) return wxEmptyString;
+    return co_field_oneway->GetStringSelection();
 }
 
 void TravelMapConfigureDlg::InitGrid()

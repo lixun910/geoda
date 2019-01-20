@@ -37,7 +37,10 @@ public:
                      double radius,
                      double default_speed,
                      double penalty,
-                     std::map<wxString, double> speed_limit_dict,
+                     const std::map<wxString, double>& speed_limit_dict,
+                     const wxString& highway_type_field,
+                     const wxString& max_speed_field,
+                     const wxString& one_way_field,
                      const wxPoint& pos = wxDefaultPosition,
                      const wxSize& size = wxDefaultSize);
     virtual ~NetworkMapCanvas();
@@ -103,7 +106,10 @@ public:
                     double radius,
                     double default_speed,
                     double penalty,
-                    std::map<wxString, double> speed_limit_dict,
+                    const std::map<wxString, double>& speed_limit_dict,
+                    const wxString& highway_type_field,
+                    const wxString& max_speed_field,
+                    const wxString& one_way_field,
                  const wxPoint& pos = wxDefaultPosition,
                  const wxSize& size = GdaConst::map_default_size,
                  const long style = wxDEFAULT_FRAME_STYLE);

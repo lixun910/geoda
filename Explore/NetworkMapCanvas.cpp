@@ -39,7 +39,10 @@ NetworkMapCanvas::NetworkMapCanvas(wxWindow *parent,
                                    double _radius,
                                    double _default_speed,
                                    double _penalty,
-                                   std::map<wxString, double> speed_limit_dict,
+                                   const std::map<wxString, double>& speed_limit_dict,
+                                   const wxString& highway_type_field,
+                                   const wxString& max_speed_field,
+                                   const wxString& one_way_field,
                                    const wxPoint& pos,
                                    const wxSize& size)
 : MapCanvas(parent, t_frame, project, std::vector<GdaVarTools::VarInfo>(0),
@@ -89,8 +92,10 @@ default_speed(_default_speed), penalty(_penalty)
     marker_img.LoadFile(map_marker_path, wxBITMAP_TYPE_PNG);
 
     travel = new OSMTools::TravelHeatMap(roads, default_speed, penalty,
-                                      speed_limit_dict);
-    //travel->BuildCPUGraph();
+                                         speed_limit_dict,
+                                         highway_type_field,
+                                         max_speed_field,
+                                         one_way_field);
 
     // set map center as start location for a hex drive map
     OGREnvelope extent;
@@ -287,6 +292,7 @@ void NetworkMapCanvas::DrawTravelPath()
                 line.getPoint(i, &p);
                 pc->points[i].x = p.getX();
                 pc->points[i].y = p.getY();
+                //foreground_shps.push_back(new GdaPoint(p.getX(),p.getY()));
             }
             GdaPolyLine* polyline =  new GdaPolyLine(pc);
             foreground_shps.push_back(polyline);
@@ -366,7 +372,10 @@ NetworkMapFrame::NetworkMapFrame(wxFrame *parent, Project* project,
                                  double radius,
                                  double default_speed,
                                  double penalty,
-                                 std::map<wxString, double> speed_limit_dict,
+                                 const std::map<wxString, double>& speed_limit_dict,
+                                 const wxString& highway_type_field,
+                                 const wxString& max_speed_field,
+                                 const wxString& one_way_field,
                                  const wxPoint& pos, const wxSize& size,
                                  const long style)
 : MapFrame(parent, project, pos, size, style)
@@ -381,7 +390,10 @@ NetworkMapFrame::NetworkMapFrame(wxFrame *parent, Project* project,
     wxPanel* rpanel = new wxPanel(splitter_win);
     template_canvas = new NetworkMapCanvas(rpanel, this, project, radius,
                                            default_speed, penalty,
-                                           speed_limit_dict);
+                                           speed_limit_dict,
+                                           highway_type_field,
+                                           max_speed_field,
+                                           one_way_field);
     template_canvas->SetScrollRate(1,1);
     wxBoxSizer* rbox = new wxBoxSizer(wxVERTICAL);
     rbox->Add(template_canvas, 1, wxEXPAND);

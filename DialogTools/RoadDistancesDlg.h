@@ -42,6 +42,12 @@ public:
     double GetDefaultSpeed();
 
     double GetSpeedPenalty();
+
+    wxString GetHighwayTypeField();
+
+    wxString GetMaxSpeedField();
+
+    wxString GetOneWayField();
     
 protected:
     Project* project;
