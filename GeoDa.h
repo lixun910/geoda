@@ -443,6 +443,7 @@ public:
     void OnChangeGraphColor(wxCommandEvent& event);
     void OnChangeConnSelectedColor(wxCommandEvent& event);
     void OnChangeNeighborFillColor(wxCommandEvent& event);
+    void OnAddLength(wxCommandEvent& event);
 	void OnAddMeanCenters(wxCommandEvent& event);
 	void OnAddCentroids(wxCommandEvent& event);
 	void OnDisplayMeanCenters(wxCommandEvent& event);

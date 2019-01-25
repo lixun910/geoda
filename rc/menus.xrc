@@ -2856,7 +2856,12 @@
               <label>Save Centroids</label>
               <enabled>1</enabled>
           </object>
-          <label>Shape Centers</label>
+          <object class="separator"/>
+          <object class="wxMenuItem" name="ID_SAVE_LENGTH">
+              <label>Save Road Length</label>
+              <enabled>1</enabled>
+          </object>
+          <label>Shape Tools</label>
       </object>
       <object class="wxMenu" name="ID_VORONOI_DIAGRAM_MENU">
           <object class="wxMenuItem" name="ID_DISPLAY_VORONOI_DIAGRAM">
@@ -3476,7 +3481,12 @@
         <label>Save Centroids</label>
         <enabled>1</enabled>
       </object>
-      <label>Shape Centers</label>
+      <object class="separator"/>
+      <object class="wxMenuItem" name="ID_SAVE_LENGTH">
+          <label>Save Road Length</label>
+          <enabled>1</enabled>
+      </object>
+      <label>Shape Tools</label>
     </object>
     <object class="wxMenu" name="ID_VORONOI_DIAGRAM_MENU">
       <object class="wxMenuItem" name="ID_DISPLAY_VORONOI_DIAGRAM">

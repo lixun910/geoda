@@ -26,6 +26,7 @@
 #include <boost/date_time.hpp>
 #include <boost/unordered_map.hpp>
 #include "../ShpFile.h"
+#include "../GenGeomAlgs.h"
 #include "../GdaException.h"
 #include "../logger.h"
 #include "../GeneralWxUtils.h"
@@ -1267,6 +1268,82 @@ void OGRLayerProxy::GetCentroids(vector<GdaPoint*>& centroids)
             }
         }
     }
+}
+
+std::vector<double> OGRLayerProxy::GetRoadLength(bool is_arc, int dist_unit)
+{
+    std::vector<double> results;
+    OGRwkbGeometryType eGType = GetShapeType();
+
+    if ( eGType == wkbLineString) {
+        for ( int row_idx=0; row_idx < n_rows; row_idx++ ) {
+            OGRFeature* feature = data[row_idx];
+            OGRGeometry* geometry= feature->GetGeometryRef();
+            OGRLineString* poRing = (OGRLineString*)geometry;
+            int num_pts = poRing->getNumPoints();
+            OGRPoint from, to;
+            double len = 0.0;
+            double x1, y1, x2, y2;
+            for(int i = 0;  i < num_pts - 1; i++) {
+                poRing->getPoint(i, &from);
+                poRing->getPoint(i+1, &to);
+                x1 = from.getX();
+                y1 = from.getY();
+                x2 = to.getX();
+                y2 = to.getY();
+                if (is_arc) {
+                    if (dist_unit == 0) {
+                        len += GenGeomAlgs::ComputeArcDistMi(x1, y1, x2, y2);
+                    } else if (dist_unit == 1) {
+                        len += GenGeomAlgs::ComputeArcDistKm(x1, y1, x2, y2);
+                    } else if (dist_unit == 2) {
+                        len += GenGeomAlgs::ComputeArcDistKm(x1, y1, x2, y2)/1000.0;
+                    }
+                } else if (!is_arc) {
+                    len += GenGeomAlgs::ComputeEucDist(x1, y1, x2, y2);
+                }
+            }
+            results.push_back(len);
+        }
+    } else if (eGType == wkbMultiLineString ) {
+        for ( int row_idx=0; row_idx < n_rows; row_idx++ ) {
+            OGRFeature* feature = data[row_idx];
+            OGRGeometry* geometry= feature->GetGeometryRef();
+            OGRGeometryCollection *poCol = (OGRGeometryCollection*) geometry;
+            int num_col = poCol->getNumGeometries();
+
+            double len = 0.0;
+            double x1, y1, x2, y2;
+            for(size_t i=0; i< num_col; ++i) {
+                OGRGeometry* ogrGeom = poCol->getGeometryRef(i);
+                OGRLineString* poRing = static_cast<OGRLineString*>(ogrGeom);
+                int num_pts = poRing->getNumPoints();
+                OGRPoint from, to;
+                for(size_t j = 0;  j < num_pts - 1; j++) {
+                    poRing->getPoint(j, &from);
+                    poRing->getPoint(j+1, &to);
+                    x1 = from.getX();
+                    y1 = from.getY();
+                    x2 = to.getX();
+                    y2 = to.getY();
+                    if (is_arc) {
+                        if (dist_unit == 0) {
+                            len += GenGeomAlgs::ComputeArcDistMi(x1, y1, x2, y2);
+                        } else if (dist_unit == 1) {
+                            len += GenGeomAlgs::ComputeArcDistKm(x1, y1, x2, y2);
+                        } else if (dist_unit == 2) {
+                            len += GenGeomAlgs::ComputeArcDistKm(x1, y1, x2, y2)/1000.0;
+                        }
+                    } else if (!is_arc) {
+                        len += GenGeomAlgs::ComputeEucDist(x1, y1, x2, y2);
+                    }
+                }
+            }
+            results.push_back(len);
+        }
+    }
+
+    return results;
 }
 
 OGRGeometry* OGRLayerProxy::GetGeometry(int idx)

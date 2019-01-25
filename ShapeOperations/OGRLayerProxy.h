@@ -120,9 +120,11 @@ public:
 	 * @param format exported driver name (OGR style)
 	 * @param dest_datasource exported data source name (OGR style)
 	 */
-	void Export(wxString format, wxString dest_datasource, wxString new_layer_name, bool is_update);
+	void Export(wxString format, wxString dest_datasource,
+                wxString new_layer_name, bool is_update);
     
-	void T_Export(wxString format, wxString dest_datasource, wxString new_layer_name, bool is_update);
+	void T_Export(wxString format, wxString dest_datasource,
+                  wxString new_layer_name, bool is_update);
     
 	void T_StopExport();
 
@@ -141,8 +143,11 @@ public:
     bool AddGeometries(Shapefile::Main& p_main);
     
     void GetCentroids(vector<GdaPoint*>& centroids);
-    
+
+    std::vector<double> GetRoadLength(bool is_arc, int dist_unit);
+
     static GdaPolygon* OGRGeomToGdaShape(OGRGeometry* geom);
+
     static GdaPolygon* GetMapBoundary(vector<OGRGeometry*>& geoms);
 
     GdaPolygon* GetMapBoundary();
@@ -280,11 +285,14 @@ public:
     
     void SetValueAt(int rid, int cid, double val, bool undef=false);
     
-    void SetValueAt(int rid, int cid, int year, int month, int day, bool undef=false);
+    void SetValueAt(int rid, int cid, int year, int month, int day,
+                    bool undef=false);
     
-    void SetValueAt(int rid, int cid, int year, int month, int day, int hour, int minute, int second, bool undef=false);
+    void SetValueAt(int rid, int cid, int year, int month, int day, int hour,
+                    int minute, int second, bool undef=false);
     
-    void SetValueAt(int rid, int cid, const char* val, bool is_new=true, bool undef=false);
+    void SetValueAt(int rid, int cid, const char* val, bool is_new=true,
+                    bool undef=false);
     
 protected:
     OGRFeatureDefn* featureDefn;

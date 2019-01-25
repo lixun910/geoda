@@ -155,6 +155,7 @@ public:
 	GalElement* GetVoronoiRookNeighborGal();
 	void AddMeanCenters();
 	void AddCentroids();
+    void AddRoadLength();
     void GetSelectedRows(vector<int>& rowids);
 	
 	/// centroids by default

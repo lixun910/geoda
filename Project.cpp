@@ -986,8 +986,29 @@ void Project::AddMeanCenters()
 	data[1].field_default = "COORD_Y";
 	data[1].type = GdaConst::double_type;	
 	
-	SaveToTableDlg dlg(this, NULL, data, _("Add Mean Centers to Table"), wxDefaultPosition, wxSize(400,400));
+	SaveToTableDlg dlg(this, NULL, data, _("Add Mean Centers to Table"),
+                       wxDefaultPosition, wxSize(400,400));
 	dlg.ShowModal();
+}
+
+void Project::AddRoadLength()
+{
+    if (layer_proxy == NULL) return;
+    if (main_data.header.shape_type != Shapefile::POLY_LINE) return;
+
+    std::vector<double> length_arr = layer_proxy->GetRoadLength(true, 0);
+    std::vector<bool> undef(num_records, false);
+
+    std::vector<SaveToTableEntry> data(1);
+    data[0].d_val = &length_arr;
+    data[0].undefined = &undef;
+    data[0].label = _("Road length");
+    data[0].field_default = "LEN";
+    data[0].type = GdaConst::double_type;
+
+    SaveToTableDlg dlg(this, NULL, data, _("Add Road Length to Table"),
+                       wxDefaultPosition, wxSize(400,400));
+    dlg.ShowModal();
 }
 
 void Project::AddCentroids()
@@ -1509,14 +1530,6 @@ bool Project::InitFromOgrLayer()
 	layer_proxy = OGRDataAdapter::GetInstance().T_ReadLayer(datasource_name,
                                                             ds_type,
                                                             layername);
-	
-	OGRwkbGeometryType eGType = layer_proxy->GetShapeType();
-    
-	if ( eGType == wkbLineString || eGType == wkbMultiLineString ) {
-		//open_err_msg << _("GeoDa does not support datasource with line data at this time.  Please choose a datasource with either point or polygon data.");
-		//throw GdaException(open_err_msg.c_str());
-		//return false;
-	}
 	
 	int prog_n_max = layer_proxy->n_rows;
 	

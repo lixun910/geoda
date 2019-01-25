@@ -5605,6 +5605,16 @@ void GdaFrame::OnAddCentroids(wxCommandEvent& event)
 	}
 }
 
+void GdaFrame::OnAddLength(wxCommandEvent& event)
+{
+    wxLogMessage("In GdaFrame::OnAddLength()");
+    TemplateFrame* t = TemplateFrame::GetActiveFrame();
+    if (!t) return;
+    if (MapFrame* f = dynamic_cast<MapFrame*>(t)) {
+        f->GetProject()->AddRoadLength();
+    }
+}
+
 void GdaFrame::OnDisplayMeanCenters(wxCommandEvent& event)
 {
     wxLogMessage("In GdaFrame::OnDisplayMeanCenters()");
@@ -6905,6 +6915,7 @@ BEGIN_EVENT_TABLE(GdaFrame, wxFrame)
     EVT_MENU(XRCID("ID_SELECT_CORES_AND_NEIGHBORS"), GdaFrame::OnSelectCoresAndNeighbors)
     EVT_MENU(XRCID("ID_MAP_ADDMEANCENTERS"), GdaFrame::OnAddMeanCenters)
     EVT_MENU(XRCID("ID_MAP_ADDCENTROIDS"), GdaFrame::OnAddCentroids)
+    EVT_MENU(XRCID("ID_SAVE_LENGTH"), GdaFrame::OnAddLength)
     EVT_MENU(XRCID("ID_DISPLAY_MEAN_CENTERS"), GdaFrame::OnDisplayMeanCenters)
     EVT_MENU(XRCID("ID_DISPLAY_CENTROIDS"), GdaFrame::OnDisplayCentroids)
     EVT_MENU(XRCID("ID_DISPLAY_VORONOI_DIAGRAM"), GdaFrame::OnDisplayVoronoiDiagram)
