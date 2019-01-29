@@ -1276,10 +1276,17 @@ std::vector<double> OGRLayerProxy::GetShapeArea(bool is_arc, int dist_unit,
     std::vector<double> results;
     OGRwkbGeometryType eGType = GetShapeType();
 
+    OGRSpatialReference destSR;
+    destSR.importFromEPSG(3857); // using a projection with units as meters
+    OGRCoordinateTransformation *poCT = NULL;
+    if (spatialRef && spatialRef->IsSame(&destSR) == false) {
+        poCT = OGRCreateCoordinateTransformation(spatialRef, &destSR);
+    }
+
     for ( int row_idx=0; row_idx < n_rows; row_idx++ ) {
         OGRFeature* feature = data[row_idx];
-        OGRGeometry* geom= feature->GetGeometryRef();
-        if (geom == NULL) {
+        OGRGeometry* geom_ref = feature->GetGeometryRef();
+        if (geom_ref == NULL) {
             results.push_back(0.0);
             undefs[row_idx] = true;
             continue;
@@ -1287,13 +1294,34 @@ std::vector<double> OGRLayerProxy::GetShapeArea(bool is_arc, int dist_unit,
         if (eGType == wkbLineString || eGType == wkbMultiLineString ||
             eGType == wkbPoint || eGType == wkbMultiPoint) {
             results.push_back(0.0);
-        } else if (eGType == wkbPolygon) {
+            continue;
+        }
+        OGRGeometry* geom = geom_ref->clone();
+        if (poCT && is_arc == true) geom->transform(poCT);
+        double area = 0.0;
+        if (eGType == wkbPolygon) {
             OGRPolygon* poly = dynamic_cast<OGRPolygon*>(geom);
-            results.push_back(poly->get_Area());
+            if (poly) area = poly->get_Area();
+            else {
+                // it is possible
+                OGRMultiPolygon* mpoly = dynamic_cast<OGRMultiPolygon*>(geom);
+                if (mpoly) area = mpoly->get_Area();
+            }
         } else if (eGType == wkbMultiPolygon) {
             OGRMultiPolygon* mpoly = dynamic_cast<OGRMultiPolygon*>(geom);
-            results.push_back(mpoly->get_Area());
+            if (mpoly) area = mpoly->get_Area();
         }
+        if (is_arc == false || dist_unit == 2) {
+            // square meters
+        } else if (dist_unit == 1) {
+            // square km
+            area = area / 1000000.0;
+        } else if (dist_unit == 0) {
+            // square miles
+            area = area *  0.386102 / 1000000.0;
+        }
+        results.push_back(area);
+        delete geom;
     }
     return results;
 }

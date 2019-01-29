@@ -1420,7 +1420,16 @@ void MapCanvas::SetCheckMarks(wxMenu* menu)
     GeneralWxUtils::EnableMenuItem(menu, XRCID("ID_EQUAL_INTERVALS_SUBMENU"), !IS_VAR_STRING);
     GeneralWxUtils::EnableMenuItem(menu, XRCID("ID_NATURAL_BREAKS_SUBMENU"), !IS_VAR_STRING);
     GeneralWxUtils::EnableMenuItem(menu, XRCID("ID_NEW_CUSTOM_CAT_CLASSIF_A"), !IS_VAR_STRING);
-    
+
+    OGRSpatialReference* sr = project->GetSpatialReference();
+    bool sr_flag = (sr != NULL);
+    GeneralWxUtils::EnableMenuItem(menu, XRCID("ID_SAVE_LENGTH_ARC_METER"), sr_flag);
+    GeneralWxUtils::EnableMenuItem(menu, XRCID("ID_SAVE_LENGTH_ARC_KM"), sr_flag);
+    GeneralWxUtils::EnableMenuItem(menu, XRCID("ID_SAVE_LENGTH_ARC_MILE"), sr_flag);
+    GeneralWxUtils::EnableMenuItem(menu, XRCID("ID_SAVE_AREA_ARC_METER"), sr_flag);
+    GeneralWxUtils::EnableMenuItem(menu, XRCID("ID_SAVE_AREA_ARC_KM"), sr_flag);
+    GeneralWxUtils::EnableMenuItem(menu, XRCID("ID_SAVE_AREA_ARC_MILE"), sr_flag);
+
     CatClassifManager* ccm = project->GetCatClassifManager();
     vector<wxString> titles;
     ccm->GetTitles(titles);

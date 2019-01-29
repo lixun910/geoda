@@ -34,8 +34,8 @@
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 
-#include "ogrsf_frmts.h"
-#include "cpl_conv.h"
+#include <ogrsf_frmts.h>
+#include <cpl_conv.h>
 
 #include <wx/utils.h>
 #include <wx/sysopt.h>
@@ -5610,9 +5610,32 @@ void GdaFrame::OnSaveShapeArea(wxCommandEvent& event)
     wxLogMessage("In GdaFrame::OnSaveShapeArea()");
     TemplateFrame* t = TemplateFrame::GetActiveFrame();
     if (!t) return;
+    Project* p = GetProject();
+    if (p == NULL) return;
+    if (p->GetShapeType() != Shapefile::POLYGON) {
+        wxString msg = _("Area can be only computed on a polygon dataset. "
+                         "Please load a polygon dataset and try again.");
+        wxMessageDialog dlg(this, msg, _("Info"), wxOK|wxICON_INFORMATION);
+        dlg.ShowModal();
+        return;
+    }
     if (MapFrame* f = dynamic_cast<MapFrame*>(t)) {
         bool is_arc = false;
         int dist_unit = 0;
+        int id = event.GetId();
+        if (id == XRCID("ID_SAVE_AREA_EUCLIDEAN")) {
+            is_arc = false;
+            dist_unit = 0;
+        } else if (id == XRCID("ID_SAVE_AREA_ARC_METER")) {
+            is_arc = true;
+            dist_unit = 2;
+        } else if (id == XRCID("ID_SAVE_AREA_ARC_KM")) {
+            is_arc = true;
+            dist_unit = 1;
+        } else if (id == XRCID("ID_SAVE_AREA_ARC_MILE")) {
+            is_arc = true;
+            dist_unit = 0;
+        }
         f->GetProject()->AddShapeArea(is_arc, dist_unit);
     }
 }
@@ -5622,6 +5645,17 @@ void GdaFrame::OnAddLength(wxCommandEvent& event)
     wxLogMessage("In GdaFrame::OnAddLength()");
     TemplateFrame* t = TemplateFrame::GetActiveFrame();
     if (!t) return;
+    Project* p = GetProject();
+    if (p == NULL) return;
+    if (p->GetShapeType() != Shapefile::POLY_LINE) {
+        wxString msg = _("Shape length can be only computed on a "
+                         "line/multi-line dataset. Please load a "
+                         "line/multi-line dataset and try again.");
+        wxMessageDialog dlg(this, msg, _("Info"), wxOK|wxICON_INFORMATION);
+        dlg.ShowModal();
+        return;
+    }
+
     if (MapFrame* f = dynamic_cast<MapFrame*>(t)) {
         bool is_arc = false;
         int dist_unit = 0;
@@ -6947,7 +6981,10 @@ BEGIN_EVENT_TABLE(GdaFrame, wxFrame)
     EVT_MENU(XRCID("ID_SAVE_LENGTH_ARC_KM"), GdaFrame::OnAddLength)
     EVT_MENU(XRCID("ID_SAVE_LENGTH_ARC_METER"), GdaFrame::OnAddLength)
     EVT_MENU(XRCID("ID_SAVE_LENGTH_EUCLIDEAN"), GdaFrame::OnAddLength)
-    EVT_MENU(XRCID("ID_SAVE_SHAPE_AREA"), GdaFrame::OnSaveShapeArea)
+    EVT_MENU(XRCID("ID_SAVE_AREA_ARC_MILE"), GdaFrame::OnSaveShapeArea)
+    EVT_MENU(XRCID("ID_SAVE_AREA_ARC_KM"), GdaFrame::OnSaveShapeArea)
+    EVT_MENU(XRCID("ID_SAVE_AREA_ARC_METER"), GdaFrame::OnSaveShapeArea)
+    EVT_MENU(XRCID("ID_SAVE_AREA_EUCLIDEAN"), GdaFrame::OnSaveShapeArea)
     EVT_MENU(XRCID("ID_DISPLAY_MEAN_CENTERS"), GdaFrame::OnDisplayMeanCenters)
     EVT_MENU(XRCID("ID_DISPLAY_CENTROIDS"), GdaFrame::OnDisplayCentroids)
     EVT_MENU(XRCID("ID_DISPLAY_VORONOI_DIAGRAM"), GdaFrame::OnDisplayVoronoiDiagram)
