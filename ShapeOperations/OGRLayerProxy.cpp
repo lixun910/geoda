@@ -1270,16 +1270,59 @@ void OGRLayerProxy::GetCentroids(vector<GdaPoint*>& centroids)
     }
 }
 
-std::vector<double> OGRLayerProxy::GetRoadLength(bool is_arc, int dist_unit)
+std::vector<double> OGRLayerProxy::GetShapeArea(bool is_arc, int dist_unit,
+                                                std::vector<bool>& undefs)
 {
     std::vector<double> results;
     OGRwkbGeometryType eGType = GetShapeType();
 
-    if ( eGType == wkbLineString) {
-        for ( int row_idx=0; row_idx < n_rows; row_idx++ ) {
-            OGRFeature* feature = data[row_idx];
-            OGRGeometry* geometry= feature->GetGeometryRef();
-            OGRLineString* poRing = (OGRLineString*)geometry;
+    for ( int row_idx=0; row_idx < n_rows; row_idx++ ) {
+        OGRFeature* feature = data[row_idx];
+        OGRGeometry* geom= feature->GetGeometryRef();
+        if (geom == NULL) {
+            results.push_back(0.0);
+            undefs[row_idx] = true;
+            continue;
+        }
+        if (eGType == wkbLineString || eGType == wkbMultiLineString ||
+            eGType == wkbPoint || eGType == wkbMultiPoint) {
+            results.push_back(0.0);
+        } else if (eGType == wkbPolygon) {
+            OGRPolygon* poly = dynamic_cast<OGRPolygon*>(geom);
+            results.push_back(poly->get_Area());
+        } else if (eGType == wkbMultiPolygon) {
+            OGRMultiPolygon* mpoly = dynamic_cast<OGRMultiPolygon*>(geom);
+            results.push_back(mpoly->get_Area());
+        }
+    }
+    return results;
+}
+
+std::vector<double> OGRLayerProxy::GetShapeLength(bool is_arc, int dist_unit,
+                                                  std::vector<bool>& undefs)
+{
+    std::vector<double> results;
+    OGRwkbGeometryType eGType = GetShapeType();
+
+
+    for ( int row_idx=0; row_idx < n_rows; row_idx++ ) {
+        OGRFeature* feature = data[row_idx];
+        OGRGeometry* geom= feature->GetGeometryRef();
+        if (geom == NULL) {
+            results.push_back(0.0);
+            undefs[row_idx] = true;
+            continue;
+        }
+        if (eGType == wkbPoint || eGType == wkbMultiPolygon ||
+            eGType == wkbPolygon || eGType == wkbMultiPolygon) {
+            results.push_back(0.0);
+            continue;
+        }
+
+        OGRMultiLineString* mline = dynamic_cast<OGRMultiLineString*>(geom);
+        if (mline == NULL) {
+            // Simple LineString
+            OGRLineString* poRing = (OGRLineString*)geom;
             int num_pts = poRing->getNumPoints();
             OGRPoint from, to;
             double len = 0.0;
@@ -1293,25 +1336,24 @@ std::vector<double> OGRLayerProxy::GetRoadLength(bool is_arc, int dist_unit)
                 y2 = to.getY();
                 if (is_arc) {
                     if (dist_unit == 0) {
+                        // miles
                         len += GenGeomAlgs::ComputeArcDistMi(x1, y1, x2, y2);
                     } else if (dist_unit == 1) {
+                        // kilometers
                         len += GenGeomAlgs::ComputeArcDistKm(x1, y1, x2, y2);
                     } else if (dist_unit == 2) {
-                        len += GenGeomAlgs::ComputeArcDistKm(x1, y1, x2, y2)/1000.0;
+                        // meters
+                        len += GenGeomAlgs::ComputeArcDistKm(x1, y1, x2, y2) * 1000.0;
                     }
                 } else if (!is_arc) {
                     len += GenGeomAlgs::ComputeEucDist(x1, y1, x2, y2);
                 }
             }
             results.push_back(len);
-        }
-    } else if (eGType == wkbMultiLineString ) {
-        for ( int row_idx=0; row_idx < n_rows; row_idx++ ) {
-            OGRFeature* feature = data[row_idx];
-            OGRGeometry* geometry= feature->GetGeometryRef();
-            OGRGeometryCollection *poCol = (OGRGeometryCollection*) geometry;
+        } else {
+            // MultiLineString
+            OGRGeometryCollection *poCol = (OGRGeometryCollection*)geom;
             int num_col = poCol->getNumGeometries();
-
             double len = 0.0;
             double x1, y1, x2, y2;
             for(size_t i=0; i< num_col; ++i) {
@@ -1319,7 +1361,7 @@ std::vector<double> OGRLayerProxy::GetRoadLength(bool is_arc, int dist_unit)
                 OGRLineString* poRing = static_cast<OGRLineString*>(ogrGeom);
                 int num_pts = poRing->getNumPoints();
                 OGRPoint from, to;
-                for(size_t j = 0;  j < num_pts - 1; j++) {
+                for (size_t j = 0;  j < num_pts - 1; j++) {
                     poRing->getPoint(j, &from);
                     poRing->getPoint(j+1, &to);
                     x1 = from.getX();
@@ -1332,7 +1374,7 @@ std::vector<double> OGRLayerProxy::GetRoadLength(bool is_arc, int dist_unit)
                         } else if (dist_unit == 1) {
                             len += GenGeomAlgs::ComputeArcDistKm(x1, y1, x2, y2);
                         } else if (dist_unit == 2) {
-                            len += GenGeomAlgs::ComputeArcDistKm(x1, y1, x2, y2)/1000.0;
+                            len += GenGeomAlgs::ComputeArcDistKm(x1, y1, x2, y2) * 1000.0;
                         }
                     } else if (!is_arc) {
                         len += GenGeomAlgs::ComputeEucDist(x1, y1, x2, y2);
@@ -1340,6 +1382,7 @@ std::vector<double> OGRLayerProxy::GetRoadLength(bool is_arc, int dist_unit)
                 }
             }
             results.push_back(len);
+            mline = NULL; // reset to simple LineString
         }
     }
 
@@ -1515,7 +1558,12 @@ bool OGRLayerProxy::ReadGeometries(Shapefile::Main& p_main)
 		OGRwkbGeometryType eType = geometry ? wkbFlatten(geometry->getGeometryType()) : eGType;
 		// sometime OGR can't return correct value from GetGeomType() call
 		if (eGType == wkbUnknown) eGType = eType;
-        
+        //
+        if (eGType != eType) {
+            if (eType == wkbMultiLineString && eGType == wkbLineString) {
+                eGType = wkbMultiLineString;
+            }
+        }
 		if (eType == wkbPoint) {
 			Shapefile::PointContents* pc = new Shapefile::PointContents();
 			pc->shape_type = Shapefile::POINT_TYP;

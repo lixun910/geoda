@@ -991,22 +991,39 @@ void Project::AddMeanCenters()
 	dlg.ShowModal();
 }
 
-void Project::AddRoadLength()
+void Project::AddShapeArea(bool is_arc, int unit_type)
 {
     if (layer_proxy == NULL) return;
-    if (main_data.header.shape_type != Shapefile::POLY_LINE) return;
-
-    std::vector<double> length_arr = layer_proxy->GetRoadLength(true, 0);
     std::vector<bool> undef(num_records, false);
-
+    std::vector<double> length_arr = layer_proxy->GetShapeArea(is_arc,
+                                                            unit_type, undef);
     std::vector<SaveToTableEntry> data(1);
     data[0].d_val = &length_arr;
     data[0].undefined = &undef;
-    data[0].label = _("Road length");
+    data[0].label = _("Shape Area");
+    data[0].field_default = "AREA";
+    data[0].type = GdaConst::double_type;
+
+    SaveToTableDlg dlg(this, NULL, data, _("Add Shape Area to Table"),
+                       wxDefaultPosition, wxSize(400,400));
+    dlg.ShowModal();
+}
+
+void Project::AddShapeLength(bool is_arc, int unit_type)
+{
+    if (layer_proxy == NULL) return;
+
+    std::vector<bool> undef(num_records, false);
+    std::vector<double> length_arr = layer_proxy->GetShapeLength(is_arc,
+                                                            unit_type, undef);
+    std::vector<SaveToTableEntry> data(1);
+    data[0].d_val = &length_arr;
+    data[0].undefined = &undef;
+    data[0].label = _("Shape length");
     data[0].field_default = "LEN";
     data[0].type = GdaConst::double_type;
 
-    SaveToTableDlg dlg(this, NULL, data, _("Add Road Length to Table"),
+    SaveToTableDlg dlg(this, NULL, data, _("Add Shape Length to Table"),
                        wxDefaultPosition, wxSize(400,400));
     dlg.ShowModal();
 }

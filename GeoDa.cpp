@@ -5605,13 +5605,41 @@ void GdaFrame::OnAddCentroids(wxCommandEvent& event)
 	}
 }
 
+void GdaFrame::OnSaveShapeArea(wxCommandEvent& event)
+{
+    wxLogMessage("In GdaFrame::OnSaveShapeArea()");
+    TemplateFrame* t = TemplateFrame::GetActiveFrame();
+    if (!t) return;
+    if (MapFrame* f = dynamic_cast<MapFrame*>(t)) {
+        bool is_arc = false;
+        int dist_unit = 0;
+        f->GetProject()->AddShapeArea(is_arc, dist_unit);
+    }
+}
+
 void GdaFrame::OnAddLength(wxCommandEvent& event)
 {
     wxLogMessage("In GdaFrame::OnAddLength()");
     TemplateFrame* t = TemplateFrame::GetActiveFrame();
     if (!t) return;
     if (MapFrame* f = dynamic_cast<MapFrame*>(t)) {
-        f->GetProject()->AddRoadLength();
+        bool is_arc = false;
+        int dist_unit = 0;
+        int id = event.GetId();
+        if (id == XRCID("ID_SAVE_LENGTH_EUCLIDEAN")) {
+            is_arc = false;
+            dist_unit = 0;
+        } else if (id == XRCID("ID_SAVE_LENGTH_ARC_METER")) {
+            is_arc = true;
+            dist_unit = 2;
+        } else if (id == XRCID("ID_SAVE_LENGTH_ARC_KM")) {
+            is_arc = true;
+            dist_unit = 1;
+        } else if (id == XRCID("ID_SAVE_LENGTH_ARC_MILE")) {
+            is_arc = true;
+            dist_unit = 0;
+        }
+        f->GetProject()->AddShapeLength(is_arc, dist_unit);
     }
 }
 
@@ -6915,7 +6943,11 @@ BEGIN_EVENT_TABLE(GdaFrame, wxFrame)
     EVT_MENU(XRCID("ID_SELECT_CORES_AND_NEIGHBORS"), GdaFrame::OnSelectCoresAndNeighbors)
     EVT_MENU(XRCID("ID_MAP_ADDMEANCENTERS"), GdaFrame::OnAddMeanCenters)
     EVT_MENU(XRCID("ID_MAP_ADDCENTROIDS"), GdaFrame::OnAddCentroids)
-    EVT_MENU(XRCID("ID_SAVE_LENGTH"), GdaFrame::OnAddLength)
+    EVT_MENU(XRCID("ID_SAVE_LENGTH_ARC_MILE"), GdaFrame::OnAddLength)
+    EVT_MENU(XRCID("ID_SAVE_LENGTH_ARC_KM"), GdaFrame::OnAddLength)
+    EVT_MENU(XRCID("ID_SAVE_LENGTH_ARC_METER"), GdaFrame::OnAddLength)
+    EVT_MENU(XRCID("ID_SAVE_LENGTH_EUCLIDEAN"), GdaFrame::OnAddLength)
+    EVT_MENU(XRCID("ID_SAVE_SHAPE_AREA"), GdaFrame::OnSaveShapeArea)
     EVT_MENU(XRCID("ID_DISPLAY_MEAN_CENTERS"), GdaFrame::OnDisplayMeanCenters)
     EVT_MENU(XRCID("ID_DISPLAY_CENTROIDS"), GdaFrame::OnDisplayCentroids)
     EVT_MENU(XRCID("ID_DISPLAY_VORONOI_DIAGRAM"), GdaFrame::OnDisplayVoronoiDiagram)

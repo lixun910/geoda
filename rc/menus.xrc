@@ -2856,9 +2856,27 @@
               <label>Save Centroids</label>
               <enabled>1</enabled>
           </object>
-          <object class="separator"/>
-          <object class="wxMenuItem" name="ID_SAVE_LENGTH">
-              <label>Save Road Length</label>
+          <object class="wxMenu" name="ID_SHAPE_LENGTH">
+              <label>Save Shape Length</label>
+              <object class="wxMenuItem" name="ID_SAVE_LENGTH_EUCLIDEAN">
+                  <label>Euclidean Distance</label>
+                  <enabled>1</enabled>
+              </object>
+              <object class="wxMenuItem" name="ID_SAVE_LENGTH_ARC_METER">
+                  <label>Arc Distance (Meters)</label>
+                  <enabled>1</enabled>
+              </object>
+              <object class="wxMenuItem" name="ID_SAVE_LENGTH_ARC_KM">
+                  <label>Arc Distance (Kilometers)</label>
+                  <enabled>1</enabled>
+              </object>
+              <object class="wxMenuItem" name="ID_SAVE_LENGTH_ARC_MILE">
+                  <label>Arc Distance (Miles)</label>
+                  <enabled>1</enabled>
+              </object>
+          </object>
+          <object class="wxMenuItem" name="ID_SAVE_SHAPE_AREA">
+              <label>Save Shape Area</label>
               <enabled>1</enabled>
           </object>
           <label>Shape Tools</label>
@@ -3481,9 +3499,27 @@
         <label>Save Centroids</label>
         <enabled>1</enabled>
       </object>
-      <object class="separator"/>
-      <object class="wxMenuItem" name="ID_SAVE_LENGTH">
-          <label>Save Road Length</label>
+      <object class="wxMenu" name="ID_SHAPE_LENGTH">
+          <label>Save Shape Length</label>
+          <object class="wxMenuItem" name="ID_SAVE_LENGTH_EUCLIDEAN">
+              <label>Euclidean Distance</label>
+              <enabled>1</enabled>
+          </object>
+          <object class="wxMenuItem" name="ID_SAVE_LENGTH_ARC_METER">
+              <label>Arc Distance (Meters)</label>
+              <enabled>1</enabled>
+          </object>
+          <object class="wxMenuItem" name="ID_SAVE_LENGTH_ARC_KM">
+              <label>Arc Distance (Kilometers)</label>
+              <enabled>1</enabled>
+          </object>
+          <object class="wxMenuItem" name="ID_SAVE_LENGTH_ARC_MILE">
+              <label>Arc Distance (Miles)</label>
+              <enabled>1</enabled>
+          </object>
+      </object>
+      <object class="wxMenuItem" name="ID_SAVE_SHAPE_AREA">
+          <label>Save Shape Area</label>
           <enabled>1</enabled>
       </object>
       <label>Shape Tools</label>

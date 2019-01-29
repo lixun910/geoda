@@ -144,7 +144,11 @@ public:
     
     void GetCentroids(vector<GdaPoint*>& centroids);
 
-    std::vector<double> GetRoadLength(bool is_arc, int dist_unit);
+    std::vector<double> GetShapeLength(bool is_arc, int dist_unit,
+                                       std::vector<bool>& undefs);
+
+    std::vector<double> GetShapeArea(bool is_arc, int dist_unit,
+                                     std::vector<bool>& undefs);
 
     static GdaPolygon* OGRGeomToGdaShape(OGRGeometry* geom);
 
