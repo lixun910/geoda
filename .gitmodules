@@ -1,3 +1,6 @@
 [submodule "osm"]
 	path = osm
 	url = https://github.com/lixun910/OSMTools
+[submodule "OGRUtils"]
+	path = OGRUtils
+	url = https://github.com/lixun910/OGRUtils

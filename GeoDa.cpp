@@ -2637,9 +2637,16 @@ void GdaFrame::OnOSMDownloadData(wxCommandEvent& event)
     if (p == NULL) {
         ui = new OSMTools::uiRoadDownload();
     } else {
-        double minx, miny, maxx, maxy;
-        p->GetMapExtent(minx, miny, maxx, maxy);
-        ui = new OSMTools::uiRoadDownload( maxx, minx, miny, maxy);
+        OGRSpatialReference dest_sr;
+        dest_sr.importFromEPSG(4326); // use lat/lon
+        OGRPoint min_p, max_p;
+        p->GetMapExtent(min_p, max_p, &dest_sr);
+
+        double minx = min_p.getX();
+        double miny = min_p.getY();
+        double maxx = max_p.getX();
+        double maxy = max_p.getY();
+        ui = new OSMTools::uiRoadDownload(maxx, minx, miny, maxy);
     }
     if (ui) {
         ui->Show(true);

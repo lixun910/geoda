@@ -33,6 +33,7 @@
 #include "../GdaShape.h"
 #include "../GdaCartoDB.h"
 #include "../GdaException.h"
+#include "../OGRUtils/OGRShapeUtils.h"
 
 #include "OGRLayerProxy.h"
 #include "OGRFieldProxy.h"
@@ -1235,6 +1236,27 @@ bool OGRLayerProxy::AddGeometries(Shapefile::Main& p_main)
     return true;
 }
 
+bool OGRLayerProxy::GetExtent(OGRPoint& min_p, OGRPoint& max_p,
+                              OGRSpatialReference* dest_sr)
+{
+    OGREnvelope pEnvelope;
+    if (layer->GetExtent(&pEnvelope) != OGRERR_NONE) return false;
+    min_p.setX( pEnvelope.MinX);
+    min_p.setY( pEnvelope.MinY);
+    max_p.setX( pEnvelope.MaxX);
+    max_p.setY( pEnvelope.MaxY);
+
+    if (dest_sr) {
+        OGRCoordinateTransformation *poCT = NULL;
+        if (spatialRef && spatialRef->IsSame(dest_sr) == false) {
+            poCT = OGRCreateCoordinateTransformation(spatialRef, dest_sr);
+            min_p.transform(poCT);
+            max_p.transform(poCT);
+        }
+    }
+    return true;
+}
+
 bool OGRLayerProxy::GetExtent(double& minx, double& miny,
                               double& maxx, double& maxy)
 {
@@ -1273,56 +1295,14 @@ void OGRLayerProxy::GetCentroids(vector<GdaPoint*>& centroids)
 std::vector<double> OGRLayerProxy::GetShapeArea(bool is_arc, int dist_unit,
                                                 std::vector<bool>& undefs)
 {
-    std::vector<double> results;
     OGRwkbGeometryType eGType = GetShapeType();
+    std::vector<double> results;
+    OGRShapeUtils::DistUnit d_unit = OGRShapeUtils::meter;
+    if (dist_unit == 0) d_unit = OGRShapeUtils::mile;
+    else if (dist_unit == 1) d_unit = OGRShapeUtils::kilometer;
 
-    OGRSpatialReference destSR;
-    destSR.importFromEPSG(3857); // using a projection with units as meters
-    OGRCoordinateTransformation *poCT = NULL;
-    if (spatialRef && spatialRef->IsSame(&destSR) == false) {
-        poCT = OGRCreateCoordinateTransformation(spatialRef, &destSR);
-    }
-
-    for ( int row_idx=0; row_idx < n_rows; row_idx++ ) {
-        OGRFeature* feature = data[row_idx];
-        OGRGeometry* geom_ref = feature->GetGeometryRef();
-        if (geom_ref == NULL) {
-            results.push_back(0.0);
-            undefs[row_idx] = true;
-            continue;
-        }
-        if (eGType == wkbLineString || eGType == wkbMultiLineString ||
-            eGType == wkbPoint || eGType == wkbMultiPoint) {
-            results.push_back(0.0);
-            continue;
-        }
-        OGRGeometry* geom = geom_ref->clone();
-        if (poCT && is_arc == true) geom->transform(poCT);
-        double area = 0.0;
-        if (eGType == wkbPolygon) {
-            OGRPolygon* poly = dynamic_cast<OGRPolygon*>(geom);
-            if (poly) area = poly->get_Area();
-            else {
-                // it is possible
-                OGRMultiPolygon* mpoly = dynamic_cast<OGRMultiPolygon*>(geom);
-                if (mpoly) area = mpoly->get_Area();
-            }
-        } else if (eGType == wkbMultiPolygon) {
-            OGRMultiPolygon* mpoly = dynamic_cast<OGRMultiPolygon*>(geom);
-            if (mpoly) area = mpoly->get_Area();
-        }
-        if (is_arc == false || dist_unit == 2) {
-            // square meters
-        } else if (dist_unit == 1) {
-            // square km
-            area = area / 1000000.0;
-        } else if (dist_unit == 0) {
-            // square miles
-            area = area *  0.386102 / 1000000.0;
-        }
-        results.push_back(area);
-        delete geom;
-    }
+    results = OGRShapeUtils::GetShapeAreas(eGType, data, spatialRef,
+                                           is_arc, d_unit, undefs);
     return results;
 }
 
@@ -1331,88 +1311,12 @@ std::vector<double> OGRLayerProxy::GetShapeLength(bool is_arc, int dist_unit,
 {
     std::vector<double> results;
     OGRwkbGeometryType eGType = GetShapeType();
+    OGRShapeUtils::DistUnit d_unit = OGRShapeUtils::meter;
+    if (dist_unit == 0) d_unit = OGRShapeUtils::mile;
+    else if (dist_unit == 1) d_unit = OGRShapeUtils::kilometer;
 
-
-    for ( int row_idx=0; row_idx < n_rows; row_idx++ ) {
-        OGRFeature* feature = data[row_idx];
-        OGRGeometry* geom= feature->GetGeometryRef();
-        if (geom == NULL) {
-            results.push_back(0.0);
-            undefs[row_idx] = true;
-            continue;
-        }
-        if (eGType == wkbPoint || eGType == wkbMultiPolygon ||
-            eGType == wkbPolygon || eGType == wkbMultiPolygon) {
-            results.push_back(0.0);
-            continue;
-        }
-
-        OGRMultiLineString* mline = dynamic_cast<OGRMultiLineString*>(geom);
-        if (mline == NULL) {
-            // Simple LineString
-            OGRLineString* poRing = (OGRLineString*)geom;
-            int num_pts = poRing->getNumPoints();
-            OGRPoint from, to;
-            double len = 0.0;
-            double x1, y1, x2, y2;
-            for(int i = 0;  i < num_pts - 1; i++) {
-                poRing->getPoint(i, &from);
-                poRing->getPoint(i+1, &to);
-                x1 = from.getX();
-                y1 = from.getY();
-                x2 = to.getX();
-                y2 = to.getY();
-                if (is_arc) {
-                    if (dist_unit == 0) {
-                        // miles
-                        len += GenGeomAlgs::ComputeArcDistMi(x1, y1, x2, y2);
-                    } else if (dist_unit == 1) {
-                        // kilometers
-                        len += GenGeomAlgs::ComputeArcDistKm(x1, y1, x2, y2);
-                    } else if (dist_unit == 2) {
-                        // meters
-                        len += GenGeomAlgs::ComputeArcDistKm(x1, y1, x2, y2) * 1000.0;
-                    }
-                } else if (!is_arc) {
-                    len += GenGeomAlgs::ComputeEucDist(x1, y1, x2, y2);
-                }
-            }
-            results.push_back(len);
-        } else {
-            // MultiLineString
-            OGRGeometryCollection *poCol = (OGRGeometryCollection*)geom;
-            int num_col = poCol->getNumGeometries();
-            double len = 0.0;
-            double x1, y1, x2, y2;
-            for(size_t i=0; i< num_col; ++i) {
-                OGRGeometry* ogrGeom = poCol->getGeometryRef(i);
-                OGRLineString* poRing = static_cast<OGRLineString*>(ogrGeom);
-                int num_pts = poRing->getNumPoints();
-                OGRPoint from, to;
-                for (size_t j = 0;  j < num_pts - 1; j++) {
-                    poRing->getPoint(j, &from);
-                    poRing->getPoint(j+1, &to);
-                    x1 = from.getX();
-                    y1 = from.getY();
-                    x2 = to.getX();
-                    y2 = to.getY();
-                    if (is_arc) {
-                        if (dist_unit == 0) {
-                            len += GenGeomAlgs::ComputeArcDistMi(x1, y1, x2, y2);
-                        } else if (dist_unit == 1) {
-                            len += GenGeomAlgs::ComputeArcDistKm(x1, y1, x2, y2);
-                        } else if (dist_unit == 2) {
-                            len += GenGeomAlgs::ComputeArcDistKm(x1, y1, x2, y2) * 1000.0;
-                        }
-                    } else if (!is_arc) {
-                        len += GenGeomAlgs::ComputeEucDist(x1, y1, x2, y2);
-                    }
-                }
-            }
-            results.push_back(len);
-            mline = NULL; // reset to simple LineString
-        }
-    }
+    results = OGRShapeUtils::GetShapeLengths(eGType, data, spatialRef,
+                                             is_arc, d_unit, undefs);
 
     return results;
 }
@@ -1426,24 +1330,7 @@ OGRGeometry* OGRLayerProxy::GetGeometry(int idx)
 
 GdaPolygon* OGRLayerProxy::GetMapBoundary(vector<OGRGeometry*>& geoms)
 {
-    OGRMultiPolygon geocol;
-    for ( int i=0; i < geoms.size(); i++ ) {
-        OGRGeometry* geometry= geoms[i];
-        OGRwkbGeometryType eType = wkbFlatten(geometry->getGeometryType());
-        if (eType == wkbPolygon || eType == wkbCurvePolygon ) {
-            geocol.addGeometry(geometry);
-        } else if (eType == wkbMultiPolygon) {
-            OGRMultiPolygon* mpolygon = (OGRMultiPolygon *) geometry;
-            int n_geom = mpolygon->getNumGeometries();
-            // if there is more than one polygon, then we need to count which
-            // part is processing accumulatively
-            for (size_t i = 0; i < n_geom; i++ ){
-                OGRGeometry* ogrGeom = mpolygon->getGeometryRef(i);
-                geocol.addGeometry(ogrGeom);
-            }
-        }
-    }
-    OGRGeometry* ogr_contour = geocol.UnionCascaded();
+    OGRGeometry* ogr_contour = OGRShapeUtils::GetMapContour(geoms);
     if (ogr_contour) {
         return OGRGeomToGdaShape(ogr_contour);
     }
@@ -1453,26 +1340,14 @@ GdaPolygon* OGRLayerProxy::GetMapBoundary(vector<OGRGeometry*>& geoms)
 GdaPolygon* OGRLayerProxy::GetMapBoundary()
 {
     if (mapContour == NULL) {
-        OGRMultiPolygon geocol;
+        vector<OGRGeometry*> geoms;
+
         for ( int row_idx=0; row_idx < n_rows; row_idx++ ) {
             OGRFeature* feature = data[row_idx];
             OGRGeometry* geometry= feature->GetGeometryRef();
-            OGRwkbGeometryType eType = wkbFlatten(geometry->getGeometryType());
-            if (eType == wkbPolygon || eType == wkbCurvePolygon ) {
-                geocol.addGeometry(geometry);
-                
-            } else if (eType == wkbMultiPolygon) {
-                OGRMultiPolygon* mpolygon = (OGRMultiPolygon *) geometry;
-                int n_geom = mpolygon->getNumGeometries();
-                // if there is more than one polygon, then we need to count which
-                // part is processing accumulatively
-                for (size_t i = 0; i < n_geom; i++ ){
-                    OGRGeometry* ogrGeom = mpolygon->getGeometryRef(i);
-                    geocol.addGeometry(ogrGeom);
-                }
-            }
+            geoms.push_back(geometry);
         }
-        mapContour = geocol.UnionCascaded();
+        mapContour = OGRShapeUtils::GetMapContour(geoms);
     }
     
     if (mapContour) {

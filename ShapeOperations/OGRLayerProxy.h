@@ -96,6 +96,9 @@ public:
     bool HasError();
     
     bool GetExtent(double& minx, double& miny, double& maxx, double& maxy);
+
+    bool GetExtent(OGRPoint& min_p, OGRPoint& max_p,
+                   OGRSpatialReference* dest_sr);
     
     OGRwkbGeometryType GetShapeType();
     

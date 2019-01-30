@@ -1147,6 +1147,16 @@ GdaPolygon* Project::GetMapBoundary()
     }
 }
 
+void Project::GetMapExtent(OGRPoint& min_p, OGRPoint& max_p,
+                           OGRSpatialReference* dest_sr)
+{
+    wxLogMessage("Project::GetMapExtent(OGRPoint&,OGRPoint&,OGRSpatialReference&)");
+
+    if (layer_proxy) {
+        layer_proxy->GetExtent(min_p, max_p, dest_sr);
+    }
+}
+
 void Project::GetMapExtent(double& minx, double& miny, double& maxx, double& maxy)
 {
     wxLogMessage("Project::GetMapExtent()");
@@ -1158,7 +1168,7 @@ void Project::GetMapExtent(double& minx, double& miny, double& maxx, double& max
 
 void Project::GetMapExtent(OGREnvelope& env)
 {
-    wxLogMessage("Project::GetMapExtent()");
+    wxLogMessage("Project::GetMapExtent(OGREnvelope&)");
 
     if (layer_proxy) {
         layer_proxy->GetExtent(env.MinX, env.MinY, env.MaxX, env.MaxY);

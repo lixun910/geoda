@@ -169,7 +169,8 @@ public:
     GdaPolygon* GetMapBoundary();
 	void GetMapExtent(double& minx, double& miny, double& maxx, double& maxy);
     void GetMapExtent(OGREnvelope& env);
-
+    void GetMapExtent(OGRPoint& min_p, OGRPoint& max_p,
+                      OGRSpatialReference* dest_sr);
 	double GetMin1nnDistEuc();
 	double GetMax1nnDistEuc();
 	double GetMaxDistEuc(); // diameter of convex hull
