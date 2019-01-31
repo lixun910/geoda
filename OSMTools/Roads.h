@@ -20,8 +20,7 @@ namespace OSMTools {
 
         //bool Download(const char* file_name);
 
-        bool DownloadByBoundingBox(double lat_min, double lat_max,
-                double lng_min, double lng_max, RoadType road_type,
+        bool DownloadByBoundingBox(OGREnvelope* bbox, RoadType road_type,
                 const char* osm_filter, const char* file_name);
 
         bool DownloadByMapOutline(OGREnvelope* bbox, OGRGeometry *contour,
@@ -30,11 +29,9 @@ namespace OSMTools {
 
         void ReadOSMNodes(const char* file_name);
 
-        void SaveToShapefile(const char* file_name, OGRGeometry *contour=NULL);
+        void SaveToShapefile(const char* file_name, OGRGeometry *outline=NULL);
 
         void SaveEdgesToShapefile(const char* file_name);
-
-        void SaveCSVToShapefile(const char* file_name);
 
         int GetNumNodes();
 

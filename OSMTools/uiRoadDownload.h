@@ -28,17 +28,25 @@ namespace OSMTools {
         void OnCancelClick(wxCommandEvent& event);
 
         void OnRoadTypeChange(wxCommandEvent& event);
+        
+        void OnInputDSOptionCheck(wxCommandEvent& event);
 
         void OnOpenFile(wxCommandEvent& event);
 
-        void download_from_bbox();
+        bool use_bbox_of_ds(const char* ds_path, int sel_idx,
+                            OGRSpatialReference* dest_sr);
 
-        void download_from_input_ds();
+        bool use_outline_of_ds(const char* ds_path, int sel_idx,
+                               OGRSpatialReference* dest_sr);
+
+        bool download_from_bbox();
+
+        bool download_from_input_ds();
 
         wxString get_output_path();
 
         OSMTools::RoadType get_road_type();
-        
+
     protected:
         wxNotebook *nb;
         wxTextCtrl *tc_bbox_up;
@@ -49,7 +57,7 @@ namespace OSMTools {
         wxBitmapButton *btn_open_file;
         wxRadioButton *rb_bbox;
         wxRadioButton *rb_outline;
-        wxRadioButton *rb_bbox_outline;
+        //wxRadioButton *rb_bbox_outline;
         wxCheckBox *cb_buffer;
         wxTextCtrl *tc_buffer;
         wxChoice *ch_way_type;

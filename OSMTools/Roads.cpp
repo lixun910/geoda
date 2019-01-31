@@ -92,12 +92,13 @@ double Roads::ComputeArcDist(int from, int to)
     return 2 * EARTH_RADIUS * asin(sqrt(a+b));
 }
 
-const char* Roads::get_json_path(const char *shp_path)
+const char* Roads::get_json_path(const char *ds_path)
 {
-    int sz = strlen(shp_path);
-    char* json_path = new char[sz+1];
-    json_path = strcpy(json_path, shp_path);
-    strcpy(&json_path[sz-3], "json");
+    int sz = strlen(ds_path);
+    char* json_path = new char[sz+4];
+    json_path = strcpy(json_path, ds_path);
+    char* dot_pch = strrchr(json_path, '.');
+    strcpy(dot_pch, ".json");
     return json_path;
 }
 
@@ -121,8 +122,7 @@ bool Roads::download_by_bbox(double lat_min, double lng_min,
     return success;
 }
 
-bool Roads::DownloadByBoundingBox(double lat_min, double lng_min,
-        double lat_max, double lng_max,
+bool Roads::DownloadByBoundingBox(OGREnvelope* bbox,
         OSMTools::RoadType road_type,  const char* osm_filter,
         const char *shp_path)
 {
@@ -132,6 +132,11 @@ bool Roads::DownloadByBoundingBox(double lat_min, double lng_min,
 
     const char* json_path = get_json_path(shp_path);
 
+    double lat_min = bbox->MinY;
+    double lng_min = bbox->MinX;
+    double lat_max = bbox->MaxY;
+    double lng_max = bbox->MaxX;
+    
     flag = download_by_bbox(lat_min, lng_min, lat_max, lng_max, road_type,
                             osm_filter, json_path);
     if (!flag) return false;
@@ -413,7 +418,7 @@ void Roads::SaveEdgesToShapefile(const char *file_name)
     GDALClose( poDS );
 }
 
-void Roads::SaveToShapefile(const char *shp_file_name, OGRGeometry *contour)
+void Roads::SaveToShapefile(const char *shp_file_name, OGRGeometry *outline)
 {
     const char *pszDriverName = "ESRI Shapefile";
     GDALDriver *poDriver;
@@ -440,7 +445,8 @@ void Roads::SaveToShapefile(const char *shp_file_name, OGRGeometry *contour)
         return;
     }
     // wayid, highway, name, county, oneway, maxspeed, length,
-    const char* prop_names[255] = {"wayid", "highway", "name", "county", "oneway", "maxspeed"};
+    const char* prop_names[255] = {"wayid", "highway", "name", "county",
+        "oneway", "maxspeed"};
     for (size_t i=0; i<6; ++i) {
         OGRFieldDefn oField(prop_names[i], OFTString );
         oField.SetWidth(32);
@@ -457,7 +463,9 @@ void Roads::SaveToShapefile(const char *shp_file_name, OGRGeometry *contour)
         return;
     }
     for (size_t i=0; i<ways.size(); ++i) {
+        size_t pt_cnt = 0;
         OGRLineString line;
+        bool keep = false;
         for (size_t j=0; j<ways[i].size(); ++j) {
             std::string node_id = ways[i][j];
             if (id_map.find(node_id) != id_map.end()) {
@@ -466,11 +474,19 @@ void Roads::SaveToShapefile(const char *shp_file_name, OGRGeometry *contour)
                 pt.setX(lon_arr[idx]);
                 pt.setY(lat_arr[idx]);
                 line.addPoint(&pt);
+                // a simplified test if linestring is inside map outline
+                // NOTE: this could return false positive, but it's less likely
+                // to do so using OSM roads
+                if (pt_cnt ==  0 && outline) {
+                    // if any point is inside of map outline, keep it
+                    // otherwise, discard it
+                    keep = outline->Contains(&pt);
+                }
+                pt_cnt += 1;
             }
         }
-        if (contour) {
-            if (line.Within(contour) == false) continue;
-        }
+        if (keep == false) continue;
+
         OGRFeature *poFeature;
         poFeature = OGRFeature::CreateFeature( poLayer->GetLayerDefn() );
         for (size_t c=0; c<6; ++c) {
@@ -482,72 +498,6 @@ void Roads::SaveToShapefile(const char *shp_file_name, OGRGeometry *contour)
                 poFeature->SetField(c, val);
             }
         }
-
-        poFeature->SetGeometry(&line);
-        if( poLayer->CreateFeature( poFeature ) != OGRERR_NONE ) {
-            printf( "Failed to create feature in shapefile.\n" );
-            GDALClose( poDS );
-            return;
-        }
-        OGRFeature::DestroyFeature( poFeature );
-    }
-    GDALClose( poDS );
-}
-
-void Roads::SaveCSVToShapefile(const char *file_name)
-{
-    std::string shp_file_name = file_name;
-    shp_file_name = shp_file_name.substr(0, shp_file_name.rfind("."));
-    shp_file_name = shp_file_name + ".shp";
-
-    const char *pszDriverName = "ESRI Shapefile";
-    GDALDriver *poDriver;
-    GDALAllRegister();
-    poDriver = GetGDALDriverManager()->GetDriverByName(pszDriverName );
-    if( poDriver == NULL ) {
-        printf( "%s driver not available.\n", pszDriverName );
-        return;
-    }
-    GDALDataset *poDS;
-    poDS = poDriver->Create(shp_file_name.c_str(), 0, 0, 0, GDT_Unknown, NULL );
-    if( poDS == NULL ) {
-        printf( "Creation of output file failed.\n" );
-        return;
-    }
-    OGRLayer *poLayer;
-    poLayer = poDS->CreateLayer("roads", NULL, wkbLineString, NULL );
-    if( poLayer == NULL ) {
-        printf( "Layer creation failed.\n" );
-        GDALClose( poDS );
-        return;
-    }
-
-    std::string line;
-    std::ifstream infile(file_name);
-    std::string delimeter = ",";
-    while (std::getline(infile, line)) {
-        std::vector<std::string> vec;
-        boost::algorithm::split(vec, line, boost::is_any_of(delimeter));
-
-        OGRFeature *poFeature;
-        poFeature = OGRFeature::CreateFeature( poLayer->GetLayerDefn() );
-        OGRLineString line;
-
-        std::string node1 = vec[0];
-        std::string node2 = vec[1];
-
-        size_t node1_idx = id_map[node1];
-        size_t node2_idx = id_map[node2];
-
-        OGRPoint pt1;
-        pt1.setX(lon_arr[node1_idx]);
-        pt1.setY(lat_arr[node1_idx]);
-        line.addPoint(&pt1);
-
-        OGRPoint pt2;
-        pt2.setX(lon_arr[node2_idx]);
-        pt2.setY(lat_arr[node2_idx]);
-        line.addPoint(&pt2);
 
         poFeature->SetGeometry(&line);
         if( poLayer->CreateFeature( poFeature ) != OGRERR_NONE ) {
