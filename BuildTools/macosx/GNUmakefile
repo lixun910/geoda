@@ -12,7 +12,7 @@ default:	compile-geoda
 app:  build-geoda-mac
 
 compile-geoda:	weights-target ogl-target io-target algorithms-target \
-                osm-target dataviewer-target dialogtools-target \
+                osm-target ogrtool-target dataviewer-target dialogtools-target \
 		knn-target explore-target libgdiam-target regression-target \
 		shapeoperations-target resource-target varcalc-target \
 		geoda-target
@@ -24,7 +24,10 @@ resource-target:
 	(cd $(GeoDa_ROOT)/rc; $(MAKE) xrc; $(MAKE))
 
 osm-target:
-	(cd $(GeoDa_ROOT)/osm; $(MAKE))
+	(cd $(GeoDa_ROOT)/OSMTools; $(MAKE))
+
+ogrtool-target:
+	(cd $(GeoDa_ROOT)/OGRTools; $(MAKE))
 
 weights-target:
 	(cd $(GeoDa_ROOT)/Weights; $(MAKE))
