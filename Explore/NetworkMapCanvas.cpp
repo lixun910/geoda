@@ -20,6 +20,8 @@
 #include <wx/xrc/xmlres.h>
 #include <boost/foreach.hpp>
 
+#include "../DialogTools/ExportDataDlg.h"
+#include "../DataViewer/OGRTable.h"
 #include "../logger.h"
 #include "../Project.h"
 
@@ -128,12 +130,15 @@ void NetworkMapCanvas::DisplayRightClickMenu(const wxPoint& pos)
     wxMenu* popupMenu = new wxMenu(wxEmptyString);
 
     popupMenu->Append(XRCID("NETWORKMAP_SET_START"), "Set Start Location Here");
-    popupMenu->Append(XRCID("NETWORKMAP_SHOW_MAP"), "Toggle Road Network");
+    popupMenu->Append(XRCID("NETWORKMAP_SHOW_MAP"), "Toggle Road/Network");
+    popupMenu->Append(XRCID("NETWORKMAP_SAVE_MAP"), "Save Road/Network Heatmap");
 
     Connect(XRCID("NETWORKMAP_SHOW_MAP"), wxEVT_COMMAND_MENU_SELECTED,
             wxCommandEventHandler(NetworkMapCanvas::OnToggleRoadNetwork));
     Connect(XRCID("NETWORKMAP_SET_START"), wxEVT_COMMAND_MENU_SELECTED,
             wxCommandEventHandler(NetworkMapCanvas::OnSetStartLocation));
+    Connect(XRCID("NETWORKMAP_SAVE_MAP"), wxEVT_COMMAND_MENU_SELECTED,
+            wxCommandEventHandler(NetworkMapCanvas::OnSaveHeatmap));
     PopupMenu(popupMenu, pos);
 }
 
@@ -204,6 +209,59 @@ void NetworkMapCanvas::OnMouseEvent(wxMouseEvent& event)
     } else {
         MapCanvas::OnMouseEvent(event);
     }
+}
+
+void NetworkMapCanvas::OnSaveHeatmap(wxCommandEvent& event)
+{
+    int n_rows = hexagons.size() * hexagons.size();
+    if (n_rows <= 0) {
+        // Please specify a proper start location on map to create a heatmap first.
+        return;
+    }
+
+    std::vector<GdaShape*> new_geoms;
+    size_t cnt = 0;
+    for (size_t i=0; i<hexagons.size(); ++i) {
+        for (size_t j=0; j< hexagons[i].size(); ++j) {
+            if (costs[i][j] == INT_MAX) continue;
+            GdaPolygon* gda_poly = OGRLayerProxy::OGRGeomToGdaShape(&hexagons[i][j]);
+            new_geoms.push_back(gda_poly);
+            cnt += 1;
+        }
+    }
+
+    OGRTable* mem_table = new OGRTable(cnt);
+    vector<bool> undefs(cnt, false);
+    int int_len = 20;
+    int dbl_len = 18;
+    int dbl_dec = 7;
+    OGRColumnInteger* row_col = new OGRColumnInteger("row", int_len, 0, cnt);
+    OGRColumnInteger* col_col = new OGRColumnInteger("col", int_len, 0, cnt);
+    OGRColumnDouble* cost_col = new OGRColumnDouble("cost", dbl_len, dbl_dec, cnt);
+    cnt = 0;
+    for (size_t i=0; i<hexagons.size(); ++i) {
+        for (size_t j=0; j< hexagons[i].size(); ++j) {
+            if (costs[i][j] == INT_MAX) continue;
+            row_col->SetValueAt(cnt, (wxInt64)i);
+            col_col->SetValueAt(cnt, (wxInt64)j);
+            cost_col->SetValueAt(cnt, costs[i][j]);
+            cnt += 1;
+        }
+    }
+    mem_table->AddOGRColumn(row_col);
+    mem_table->AddOGRColumn(col_col);
+    mem_table->AddOGRColumn(cost_col);
+
+    OGRSpatialReference spatial_ref;
+    spatial_ref.importFromEPSG(4326); // always use lat/lon
+    Shapefile::ShapeType shape_type = Shapefile::POLYGON;
+    ExportDataDlg export_dlg(this, shape_type, new_geoms, &spatial_ref, mem_table);
+    if (export_dlg.ShowModal() == wxID_OK) {
+        wxMessageDialog dlg(this, _("Heatmap saved successfully."),
+                            _("Success"), wxOK);
+        dlg.ShowModal();
+    }
+    delete mem_table;
 }
 
 void NetworkMapCanvas::OnSetStartLocation(wxCommandEvent& event)
@@ -422,7 +480,7 @@ NetworkMapFrame::NetworkMapFrame(wxFrame *parent, Project* project,
     SetSizer(sizer);
     SetAutoLayout(true);
 
-    SetTitle(_("Road Network Map"));
+    SetTitle(_("Road/Network HeatMap"));
     DisplayStatusBar(true);
     Show(true);
 }

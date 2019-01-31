@@ -41,7 +41,8 @@ using namespace std;
 namespace bt = boost::posix_time;
 
 OGRColumn::OGRColumn(wxString name, int field_length, int decimals, int n_rows)
-: name(name), length(field_length), decimals(decimals), is_new(true), is_deleted(false), rows(n_rows)
+: name(name), length(field_length), decimals(decimals), is_new(true),
+  is_deleted(false), rows(n_rows)
 {
 }
 
@@ -280,7 +281,8 @@ void OGRColumn::UpdateNullMarkers(const vector<bool>& undef_markers_)
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-OGRColumnInteger::OGRColumnInteger(wxString name, int field_length, int decimals, int n_rows)
+OGRColumnInteger::OGRColumnInteger(wxString name, int field_length,
+                                   int decimals, int n_rows)
 : OGRColumn(name, field_length, decimals, n_rows)
 {
     // a new in-memory integer column
@@ -782,9 +784,6 @@ void OGRColumnString::FillData(vector<double>& data)
         for (int i=0; i<rows; ++i) {
             double val = 0.0;
             if ( !new_data[i].ToDouble(&val) ) {
-                // internal is always local "C"
-                //wxString error_msg = wxString::Format( "Fill data error: can't convert '%s' to floating-point number.", new_data[i]);
-                //throw GdaException(error_msg.c_str());
                 undef_markers[i] = true;
             }
             data[i] = val;
@@ -832,8 +831,6 @@ void OGRColumnString::FillData(vector<wxInt64> &data)
         for (int i=0; i<rows; ++i) {
             wxInt64 val = 0;
             if (!new_data[i].ToLongLong(&val)) {
-                //wxString error_msg = wxString::Format("Fill data error: can't convert '%s' to integer number.", new_data[i]);
-                //throw GdaException(error_msg.mb_str());
                 double d_val;
                 if (new_data[i].ToDouble(&d_val)) {
                     val = static_cast<wxInt64>(d_val);
@@ -1072,7 +1069,8 @@ void OGRColumnString::SetValueAt(int row_idx, const wxString &value)
 ////////////////////////////////////////////////////////////////////////////////
 // XXX current GeoDa don't support adding new date column
 //
-OGRColumnDate::OGRColumnDate(OGRLayerProxy* ogr_layer, wxString name, int field_length, int decimals)
+OGRColumnDate::OGRColumnDate(OGRLayerProxy* ogr_layer, wxString name,
+                             int field_length, int decimals)
 : OGRColumn(ogr_layer, name, field_length, decimals)
 {
     // a new string column
@@ -1126,9 +1124,13 @@ void OGRColumnDate::FillData(vector<wxInt64> &data)
             int tzflag = 0;
             
             int col_idx = GetColIndex();
-            ogr_layer->data[i]->GetFieldAsDateTime(col_idx, &year, &month, &day,&hour, &minute, &second, &tzflag);
+            ogr_layer->data[i]->GetFieldAsDateTime(col_idx, &year, &month, &day,
+                                                   &hour, &minute, &second,
+                                                   &tzflag);
             
-            wxInt64 ldatetime = year * 10000000000 + month * 100000000 + day * 1000000 + hour * 10000 + minute * 100 + second;
+            wxInt64 ldatetime = year * 10000000000 + month * 100000000 +
+                                day * 1000000 + hour * 10000 + minute * 100 +
+                                second;
 
             data[i] = ldatetime;
         }
@@ -1153,9 +1155,13 @@ void OGRColumnDate::FillData(vector<unsigned long long> &data)
             int tzflag = 0;
             
             int col_idx = GetColIndex();
-            ogr_layer->data[i]->GetFieldAsDateTime(col_idx, &year, &month, &day,&hour, &minute, &second, &tzflag);
+            ogr_layer->data[i]->GetFieldAsDateTime(col_idx, &year, &month, &day,
+                                                   &hour, &minute, &second,
+                                                   &tzflag);
            
-            unsigned long long ldatetime = year * 10000000000 + month * 100000000 + day * 1000000 + hour * 10000 + minute * 100 + second;
+            unsigned long long ldatetime = year * 10000000000 +
+                                           month * 100000000 + day * 1000000 +
+                                           hour * 10000 + minute * 100 + second;
             data[i] = ldatetime;
         }
     }
@@ -1225,7 +1231,7 @@ void OGRColumnDate::UpdateData(const vector<unsigned long long> &data)
     } else {
         int col_idx = GetColIndex();
         for (int i=0; i<rows; ++i) {
-            long l_year =0,  l_month=0, l_day=0, l_hour=0, l_minute=0, l_second=0;
+            long l_year =0, l_month=0, l_day=0, l_hour=0, l_minute=0, l_second=0;
            
             l_year = data[i] / 10000000000;
             l_month = (data[i] % 10000000000) / 100000000;
@@ -1234,7 +1240,8 @@ void OGRColumnDate::UpdateData(const vector<unsigned long long> &data)
             l_minute = (data[i] % 10000) / 100;
             l_second = data[i] % 100;
             
-            ogr_layer->data[i]->SetField(col_idx, l_year, l_month, l_day, l_hour, l_minute, l_second, 0); // last TZFlag
+            ogr_layer->data[i]->SetField(col_idx, l_year, l_month, l_day,
+                                         l_hour, l_minute, l_second, 0); // last TZFlag
         }
     }
 }
@@ -1258,7 +1265,8 @@ bool OGRColumnDate::GetCellValue(int row, wxInt64& val)
         ogr_layer->data[row]->GetFieldAsDateTime(col_idx, &year, &month,
                                                  &day,&hour,&minute,
                                                  &second, &tzflag);
-        val = year * 10000000000 + month * 100000000 + day * 1000000 + hour * 10000 + minute * 100 + second;
+        val = year * 10000000000 + month * 100000000 + day * 1000000 +
+              hour * 10000 + minute * 100 + second;
     } else {
         val = new_data[row];
     }
@@ -1280,8 +1288,8 @@ wxString OGRColumnDate::GetValueAt(int row_idx, int disp_decimals,
     if (new_data.empty()) {
         int col_idx = GetColIndex();
         ogr_layer->data[row_idx]->GetFieldAsDateTime(col_idx, &year, &month,
-                                                 &day,&hour,&minute,
-                                                 &second, &tzflag);
+                                                     &day,&hour,&minute,
+                                                     &second, &tzflag);
     } else {
         year = new_data[row_idx] / 10000000000;
         month = (new_data[row_idx] % 10000000000) / 100000000;
@@ -1323,7 +1331,8 @@ void OGRColumnDate::SetValueAt(int row_idx, const wxString &value)
         _l_hour = (val % 1000000) / 10000;
         _l_minute = (val % 10000) / 100;
         _l_second = val % 100;
-        ogr_layer->data[row_idx]->SetField(col_idx, _l_year, _l_month, _l_day, _l_hour, _l_minute, _l_second, 0); // last TZFlag
+        ogr_layer->data[row_idx]->SetField(col_idx, _l_year, _l_month, _l_day,
+                                           _l_hour, _l_minute, _l_second, 0); // last TZFlag
     }
 }
 
@@ -1334,7 +1343,8 @@ OGRColumnTime::OGRColumnTime(OGRLayerProxy* ogr_layer, int idx)
 {
 }
 
-OGRColumnTime::OGRColumnTime(OGRLayerProxy* ogr_layer, wxString name, int field_length, int decimals)
+OGRColumnTime::OGRColumnTime(OGRLayerProxy* ogr_layer, wxString name,
+                             int field_length, int decimals)
 :OGRColumnDate(ogr_layer, name, field_length, decimals)
 {
 }

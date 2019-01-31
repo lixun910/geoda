@@ -93,6 +93,7 @@ protected:
     wxColour GetColorByCost(int cost);
     void OnToggleRoadNetwork(wxCommandEvent& event);
     void OnSetStartLocation(wxCommandEvent& event);
+    void OnSaveHeatmap(wxCommandEvent& event);
 
     DECLARE_EVENT_TABLE()
 };
