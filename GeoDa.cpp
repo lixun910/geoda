@@ -2640,12 +2640,13 @@ void GdaFrame::OnOSMDownloadData(wxCommandEvent& event)
         dest_sr.importFromEPSG(4326); // use lat/lon
         OGRPoint min_p, max_p;
         p->GetMapExtent(min_p, max_p, &dest_sr);
-
+        wxFileName fn = p->GetWorkingDir();
+        wxString working_dir = fn.GetFullPath();
         double minx = min_p.getX();
         double miny = min_p.getY();
         double maxx = max_p.getX();
         double maxy = max_p.getY();
-        ui = new OSMTools::uiRoadDownload(maxx, minx, miny, maxy);
+        ui = new OSMTools::uiRoadDownload(maxx, minx, miny, maxy, working_dir);
     }
     if (ui) {
         ui->Show(true);

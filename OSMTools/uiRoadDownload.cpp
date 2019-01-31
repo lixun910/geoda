@@ -19,12 +19,13 @@ uiRoadDownload::uiRoadDownload(const wxString& title)
     InitControls();
 }
 
-uiRoadDownload::uiRoadDownload(double top, double bottom,
-        double left, double right, const wxString &title)
+uiRoadDownload::uiRoadDownload(double top, double bottom, double left,
+                               double right, const wxString &cwd,
+                               const wxString &title)
     : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(500, 440))
 {
     InitControls();
-
+    working_dir = cwd;
     wxString s_top, s_bottom, s_left, s_right;
     s_top << top;
     s_bottom << bottom;
@@ -115,7 +116,7 @@ void uiRoadDownload::InitControls()
 
     wxBoxSizer *hbox3 = new wxBoxSizer(wxHORIZONTAL);
     cb_buffer = new wxCheckBox(panel, -1, _("Buffer query area:"));
-    tc_buffer = new wxTextCtrl(panel, -1, "20");
+    tc_buffer = new wxTextCtrl(panel, -1, "5");
     cb_buffer->SetValue(true);
     hbox3->Add(cb_buffer);
     hbox3->Add(tc_buffer, 0, wxRIGHT, 5);
@@ -146,6 +147,7 @@ void uiRoadDownload::InitControls()
 
     Centre();
 
+    nb->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, &uiRoadDownload::OnTabChange, this);
     rb_bbox->Bind(wxEVT_RADIOBUTTON, &uiRoadDownload::OnInputDSOptionCheck, this);
     rb_outline->Bind(wxEVT_RADIOBUTTON, &uiRoadDownload::OnInputDSOptionCheck, this);
     btn_open_file->Bind(wxEVT_BUTTON, &uiRoadDownload::OnOpenFile, this);
@@ -156,7 +158,6 @@ void uiRoadDownload::InitControls()
 
 void uiRoadDownload::OnOpenFile(wxCommandEvent &event)
 {
-    wxString working_dir = wxGetCwd();
     wxFileDialog openFileDialog(this, _("Open file"), working_dir, "",
                                 wildcard, wxFD_OPEN|wxFD_FILE_MUST_EXIST);
     if (openFileDialog.ShowModal() == wxID_CANCEL) return;
@@ -171,7 +172,6 @@ wxString uiRoadDownload::get_output_path()
     wxString filter = "ESRI Shapefiles (*.shp)|*.shp";
     wxString path;
 
-    wxString working_dir = wxGetCwd();
     wxFileDialog openFileDialog(this, save_ttl, working_dir, "",
                                 filter, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (openFileDialog.ShowModal() == wxID_OK) {
@@ -180,13 +180,23 @@ wxString uiRoadDownload::get_output_path()
     return path;
 }
 
+void uiRoadDownload::OnTabChange(wxCommandEvent &event)
+{
+    if (nb->GetSelection() == 0) {
+        cb_buffer->Enable();
+        tc_buffer->Enable();
+    } else {
+        wxCommandEvent ev;
+        OnInputDSOptionCheck(ev);
+    }
+}
+
 void uiRoadDownload::OnInputDSOptionCheck(wxCommandEvent &event)
 {
     bool flag = rb_outline->GetValue();
-    cb_buffer->Enable(flag);
-    tc_buffer->Enable(flag);
+    cb_buffer->Enable(!flag);
+    tc_buffer->Enable(!flag);
 }
-
 
 void uiRoadDownload::OnRoadTypeChange(wxCommandEvent &event)
 {
@@ -249,7 +259,9 @@ bool uiRoadDownload::download_from_input_ds()
 {
     wxString ds_path_s = tc_infile_path->GetValue();
     if (ds_path_s.IsEmpty()) {
-        // Please select an input data source
+        wxString msg = _("Please select an input data source.");
+        wxMessageDialog dlg(this, msg, _("Info"),wxOK | wxICON_INFORMATION);
+        dlg.ShowModal();
         return false;
     }
     const char* ds_path_ref = ds_path_s.mb_str(wxConvUTF8);
@@ -259,7 +271,9 @@ bool uiRoadDownload::download_from_input_ds()
     std::vector<const char*> layer_names;
     layer_names = OGRDataUtils::GetLayerNames((const char*)ds_path);
     if (layer_names.empty()) {
-        // The input datasource has no layer, please try another datasource.
+        wxString msg = _("The input datasource has no layer, please try another datasource.");
+        wxMessageDialog dlg(this, msg, _("Info"),wxOK | wxICON_INFORMATION);
+        dlg.ShowModal();
         return false;
     }
 
@@ -284,7 +298,7 @@ bool uiRoadDownload::download_from_input_ds()
     dest_sr.importFromEPSG(4326); // always use lat/lon
 
     bool success = false;
-    if (rb_bbox->GetValue() == true) {
+    if (rb_bbox->IsEnabled() && rb_bbox->GetValue() == true) {
         success = use_bbox_of_ds(ds_path, sel_idx, &dest_sr);
     } else {
         success = use_outline_of_ds(ds_path, sel_idx, &dest_sr);
@@ -299,6 +313,31 @@ bool uiRoadDownload::use_bbox_of_ds(const char *ds_path, int sel_idx,
     OSMTools::RoadType road_type = get_road_type();
     wxString osm_filter = tc_overpass->GetValue();
     OGREnvelope* bbox = OGRShapeUtils::GetBBox(ds_path, sel_idx, dest_sr);
+
+    long buffer_val;
+    wxString buffer_txt = tc_buffer->GetValue();
+    if (buffer_txt.ToLong(&buffer_val) ) {
+        double buffer_ratio = 1;
+        buffer_ratio = 1 + ((double)buffer_val / 100.0);
+        double lat_min = bbox->MinY;
+        double lng_min = bbox->MinX;
+        double lat_max = bbox->MaxY;
+        double lng_max = bbox->MaxX;
+        double w = lat_max - lat_min;
+        double h = lng_max - lng_min;
+        double offset_w = (w * buffer_ratio - w) / 2.0;
+        double offset_h = (h * buffer_ratio - h) / 2.0;
+
+        lat_min = lat_min - offset_w;
+        lat_max = lat_max + offset_w;
+        lng_min = lng_min - offset_h;
+        lng_max = lng_max + offset_h;
+
+        bbox->MinY = lat_min;
+        bbox->MinX = lng_min;
+        bbox->MaxY = lat_max;
+        bbox->MaxX = lng_max;
+    }
 
     OSMTools::Roads roads;
     roads.DownloadByBoundingBox(bbox, road_type, osm_filter.mb_str(wxConvUTF8),
@@ -315,13 +354,17 @@ bool uiRoadDownload::use_outline_of_ds(const char* ds_path, int sel_idx,
     std::vector<OGRFeature*> features;
     features = OGRDataUtils::GetFeatures((const char*)ds_path, sel_idx, dest_sr);
     if (features.empty()) {
-        // The selected input data source is empty, please try another data source.
+        wxString msg = _("The selected input data source is empty, please try another data source.");
+        wxMessageDialog dlg(this, msg, _("Info"),wxOK | wxICON_INFORMATION);
+        dlg.ShowModal();
         return false;
     }
 
     OGRGeometry *contour = OGRShapeUtils::GetMapOutline(features);
     if (contour == NULL) {
-        // Can't get map contour from input data source. Please contact GeoDa administrator.
+        wxString msg = _("Can't get map contour from input data source. Please check if the input datasource is polygon type.");
+        wxMessageDialog dlg(this, msg, _("Info"),wxOK | wxICON_INFORMATION);
+        dlg.ShowModal();
         return false;
     }
 

@@ -14,9 +14,9 @@ namespace OSMTools {
     public:
         uiRoadDownload(const wxString &title = _("Download OSM Roads"));
 
-        uiRoadDownload(double top, double bottom,
-                double left, double right,
-                const wxString &title = _("Download OSM Roads"));
+        uiRoadDownload(double top, double bottom, double left, double right,
+                       const wxString &cwd = wxGetCwd(),
+                       const wxString &title = _("Download OSM Roads"));
 
     protected:
         void InitControls();
@@ -30,6 +30,8 @@ namespace OSMTools {
         void OnRoadTypeChange(wxCommandEvent& event);
         
         void OnInputDSOptionCheck(wxCommandEvent& event);
+
+        void OnTabChange(wxCommandEvent& event);
 
         void OnOpenFile(wxCommandEvent& event);
 
@@ -48,6 +50,8 @@ namespace OSMTools {
         OSMTools::RoadType get_road_type();
 
     protected:
+        wxString working_dir;
+
         wxNotebook *nb;
         wxTextCtrl *tc_bbox_up;
         wxTextCtrl *tc_bbox_left;
