@@ -23,7 +23,7 @@
 #include <wx/wx.h>
 #include <ogrsf_frmts.h>
 
-#include "../osm/TravelTool.h"
+#include "../OSMTools/TravelTool.h"
 #include "../GdaConst.h"
 #include "MapNewView.h"
 

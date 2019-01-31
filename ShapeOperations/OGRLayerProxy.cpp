@@ -33,7 +33,7 @@
 #include "../GdaShape.h"
 #include "../GdaCartoDB.h"
 #include "../GdaException.h"
-#include "../OGRUtils/OGRShapeUtils.h"
+#include "../OGRTools/OGRShapeUtils.h"
 
 #include "OGRLayerProxy.h"
 #include "OGRFieldProxy.h"
@@ -1330,7 +1330,7 @@ OGRGeometry* OGRLayerProxy::GetGeometry(int idx)
 
 GdaPolygon* OGRLayerProxy::GetMapBoundary(vector<OGRGeometry*>& geoms)
 {
-    OGRGeometry* ogr_contour = OGRShapeUtils::GetMapContour(geoms);
+    OGRGeometry* ogr_contour = OGRShapeUtils::GetMapOutline(geoms);
     if (ogr_contour) {
         return OGRGeomToGdaShape(ogr_contour);
     }
@@ -1347,7 +1347,7 @@ GdaPolygon* OGRLayerProxy::GetMapBoundary()
             OGRGeometry* geometry= feature->GetGeometryRef();
             geoms.push_back(geometry);
         }
-        mapContour = OGRShapeUtils::GetMapContour(geoms);
+        mapContour = OGRShapeUtils::GetMapOutline(geoms);
     }
     
     if (mapContour) {

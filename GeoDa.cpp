@@ -169,7 +169,7 @@
 #include "Algorithms/redcap.h"
 #include "Algorithms/geocoding.h"
 #include "Algorithms/fastcluster.h"
-#include "osm/uiRoadDownload.h"
+#include "OSMTools/uiRoadDownload.h"
 
 #include "wxTranslationHelper.h"
 #include "GdaException.h"
@@ -183,7 +183,6 @@
 #include "SaveButtonManager.h"
 #include "GeoDa.h"
 #include "version.h"
-#include "arizona/viz3/plots/scatterplot.h"
 #include "rc/GeoDaIcon-16x16.xpm"
 
 //The XML Handler should be explicitly registered:

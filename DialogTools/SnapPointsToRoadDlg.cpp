@@ -14,7 +14,7 @@
 #include "../Project.h"
 #include "../MapLayerStateObserver.h"
 #include "../Explore/MapLayerTree.hpp"
-#include "../osm/RoadUtils.h"
+#include "../OSMTools/RoadUtils.h"
 #include "SaveToTableDlg.h"
 #include "SnapPointsToRoadDlg.h"
 

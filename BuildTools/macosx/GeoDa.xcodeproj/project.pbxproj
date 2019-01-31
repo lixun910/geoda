@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		A10EF2F021273E7E00564FE1 /* AbstractCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10EF2EE21273E7E00564FE1 /* AbstractCanvas.cpp */; };
-		A110E96021D7294C00F19BCC /* dijkstra.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = A188EA2E21D6EE0B00D5EFE7 /* dijkstra.cl */; };
 		A11B85BC1B18DC9C008B64EA /* Basemap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A11B85BB1B18DC9C008B64EA /* Basemap.cpp */; };
 		A11F1B7F184FDFB3006F5F98 /* OGRColumn.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A11F1B7D184FDFB3006F5F98 /* OGRColumn.cpp */; };
 		A11F1B821850437A006F5F98 /* OGRTableOperation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A11F1B801850437A006F5F98 /* OGRTableOperation.cpp */; };
@@ -30,13 +29,20 @@
 		A14735BB21A65F1800CA69B2 /* bd_pr_search.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A14735B221A65F1700CA69B2 /* bd_pr_search.cpp */; };
 		A14735BC21A65F1800CA69B2 /* brute.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A14735B321A65F1700CA69B2 /* brute.cpp */; };
 		A14C496F1D76174000D9831C /* CsvFieldConfDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A14C496D1D76174000D9831C /* CsvFieldConfDlg.cpp */; };
-		A164C0B822015A8300B00AD0 /* OGRShapeUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A164C0B622015A8300B00AD0 /* OGRShapeUtils.cpp */; };
+		A164C0C22202B1E500B00AD0 /* OGRDataUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A164C0BF2202B1E500B00AD0 /* OGRDataUtils.cpp */; };
+		A164C0C32202B1E500B00AD0 /* OGRShapeUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A164C0C12202B1E500B00AD0 /* OGRShapeUtils.cpp */; };
+		A164C0D22202B21B00B00AD0 /* uiTravelDistances.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A164C0C42202B21A00B00AD0 /* uiTravelDistances.cpp */; };
+		A164C0D32202B21B00B00AD0 /* uiRoadDownload.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A164C0C52202B21A00B00AD0 /* uiRoadDownload.cpp */; };
+		A164C0D42202B21B00B00AD0 /* Roads.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A164C0C72202B21A00B00AD0 /* Roads.cpp */; };
+		A164C0D52202B21B00B00AD0 /* RoadUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A164C0C82202B21A00B00AD0 /* RoadUtils.cpp */; };
+		A164C0D62202B21B00B00AD0 /* oclDijkstraKernel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A164C0C92202B21A00B00AD0 /* oclDijkstraKernel.cpp */; };
+		A164C0D72202B21B00B00AD0 /* TravelTool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A164C0CA2202B21B00B00AD0 /* TravelTool.cpp */; };
+		A164C0D82202B21B00B00AD0 /* Downloader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A164C0CD2202B21B00B00AD0 /* Downloader.cpp */; };
+		A164C0D92202B21B00B00AD0 /* dijkstra.cl in Sources */ = {isa = PBXBuildFile; fileRef = A164C0CE2202B21B00B00AD0 /* dijkstra.cl */; };
+		A164C0DA2202B24300B00AD0 /* dijkstra.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = A164C0CE2202B21B00B00AD0 /* dijkstra.cl */; };
 		A16BA470183D626200D3B7DA /* DatasourceDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A16BA46E183D626200D3B7DA /* DatasourceDlg.cpp */; };
 		A186F0A11C16508A00AEBA13 /* GdaCartoDB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A186F09F1C16508A00AEBA13 /* GdaCartoDB.cpp */; };
 		A188EA2B21D58F5600D5EFE7 /* RoadDistancesDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A188EA2921D58F5500D5EFE7 /* RoadDistancesDlg.cpp */; };
-		A188EA3121D6EE0B00D5EFE7 /* TravelTool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A188EA2C21D6EE0B00D5EFE7 /* TravelTool.cpp */; };
-		A188EA3221D6EE0B00D5EFE7 /* dijkstra.cl in Sources */ = {isa = PBXBuildFile; fileRef = A188EA2E21D6EE0B00D5EFE7 /* dijkstra.cl */; };
-		A188EA3321D6EE0B00D5EFE7 /* oclDijkstraKernel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A188EA2F21D6EE0B00D5EFE7 /* oclDijkstraKernel.cpp */; };
 		A1894C3F213F29DC00718FFC /* SpatialJoinDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1894C3D213F29DC00718FFC /* SpatialJoinDlg.cpp */; };
 		A19483932118BAAA009A87A2 /* composit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A194837A2118BAA7009A87A2 /* composit.cpp */; };
 		A19483942118BAAA009A87A2 /* divided.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A194837E2118BAA7009A87A2 /* divided.cpp */; };
@@ -53,8 +59,6 @@
 		A19483A22118BE8F009A87A2 /* MapLayoutView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A19483A02118BE8E009A87A2 /* MapLayoutView.cpp */; };
 		A19F51501756A11E006E31B4 /* plugins in Resources */ = {isa = PBXBuildFile; fileRef = A19F514D1756A11E006E31B4 /* plugins */; };
 		A1AC05BF1C8645F300B6FE5F /* AdjustYAxisDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1AC05BD1C8645F300B6FE5F /* AdjustYAxisDlg.cpp */; };
-		A1AE503621CE03CE000AF0C4 /* Downloader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1AE503221CE03CE000AF0C4 /* Downloader.cpp */; };
-		A1AE503721CE03CE000AF0C4 /* Roads.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1AE503321CE03CE000AF0C4 /* Roads.cpp */; };
 		A1B04ADD1B1921710045AA6F /* basemap_cache in CopyFiles */ = {isa = PBXBuildFile; fileRef = A1B04ADC1B1921710045AA6F /* basemap_cache */; };
 		A1B13EE31C3EDFF90064AD87 /* BasemapConfDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1B13EE21C3EDFF90064AD87 /* BasemapConfDlg.cpp */; };
 		A1B93AC017D18735007F8195 /* ProjectConf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1B93ABF17D18735007F8195 /* ProjectConf.cpp */; };
@@ -62,12 +66,6 @@
 		A1C194A31B38FC67003DA7CA /* libc++.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A1C194A21B38FC67003DA7CA /* libc++.dylib */; };
 		A1C9F3ED18B55EE000E14394 /* FieldNameCorrectionDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1C9F3EC18B55EE000E14394 /* FieldNameCorrectionDlg.cpp */; };
 		A1CE3D331C1A427A0010F170 /* PublishDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1CE3D311C1A427A0010F170 /* PublishDlg.cpp */; };
-		A1D65AFD21E54E1500982656 /* gradient-pbj.png in Resources */ = {isa = PBXBuildFile; fileRef = A1D65AF721E54E1400982656 /* gradient-pbj.png */; };
-		A1D65AFE21E54E1500982656 /* gradient-classic.png in Resources */ = {isa = PBXBuildFile; fileRef = A1D65AF821E54E1400982656 /* gradient-classic.png */; };
-		A1D65AFF21E54E1500982656 /* gradient-pgaitch.png in Resources */ = {isa = PBXBuildFile; fileRef = A1D65AF921E54E1400982656 /* gradient-pgaitch.png */; };
-		A1D65B0021E54E1500982656 /* gradient-fire.png in Resources */ = {isa = PBXBuildFile; fileRef = A1D65AFA21E54E1500982656 /* gradient-fire.png */; };
-		A1D65B0121E54E1500982656 /* gradient-omg.png in Resources */ = {isa = PBXBuildFile; fileRef = A1D65AFB21E54E1500982656 /* gradient-omg.png */; };
-		A1D65B0221E54E1500982656 /* gradient-RdYIBu.png in Resources */ = {isa = PBXBuildFile; fileRef = A1D65AFC21E54E1500982656 /* gradient-RdYIBu.png */; };
 		A1D82DEF174D3EB6003DE20A /* ConnectDatasourceDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1D82DEE174D3EB6003DE20A /* ConnectDatasourceDlg.cpp */; };
 		A1DA623A17BCBC070070CAAB /* AutoCompTextCtrl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1DA623817BCBC070070CAAB /* AutoCompTextCtrl.cpp */; };
 		A1E5BC841DBFE661005739E9 /* ReportBugDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1E5BC831DBFE661005739E9 /* ReportBugDlg.cpp */; };
@@ -82,9 +80,7 @@
 		A1F1BA99178D46B8005A46E5 /* cache.sqlite in CopyFiles */ = {isa = PBXBuildFile; fileRef = A1F1BA98178D46B8005A46E5 /* cache.sqlite */; };
 		A1F4EBE621E6F729002E0578 /* TravelMapDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1F4EBE521E6F728002E0578 /* TravelMapDlg.cpp */; };
 		A1F4EBE921E7CE54002E0578 /* RoadWeights.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1F4EBE721E7CE54002E0578 /* RoadWeights.cpp */; };
-		A1F4EBEC21E7ECFA002E0578 /* RoadUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1F4EBEA21E7ECFA002E0578 /* RoadUtils.cpp */; };
 		A1F4EBEF21E7F77F002E0578 /* SnapPointsToRoadDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1F4EBED21E7F77F002E0578 /* SnapPointsToRoadDlg.cpp */; };
-		A1FA3AF121DDA700002A158C /* uiRoadDownload.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1FA3AEF21DDA700002A158C /* uiRoadDownload.cpp */; };
 		A1FA3AF421DDAF63002A158C /* NetworkMapCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1FA3AF321DDAF63002A158C /* NetworkMapCanvas.cpp */; };
 		A1FD8C19186908B800C35C41 /* CustomClassifPtree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1FD8C17186908B800C35C41 /* CustomClassifPtree.cpp */; };
 		A40A6A7E20226B3C003CDD79 /* PreferenceDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A40A6A7D20226B3B003CDD79 /* PreferenceDlg.cpp */; };
@@ -320,7 +316,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 6;
 			files = (
-				A110E96021D7294C00F19BCC /* dijkstra.cl in CopyFiles */,
+				A164C0DA2202B24300B00AD0 /* dijkstra.cl in CopyFiles */,
 				A1311C6720FFDF7100008D7F /* localjc_kernel.cl in CopyFiles */,
 				A47F792520AA0885000AFE57 /* distmat_kernel.cl in CopyFiles */,
 				A47F792620AA0885000AFE57 /* lisa_kernel.cl in CopyFiles */,
@@ -368,8 +364,24 @@
 		A14735B421A65F1700CA69B2 /* bd_tree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bd_tree.h; sourceTree = "<group>"; };
 		A14C496D1D76174000D9831C /* CsvFieldConfDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CsvFieldConfDlg.cpp; sourceTree = "<group>"; };
 		A14C496E1D76174000D9831C /* CsvFieldConfDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CsvFieldConfDlg.h; sourceTree = "<group>"; };
-		A164C0B622015A8300B00AD0 /* OGRShapeUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OGRShapeUtils.cpp; path = OGRUtils/OGRShapeUtils.cpp; sourceTree = "<group>"; };
-		A164C0B722015A8300B00AD0 /* OGRShapeUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OGRShapeUtils.h; path = OGRUtils/OGRShapeUtils.h; sourceTree = "<group>"; };
+		A164C0BE2202B1E500B00AD0 /* OGRShapeUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OGRShapeUtils.h; path = OGRTools/OGRShapeUtils.h; sourceTree = "<group>"; };
+		A164C0BF2202B1E500B00AD0 /* OGRDataUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OGRDataUtils.cpp; path = OGRTools/OGRDataUtils.cpp; sourceTree = "<group>"; };
+		A164C0C02202B1E500B00AD0 /* OGRDataUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OGRDataUtils.h; path = OGRTools/OGRDataUtils.h; sourceTree = "<group>"; };
+		A164C0C12202B1E500B00AD0 /* OGRShapeUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = OGRShapeUtils.cpp; path = OGRTools/OGRShapeUtils.cpp; sourceTree = "<group>"; };
+		A164C0C42202B21A00B00AD0 /* uiTravelDistances.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = uiTravelDistances.cpp; path = OSMTools/uiTravelDistances.cpp; sourceTree = "<group>"; };
+		A164C0C52202B21A00B00AD0 /* uiRoadDownload.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = uiRoadDownload.cpp; path = OSMTools/uiRoadDownload.cpp; sourceTree = "<group>"; };
+		A164C0C62202B21A00B00AD0 /* oclDijkstraKernel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = oclDijkstraKernel.h; path = OSMTools/oclDijkstraKernel.h; sourceTree = "<group>"; };
+		A164C0C72202B21A00B00AD0 /* Roads.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Roads.cpp; path = OSMTools/Roads.cpp; sourceTree = "<group>"; };
+		A164C0C82202B21A00B00AD0 /* RoadUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RoadUtils.cpp; path = OSMTools/RoadUtils.cpp; sourceTree = "<group>"; };
+		A164C0C92202B21A00B00AD0 /* oclDijkstraKernel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = oclDijkstraKernel.cpp; path = OSMTools/oclDijkstraKernel.cpp; sourceTree = "<group>"; };
+		A164C0CA2202B21B00B00AD0 /* TravelTool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TravelTool.cpp; path = OSMTools/TravelTool.cpp; sourceTree = "<group>"; };
+		A164C0CB2202B21B00B00AD0 /* RoadUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RoadUtils.h; path = OSMTools/RoadUtils.h; sourceTree = "<group>"; };
+		A164C0CC2202B21B00B00AD0 /* uiTravelDistances.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = uiTravelDistances.h; path = OSMTools/uiTravelDistances.h; sourceTree = "<group>"; };
+		A164C0CD2202B21B00B00AD0 /* Downloader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Downloader.cpp; path = OSMTools/Downloader.cpp; sourceTree = "<group>"; };
+		A164C0CE2202B21B00B00AD0 /* dijkstra.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.opencl; name = dijkstra.cl; path = OSMTools/dijkstra.cl; sourceTree = "<group>"; };
+		A164C0CF2202B21B00B00AD0 /* Roads.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Roads.h; path = OSMTools/Roads.h; sourceTree = "<group>"; };
+		A164C0D02202B21B00B00AD0 /* uiRoadDownload.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = uiRoadDownload.h; path = OSMTools/uiRoadDownload.h; sourceTree = "<group>"; };
+		A164C0D12202B21B00B00AD0 /* Downloader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Downloader.h; path = OSMTools/Downloader.h; sourceTree = "<group>"; };
 		A16BA46E183D626200D3B7DA /* DatasourceDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DatasourceDlg.cpp; sourceTree = "<group>"; };
 		A16BA46F183D626200D3B7DA /* DatasourceDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DatasourceDlg.h; sourceTree = "<group>"; };
 		A171FBFE1792332A000DD5A0 /* GdaException.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GdaException.h; sourceTree = "<group>"; };
@@ -378,11 +390,6 @@
 		A186F0A01C16508A00AEBA13 /* GdaCartoDB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GdaCartoDB.h; sourceTree = "<group>"; };
 		A188EA2921D58F5500D5EFE7 /* RoadDistancesDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RoadDistancesDlg.cpp; sourceTree = "<group>"; };
 		A188EA2A21D58F5500D5EFE7 /* RoadDistancesDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RoadDistancesDlg.h; sourceTree = "<group>"; };
-		A188EA2C21D6EE0B00D5EFE7 /* TravelTool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TravelTool.cpp; sourceTree = "<group>"; };
-		A188EA2D21D6EE0B00D5EFE7 /* oclDijkstraKernel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = oclDijkstraKernel.h; sourceTree = "<group>"; };
-		A188EA2E21D6EE0B00D5EFE7 /* dijkstra.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.opencl; path = dijkstra.cl; sourceTree = "<group>"; };
-		A188EA2F21D6EE0B00D5EFE7 /* oclDijkstraKernel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = oclDijkstraKernel.cpp; sourceTree = "<group>"; };
-		A188EA3021D6EE0B00D5EFE7 /* TravelTool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TravelTool.h; sourceTree = "<group>"; };
 		A1894C3D213F29DC00718FFC /* SpatialJoinDlg.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SpatialJoinDlg.cpp; sourceTree = "<group>"; };
 		A1894C3E213F29DC00718FFC /* SpatialJoinDlg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SpatialJoinDlg.h; sourceTree = "<group>"; };
 		A1894C41213F806700718FFC /* MapLayerStateObserver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MapLayerStateObserver.h; sourceTree = "<group>"; };
@@ -418,10 +425,6 @@
 		A19F514D1756A11E006E31B4 /* plugins */ = {isa = PBXFileReference; lastKnownFileType = folder; name = plugins; path = BuildTools/macosx/plugins; sourceTree = "<group>"; };
 		A1AC05BD1C8645F300B6FE5F /* AdjustYAxisDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AdjustYAxisDlg.cpp; sourceTree = "<group>"; };
 		A1AC05BE1C8645F300B6FE5F /* AdjustYAxisDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AdjustYAxisDlg.h; sourceTree = "<group>"; };
-		A1AE503221CE03CE000AF0C4 /* Downloader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Downloader.cpp; sourceTree = "<group>"; };
-		A1AE503321CE03CE000AF0C4 /* Roads.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Roads.cpp; sourceTree = "<group>"; };
-		A1AE503421CE03CE000AF0C4 /* Roads.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Roads.h; sourceTree = "<group>"; };
-		A1AE503521CE03CE000AF0C4 /* Downloader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Downloader.h; sourceTree = "<group>"; };
 		A1B04ADC1B1921710045AA6F /* basemap_cache */ = {isa = PBXFileReference; lastKnownFileType = folder; name = basemap_cache; path = BuildTools/CommonDistFiles/basemap_cache; sourceTree = "<group>"; };
 		A1B13EE11C3EDFF90064AD87 /* BasemapConfDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BasemapConfDlg.h; sourceTree = "<group>"; };
 		A1B13EE21C3EDFF90064AD87 /* BasemapConfDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BasemapConfDlg.cpp; sourceTree = "<group>"; };
@@ -433,12 +436,6 @@
 		A1C9F3EC18B55EE000E14394 /* FieldNameCorrectionDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FieldNameCorrectionDlg.cpp; sourceTree = "<group>"; };
 		A1CE3D311C1A427A0010F170 /* PublishDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PublishDlg.cpp; sourceTree = "<group>"; };
 		A1CE3D321C1A427A0010F170 /* PublishDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PublishDlg.h; sourceTree = "<group>"; };
-		A1D65AF721E54E1400982656 /* gradient-pbj.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gradient-pbj.png"; sourceTree = "<group>"; };
-		A1D65AF821E54E1400982656 /* gradient-classic.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gradient-classic.png"; sourceTree = "<group>"; };
-		A1D65AF921E54E1400982656 /* gradient-pgaitch.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gradient-pgaitch.png"; sourceTree = "<group>"; };
-		A1D65AFA21E54E1500982656 /* gradient-fire.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gradient-fire.png"; sourceTree = "<group>"; };
-		A1D65AFB21E54E1500982656 /* gradient-omg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gradient-omg.png"; sourceTree = "<group>"; };
-		A1D65AFC21E54E1500982656 /* gradient-RdYIBu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gradient-RdYIBu.png"; sourceTree = "<group>"; };
 		A1D82DED174D3EB6003DE20A /* ConnectDatasourceDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectDatasourceDlg.h; sourceTree = "<group>"; };
 		A1D82DEE174D3EB6003DE20A /* ConnectDatasourceDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConnectDatasourceDlg.cpp; sourceTree = "<group>"; };
 		A1DA623817BCBC070070CAAB /* AutoCompTextCtrl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AutoCompTextCtrl.cpp; sourceTree = "<group>"; };
@@ -466,12 +463,8 @@
 		A1F4EBE521E6F728002E0578 /* TravelMapDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TravelMapDlg.cpp; sourceTree = "<group>"; };
 		A1F4EBE721E7CE54002E0578 /* RoadWeights.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RoadWeights.cpp; sourceTree = "<group>"; };
 		A1F4EBE821E7CE54002E0578 /* RoadWeights.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RoadWeights.h; sourceTree = "<group>"; };
-		A1F4EBEA21E7ECFA002E0578 /* RoadUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RoadUtils.cpp; sourceTree = "<group>"; };
-		A1F4EBEB21E7ECFA002E0578 /* RoadUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RoadUtils.h; sourceTree = "<group>"; };
 		A1F4EBED21E7F77F002E0578 /* SnapPointsToRoadDlg.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SnapPointsToRoadDlg.cpp; sourceTree = "<group>"; };
 		A1F4EBEE21E7F77F002E0578 /* SnapPointsToRoadDlg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SnapPointsToRoadDlg.h; sourceTree = "<group>"; };
-		A1FA3AEF21DDA700002A158C /* uiRoadDownload.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = uiRoadDownload.cpp; sourceTree = "<group>"; };
-		A1FA3AF021DDA700002A158C /* uiRoadDownload.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = uiRoadDownload.h; sourceTree = "<group>"; };
 		A1FA3AF221DDAF63002A158C /* NetworkMapCanvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkMapCanvas.h; sourceTree = "<group>"; };
 		A1FA3AF321DDAF63002A158C /* NetworkMapCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NetworkMapCanvas.cpp; sourceTree = "<group>"; };
 		A1FD8C17186908B800C35C41 /* CustomClassifPtree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CustomClassifPtree.cpp; path = DataViewer/CustomClassifPtree.cpp; sourceTree = "<group>"; };
@@ -963,13 +956,36 @@
 			path = Weights;
 			sourceTree = "<group>";
 		};
-		A164C0B522015A6400B00AD0 /* OGRUtils */ = {
+		A164C0BC2202B1B500B00AD0 /* OSMTools */ = {
 			isa = PBXGroup;
 			children = (
-				A164C0B622015A8300B00AD0 /* OGRShapeUtils.cpp */,
-				A164C0B722015A8300B00AD0 /* OGRShapeUtils.h */,
+				A164C0CE2202B21B00B00AD0 /* dijkstra.cl */,
+				A164C0CD2202B21B00B00AD0 /* Downloader.cpp */,
+				A164C0D12202B21B00B00AD0 /* Downloader.h */,
+				A164C0C92202B21A00B00AD0 /* oclDijkstraKernel.cpp */,
+				A164C0C62202B21A00B00AD0 /* oclDijkstraKernel.h */,
+				A164C0C72202B21A00B00AD0 /* Roads.cpp */,
+				A164C0CF2202B21B00B00AD0 /* Roads.h */,
+				A164C0C82202B21A00B00AD0 /* RoadUtils.cpp */,
+				A164C0CB2202B21B00B00AD0 /* RoadUtils.h */,
+				A164C0CA2202B21B00B00AD0 /* TravelTool.cpp */,
+				A164C0C52202B21A00B00AD0 /* uiRoadDownload.cpp */,
+				A164C0D02202B21B00B00AD0 /* uiRoadDownload.h */,
+				A164C0C42202B21A00B00AD0 /* uiTravelDistances.cpp */,
+				A164C0CC2202B21B00B00AD0 /* uiTravelDistances.h */,
 			);
-			name = OGRUtils;
+			name = OSMTools;
+			sourceTree = "<group>";
+		};
+		A164C0BD2202B1C200B00AD0 /* OGRTools */ = {
+			isa = PBXGroup;
+			children = (
+				A164C0BF2202B1E500B00AD0 /* OGRDataUtils.cpp */,
+				A164C0C02202B1E500B00AD0 /* OGRDataUtils.h */,
+				A164C0C12202B1E500B00AD0 /* OGRShapeUtils.cpp */,
+				A164C0BE2202B1E500B00AD0 /* OGRShapeUtils.h */,
+			);
+			name = OGRTools;
 			sourceTree = "<group>";
 		};
 		A19483772118BA8B009A87A2 /* ogl */ = {
@@ -1004,32 +1020,6 @@
 				A19483812118BAA8009A87A2 /* oglmisc.cpp */,
 			);
 			path = ogl;
-			sourceTree = "<group>";
-		};
-		A1AE503121CE0370000AF0C4 /* osm */ = {
-			isa = PBXGroup;
-			children = (
-				A1D65AF821E54E1400982656 /* gradient-classic.png */,
-				A1D65AFA21E54E1500982656 /* gradient-fire.png */,
-				A1D65AFB21E54E1500982656 /* gradient-omg.png */,
-				A1D65AF721E54E1400982656 /* gradient-pbj.png */,
-				A1D65AF921E54E1400982656 /* gradient-pgaitch.png */,
-				A1D65AFC21E54E1500982656 /* gradient-RdYIBu.png */,
-				A1FA3AEF21DDA700002A158C /* uiRoadDownload.cpp */,
-				A1FA3AF021DDA700002A158C /* uiRoadDownload.h */,
-				A188EA2E21D6EE0B00D5EFE7 /* dijkstra.cl */,
-				A188EA2F21D6EE0B00D5EFE7 /* oclDijkstraKernel.cpp */,
-				A188EA2D21D6EE0B00D5EFE7 /* oclDijkstraKernel.h */,
-				A188EA2C21D6EE0B00D5EFE7 /* TravelTool.cpp */,
-				A188EA3021D6EE0B00D5EFE7 /* TravelTool.h */,
-				A1AE503221CE03CE000AF0C4 /* Downloader.cpp */,
-				A1AE503521CE03CE000AF0C4 /* Downloader.h */,
-				A1AE503321CE03CE000AF0C4 /* Roads.cpp */,
-				A1AE503421CE03CE000AF0C4 /* Roads.h */,
-				A1F4EBEA21E7ECFA002E0578 /* RoadUtils.cpp */,
-				A1F4EBEB21E7ECFA002E0578 /* RoadUtils.h */,
-			);
-			path = osm;
 			sourceTree = "<group>";
 		};
 		A40AB91A20F5336600F94543 /* arizona */ = {
@@ -1219,8 +1209,8 @@
 		DD7974650F1D1B0700496A84 /* ../../ */ = {
 			isa = PBXGroup;
 			children = (
-				A164C0B522015A6400B00AD0 /* OGRUtils */,
-				A1AE503121CE0370000AF0C4 /* osm */,
+				A164C0BD2202B1C200B00AD0 /* OGRTools */,
+				A164C0BC2202B1B500B00AD0 /* OSMTools */,
 				A14735A721A5F6CE00CA69B2 /* Weights */,
 				A10EF2ED21273E4900564FE1 /* visualization */,
 				A19483772118BA8B009A87A2 /* ogl */,
@@ -1801,7 +1791,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				DD5A579716E53EC40047DBB1 /* GeoDa.icns in Resources */,
-				A1D65AFF21E54E1500982656 /* gradient-pgaitch.png in Resources */,
 				A4D9A31F1E4D5F3800EF584C /* gdaldata in Resources */,
 				A19F51501756A11E006E31B4 /* plugins in Resources */,
 				A4404A05208E9E390007753D /* lang in Resources */,
@@ -1809,11 +1798,8 @@
 				A496C9A81E6A43C0008F87DD /* BaltimoreHomeSales.png in Resources */,
 				A496C9AA1E6A43CC008F87DD /* BostonHomeSales.png in Resources */,
 				A496C9AC1E6A43D0008F87DD /* BuenosAiresElections.png in Resources */,
-				A1D65AFE21E54E1500982656 /* gradient-classic.png in Resources */,
 				A496C9AE1E6A43D6008F87DD /* ColombiaMalaria.png in Resources */,
-				A1D65AFD21E54E1500982656 /* gradient-pbj.png in Resources */,
 				A496C9B01E6A43DA008F87DD /* ColumbusCrime.png in Resources */,
-				A1D65B0021E54E1500982656 /* gradient-fire.png in Resources */,
 				A496C9B21E6A43E5008F87DD /* Milwaukee2000Census.png in Resources */,
 				A1230E5F212DF54D002AB30A /* switch-off.png in Resources */,
 				A496C9B41E6A43E8008F87DD /* NAT.png in Resources */,
@@ -1821,13 +1807,11 @@
 				A496C9B61E6A43EE008F87DD /* NepalAid.png in Resources */,
 				A496C9B91E6A43FA008F87DD /* no_map.png in Resources */,
 				A496C9BB1E6A43FE008F87DD /* NYCData.png in Resources */,
-				A1D65B0121E54E1500982656 /* gradient-omg.png in Resources */,
 				A496C9BD1E6A4402008F87DD /* PhoenixACS.png in Resources */,
 				A496C9BF1E6A4405008F87DD /* SanFranCrime.png in Resources */,
 				A496C9C11E6A440A008F87DD /* SIDSNC.png in Resources */,
 				A496C9C51E6A441D008F87DD /* watermark-20.png in Resources */,
 				A4404A0F209270FB0007753D /* pofiles in Resources */,
-				A1D65B0221E54E1500982656 /* gradient-RdYIBu.png in Resources */,
 				A496C9C31E6A4417008F87DD /* USHomicides.png in Resources */,
 				A1230E5E212DF54D002AB30A /* switch-on.png in Resources */,
 				A4DB2CBC1EEA3A3E00BD4A54 /* Guerry.png in Resources */,
@@ -1880,12 +1864,12 @@
 				A4F5D6221F513EA1007ADF25 /* MDSDlg.cpp in Sources */,
 				DD7976BA0F1D2CA800496A84 /* DiagnosticReport.cpp in Sources */,
 				DD7976BC0F1D2CA800496A84 /* mix.cpp in Sources */,
+				A164C0C32202B1E500B00AD0 /* OGRShapeUtils.cpp in Sources */,
 				A47F792420AA084B000AFE57 /* distmat_kernel.cl in Sources */,
 				A19483972118BAAA009A87A2 /* bmpshape.cpp in Sources */,
 				DD7976BD0F1D2CA800496A84 /* ML_im.cpp in Sources */,
 				DD7976BE0F1D2CA800496A84 /* PowerLag.cpp in Sources */,
 				A414C88B207BED2700520546 /* MatfileReader.cpp in Sources */,
-				A1AE503621CE03CE000AF0C4 /* Downloader.cpp in Sources */,
 				DD7976BF0F1D2CA800496A84 /* PowerSymLag.cpp in Sources */,
 				DD7976C10F1D2CA800496A84 /* smile2.cpp in Sources */,
 				DD7976C20F1D2CA800496A84 /* SparseMatrix.cpp in Sources */,
@@ -1922,8 +1906,8 @@
 				DDF14CDA139432B000363FA1 /* DataViewerDeleteColDlg.cpp in Sources */,
 				A1E5BC841DBFE661005739E9 /* ReportBugDlg.cpp in Sources */,
 				DDF14CDC139432C100363FA1 /* DataViewerResizeColDlg.cpp in Sources */,
-				A164C0B822015A8300B00AD0 /* OGRShapeUtils.cpp in Sources */,
 				DDF14CDD139432CB00363FA1 /* DataViewerAddColDlg.cpp in Sources */,
+				A164C0D32202B21B00B00AD0 /* uiRoadDownload.cpp in Sources */,
 				DDB77C0D139820CB00569A1E /* GStatCoordinator.cpp in Sources */,
 				DD209598139F129900B9E648 /* GetisOrdChoiceDlg.cpp in Sources */,
 				DD181BC813A90445004B0EC2 /* SaveToTableDlg.cpp in Sources */,
@@ -1934,8 +1918,8 @@
 				DD0DC4BA13CBA7B10022B65A /* RangeSelectionDlg.cpp in Sources */,
 				DD89C87413D86BC7006C068D /* FieldNewCalcBinDlg.cpp in Sources */,
 				DD89C87513D86BC7006C068D /* FieldNewCalcLagDlg.cpp in Sources */,
+				A164C0D52202B21B00B00AD0 /* RoadUtils.cpp in Sources */,
 				A45DBDF41EDDEDAD00C2AA8A /* pca.cpp in Sources */,
-				A1F4EBEC21E7ECFA002E0578 /* RoadUtils.cpp in Sources */,
 				DD89C87613D86BC7006C068D /* FieldNewCalcRateDlg.cpp in Sources */,
 				DD89C87713D86BC7006C068D /* FieldNewCalcSheetDlg.cpp in Sources */,
 				DD89C87813D86BC7006C068D /* FieldNewCalcUniDlg.cpp in Sources */,
@@ -1945,11 +1929,11 @@
 				DD7D5C711427F89B00DCFE5C /* LisaCoordinator.cpp in Sources */,
 				A4A763F41F69FB3B00EE79DD /* ColocationMapView.cpp in Sources */,
 				A16BA470183D626200D3B7DA /* DatasourceDlg.cpp in Sources */,
-				A188EA3221D6EE0B00D5EFE7 /* dijkstra.cl in Sources */,
 				DDA8D55214479228008156FB /* ScatterNewPlotView.cpp in Sources */,
 				DD6456CA14881EA700AABF59 /* TimeChooserDlg.cpp in Sources */,
 				DD203F9D14C0C960006A731B /* MapNewView.cpp in Sources */,
 				DDF1636B15064B7800E3E6BD /* LisaMapNewView.cpp in Sources */,
+				A164C0D42202B21B00B00AD0 /* Roads.cpp in Sources */,
 				DDF1637015064C2900E3E6BD /* GetisOrdMapNewView.cpp in Sources */,
 				DD7E91D3151A8F3A001AAC4C /* LisaScatterPlotView.cpp in Sources */,
 				DD2B42B11522552B00888E51 /* BoxNewPlotView.cpp in Sources */,
@@ -1967,6 +1951,7 @@
 				DDAD0218162754EA00748874 /* ConditionalNewView.cpp in Sources */,
 				DDDBF286163AD1D50070610C /* ConditionalMapView.cpp in Sources */,
 				A40AB92A20F675B600F94543 /* oglpfuncs.cpp in Sources */,
+				A164C0D82202B21B00B00AD0 /* Downloader.cpp in Sources */,
 				DDDBF29B163AD2BF0070610C /* ConditionalScatterPlotView.cpp in Sources */,
 				A13B6B9418760CF100F93ACF /* SaveAsDlg.cpp in Sources */,
 				A43D12521F20AE450073D408 /* SpectralClusteringDlg.cpp in Sources */,
@@ -1976,6 +1961,7 @@
 				DD8FACE11649595D007598CE /* DataMovieDlg.cpp in Sources */,
 				DDA462FF164D785500EBBD8F /* TableState.cpp in Sources */,
 				A4ED7D562097F114008685D6 /* kd_search.cpp in Sources */,
+				A164C0D62202B21B00B00AD0 /* oclDijkstraKernel.cpp in Sources */,
 				A19483A22118BE8F009A87A2 /* MapLayoutView.cpp in Sources */,
 				DDE3F5081677C46500D13A2C /* CatClassification.cpp in Sources */,
 				A11F1B7F184FDFB3006F5F98 /* OGRColumn.cpp in Sources */,
@@ -1986,13 +1972,14 @@
 				DD60546816A83EEF0004BF02 /* CatClassifManager.cpp in Sources */,
 				A4E5FE191F624D5600D75662 /* AggregateDlg.cpp in Sources */,
 				A45DBDF51EDDEDAD00C2AA8A /* cluster.cpp in Sources */,
-				A1FA3AF121DDA700002A158C /* uiRoadDownload.cpp in Sources */,
 				A4368CDC1FABBBC60099FA9B /* mds.cpp in Sources */,
 				DD64925C16DFF63400B3B0AB /* GeoDa.cpp in Sources */,
+				A164C0D72202B21B00B00AD0 /* TravelTool.cpp in Sources */,
 				A47FC9DB1F74DE1600BEFBF2 /* MLJCCoordinator.cpp in Sources */,
 				A12E0F4F1705087A00B6059C /* OGRDataAdapter.cpp in Sources */,
 				A1D82DEF174D3EB6003DE20A /* ConnectDatasourceDlg.cpp in Sources */,
 				A1BE9E51174DD85F007B9C64 /* GdaAppResources.cpp in Sources */,
+				A164C0D22202B21B00B00AD0 /* uiTravelDistances.cpp in Sources */,
 				DDFE0E2A175034EC0099FFEC /* TimeState.cpp in Sources */,
 				A14735B921A65F1800CA69B2 /* bd_search.cpp in Sources */,
 				A4404A02208E65DD0007753D /* wxTranslationHelper.cpp in Sources */,
@@ -2011,7 +1998,6 @@
 				A4ED7D552097F114008685D6 /* kd_pr_search.cpp in Sources */,
 				A1E7813A178A90A100CC1037 /* OGRFieldProxy.cpp in Sources */,
 				A1E7813B178A90A100CC1037 /* OGRLayerProxy.cpp in Sources */,
-				A1AE503721CE03CE000AF0C4 /* Roads.cpp in Sources */,
 				DD2A6FE0178C7F7C00197093 /* DataSource.cpp in Sources */,
 				A1F1BA5C178D3B46005A46E5 /* GdaCache.cpp in Sources */,
 				DD92D22417BAAF2300F8FE01 /* TimeEditorDlg.cpp in Sources */,
@@ -2028,11 +2014,11 @@
 				A1F4EBE621E6F729002E0578 /* TravelMapDlg.cpp in Sources */,
 				A4E138BB1F71D6B800433256 /* GeocodingDlg.cpp in Sources */,
 				A1FD8C19186908B800C35C41 /* CustomClassifPtree.cpp in Sources */,
-				A188EA3321D6EE0B00D5EFE7 /* oclDijkstraKernel.cpp in Sources */,
 				DD40B083181894F20084173C /* VarGroupingEditorDlg.cpp in Sources */,
 				DD7B2A9D185273FF00727A91 /* SaveButtonManager.cpp in Sources */,
 				A4596B512033DDFF00C9BCC8 /* AbstractClusterMap.cpp in Sources */,
 				DD3BA0D0187111DE00CA4152 /* WeightsManPtree.cpp in Sources */,
+				A164C0D92202B21B00B00AD0 /* dijkstra.cl in Sources */,
 				DD3BA4481871EE9A00CA4152 /* DefaultVarsPtree.cpp in Sources */,
 				DDC48EF618AE506400FD773F /* ProjectInfoDlg.cpp in Sources */,
 				DD0FEBBC1909B7A000930418 /* NumCategoriesDlg.cpp in Sources */,
@@ -2071,7 +2057,6 @@
 				DD6C9EB61A03FD0C00F124F1 /* VarsChooserDlg.cpp in Sources */,
 				DD6C9EB71A03FD0C00F124F1 /* VarsChooserObservable.cpp in Sources */,
 				DDC906921A129CFF002334D2 /* SimpleAxisCanvas.cpp in Sources */,
-				A188EA3121D6EE0B00D5EFE7 /* TravelTool.cpp in Sources */,
 				DDC906931A129CFF002334D2 /* SimpleHistCanvas.cpp in Sources */,
 				DDC906941A129CFF002334D2 /* SimpleScatterPlotCanvas.cpp in Sources */,
 				DD76D1331A151C4E00A01FA5 /* LineChartView.cpp in Sources */,
@@ -2093,6 +2078,7 @@
 				A43D31541E845985007488D9 /* LocalGearyCoordinator.cpp in Sources */,
 				A43D124F1F2088D50073D408 /* spectral.cpp in Sources */,
 				A42B6F781F666C57004AFAB8 /* FieldNewCalcDateTimeDlg.cpp in Sources */,
+				A164C0C22202B1E500B00AD0 /* OGRDataUtils.cpp in Sources */,
 				DDFFC7CC1AC0E58B00F7DD6D /* CorrelogramView.cpp in Sources */,
 				DDFFC7CD1AC0E58B00F7DD6D /* CorrelParamsObservable.cpp in Sources */,
 				DDFFC7D51AC0E7DC00F7DD6D /* CorrelParamsDlg.cpp in Sources */,

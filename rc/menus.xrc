@@ -2836,6 +2836,44 @@
           <object class="wxMenuItem" name="ID_MAP_ADDCENTROIDS">
               <label>Add Centroids to Table</label>
           </object>
+          <object class="wxMenu" name="ID_SHAPE_LENGTH">
+              <label>Add Shape Length to Table</label>
+              <object class="wxMenuItem" name="ID_SAVE_LENGTH_EUCLIDEAN">
+                  <label>Use Euclidean Distance</label>
+                  <enabled>1</enabled>
+              </object>
+              <object class="wxMenuItem" name="ID_SAVE_LENGTH_ARC_METER">
+                  <label>Use Arc Distance (Meters)</label>
+                  <enabled>1</enabled>
+              </object>
+              <object class="wxMenuItem" name="ID_SAVE_LENGTH_ARC_KM">
+                  <label>Use Arc Distance (Kilometers)</label>
+                  <enabled>1</enabled>
+              </object>
+              <object class="wxMenuItem" name="ID_SAVE_LENGTH_ARC_MILE">
+                  <label>Use Arc Distance (Miles)</label>
+                  <enabled>1</enabled>
+              </object>
+          </object>
+          <object class="wxMenu" name="ID_SHAPE_AREA">
+              <label>Add Shape Area to Table</label>
+              <object class="wxMenuItem" name="ID_SAVE_AREA_EUCLIDEAN">
+                  <label>Use Euclidean Distance</label>
+                  <enabled>1</enabled>
+              </object>
+              <object class="wxMenuItem" name="ID_SAVE_AREA_ARC_METER">
+                  <label>Use Arc Distance (Square Meters)</label>
+                  <enabled>1</enabled>
+              </object>
+              <object class="wxMenuItem" name="ID_SAVE_AREA_ARC_KM">
+                  <label>Use Arc Distance (Square Kilometers)</label>
+                  <enabled>1</enabled>
+              </object>
+              <object class="wxMenuItem" name="ID_SAVE_AREA_ARC_MILE">
+                  <label>Use Arc Distance (Square Miles)</label>
+                  <enabled>1</enabled>
+              </object>
+          </object>
           <object class="separator"/>
           <object class="wxMenuItem" name="ID_DISPLAY_MEAN_CENTERS">
               <label>Display Mean Centers</label>
@@ -2855,44 +2893,6 @@
           <object class="wxMenuItem" name="ID_EXPORT_CENTROIDS">
               <label>Save Centroids</label>
               <enabled>1</enabled>
-          </object>
-          <object class="wxMenu" name="ID_SHAPE_LENGTH">
-              <label>Save Shape Length</label>
-              <object class="wxMenuItem" name="ID_SAVE_LENGTH_EUCLIDEAN">
-                  <label>Use Euclidean Distance</label>
-                  <enabled>1</enabled>
-              </object>
-              <object class="wxMenuItem" name="ID_SAVE_LENGTH_ARC_METER">
-                  <label>Use Arc Distance (Meters)</label>
-                  <enabled>1</enabled>
-              </object>
-              <object class="wxMenuItem" name="ID_SAVE_LENGTH_ARC_KM">
-                  <label>Use Arc Distance (Kilometers)</label>
-                  <enabled>1</enabled>
-              </object>
-              <object class="wxMenuItem" name="ID_SAVE_LENGTH_ARC_MILE">
-                  <label>Use Arc Distance (Miles)</label>
-                  <enabled>1</enabled>
-              </object>
-          </object>
-          <object class="wxMenu" name="ID_SHAPE_AREA">
-              <label>Save Shape Area</label>
-              <object class="wxMenuItem" name="ID_SAVE_AREA_EUCLIDEAN">
-                  <label>Use Euclidean Distance</label>
-                  <enabled>1</enabled>
-              </object>
-              <object class="wxMenuItem" name="ID_SAVE_AREA_ARC_METER">
-                  <label>Use Arc Distance (Square Meters)</label>
-                  <enabled>1</enabled>
-              </object>
-              <object class="wxMenuItem" name="ID_SAVE_AREA_ARC_KM">
-                  <label>Use Arc Distance (Square Kilometers)</label>
-                  <enabled>1</enabled>
-              </object>
-              <object class="wxMenuItem" name="ID_SAVE_AREA_ARC_MILE">
-                  <label>Use Arc Distance (Square Miles)</label>
-                  <enabled>1</enabled>
-              </object>
           </object>
           <label>Shape Tools</label>
       </object>
@@ -3494,6 +3494,44 @@
       <object class="wxMenuItem" name="ID_MAP_ADDCENTROIDS">
         <label>Add Centroids to Table</label>
       </object>
+      <object class="wxMenu" name="ID_SHAPE_LENGTH">
+          <label>Add Shape Length to Table</label>
+          <object class="wxMenuItem" name="ID_SAVE_LENGTH_EUCLIDEAN">
+              <label>Use Euclidean Distance</label>
+              <enabled>1</enabled>
+          </object>
+          <object class="wxMenuItem" name="ID_SAVE_LENGTH_ARC_METER">
+              <label>Use Arc Distance (Meters)</label>
+              <enabled>1</enabled>
+          </object>
+          <object class="wxMenuItem" name="ID_SAVE_LENGTH_ARC_KM">
+              <label>Use Arc Distance (Kilometers)</label>
+              <enabled>1</enabled>
+          </object>
+          <object class="wxMenuItem" name="ID_SAVE_LENGTH_ARC_MILE">
+              <label>Use Arc Distance (Miles)</label>
+              <enabled>1</enabled>
+          </object>
+      </object>
+      <object class="wxMenu" name="ID_SHAPE_AREA">
+          <label>Add Shape Area to Table</label>
+          <object class="wxMenuItem" name="ID_SAVE_AREA_EUCLIDEAN">
+              <label>Use Euclidean Distance</label>
+              <enabled>1</enabled>
+          </object>
+          <object class="wxMenuItem" name="ID_SAVE_AREA_ARC_METER">
+              <label>Use Arc Distance (Square Meters)</label>
+              <enabled>1</enabled>
+          </object>
+          <object class="wxMenuItem" name="ID_SAVE_AREA_ARC_KM">
+              <label>Use Arc Distance (Square Kilometers)</label>
+              <enabled>1</enabled>
+          </object>
+          <object class="wxMenuItem" name="ID_SAVE_AREA_ARC_MILE">
+              <label>Use Arc Distance (Square Miles)</label>
+              <enabled>1</enabled>
+          </object>
+      </object>
       <object class="separator"/>
       <object class="wxMenuItem" name="ID_DISPLAY_MEAN_CENTERS">
         <label>Display Mean Centers</label>
@@ -3513,44 +3551,6 @@
       <object class="wxMenuItem" name="ID_EXPORT_CENTROIDS">
         <label>Save Centroids</label>
         <enabled>1</enabled>
-      </object>
-      <object class="wxMenu" name="ID_SHAPE_LENGTH">
-          <label>Save Shape Length</label>
-          <object class="wxMenuItem" name="ID_SAVE_LENGTH_EUCLIDEAN">
-              <label>Use Euclidean Distance</label>
-              <enabled>1</enabled>
-          </object>
-          <object class="wxMenuItem" name="ID_SAVE_LENGTH_ARC_METER">
-              <label>Use Arc Distance (Meters)</label>
-              <enabled>1</enabled>
-          </object>
-          <object class="wxMenuItem" name="ID_SAVE_LENGTH_ARC_KM">
-              <label>Use Arc Distance (Kilometers)</label>
-              <enabled>1</enabled>
-          </object>
-          <object class="wxMenuItem" name="ID_SAVE_LENGTH_ARC_MILE">
-              <label>Use Arc Distance (Miles)</label>
-              <enabled>1</enabled>
-          </object>
-      </object>
-      <object class="wxMenu" name="ID_SHAPE_AREA">
-          <label>Save Shape Area</label>
-          <object class="wxMenuItem" name="ID_SAVE_AREA_EUCLIDEAN">
-              <label>Use Euclidean Distance</label>
-              <enabled>1</enabled>
-          </object>
-          <object class="wxMenuItem" name="ID_SAVE_AREA_ARC_METER">
-              <label>Use Arc Distance (Square Meters)</label>
-              <enabled>1</enabled>
-          </object>
-          <object class="wxMenuItem" name="ID_SAVE_AREA_ARC_KM">
-              <label>Use Arc Distance (Square Kilometers)</label>
-              <enabled>1</enabled>
-          </object>
-          <object class="wxMenuItem" name="ID_SAVE_AREA_ARC_MILE">
-              <label>Use Arc Distance (Square Miles)</label>
-              <enabled>1</enabled>
-          </object>
       </object>
       <label>Shape Tools</label>
     </object>

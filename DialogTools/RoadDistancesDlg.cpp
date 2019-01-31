@@ -11,7 +11,7 @@
 #include "../ShpFile.h"
 #include "../Project.h"
 #include "../Explore/MapLayer.hpp"
-#include "../osm/TravelTool.h"
+#include "../OSMTools/TravelTool.h"
 #include "RoadDistancesDlg.h"
 
 using namespace std;
