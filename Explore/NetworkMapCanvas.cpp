@@ -53,7 +53,7 @@ NetworkMapCanvas::NetworkMapCanvas(wxWindow *parent,
 b_draw_hex_map(false), b_draw_travel_path(false), radius(_radius),
 default_speed(_default_speed), penalty(_penalty)
 {
-    is_hide = true; // hide main map
+    selectable_shps_type = polygons; // for hex polygons
     tran_unhighlighted = (1-0.4) * 255; // change default transparency
     isDrawBasemap = true;
     basemap_item = GetBasemapSelection(1); // carto
@@ -65,29 +65,13 @@ default_speed(_default_speed), penalty(_penalty)
     //gradient_png_path << "gradient-fire.png";
     //gradient_color = new OSMTools::GradientColor(gradient_png_path);
 
+
     // color/labels categories
     // 5, 10, 15, 20, 25, 30, 40, 50, 60, >60
     num_cats  = 10;
     color_type = CatClassification::sequential_color_scheme;
     CatClassification::PickColorSet(color_vec, color_type, num_cats, false);
-
-    cat_data.CreateEmptyCategories(num_time_vals, num_obs);
-    cat_data.CreateCategoriesAtCanvasTm(num_cats + 1, 0);
-
-    wxString labels[10] = {"5 min", "10 min", "15 min", "20 min", "25 min",
-        "30 min", "40 min", "50 min", "60 min", ">60 min"
-    };
-    for (size_t i=0; i< num_cats; ++i) {
-        cat_data.SetCategoryLabel(0, i, labels[i]);
-        cat_data.SetCategoryColor(0, i, color_vec[i]);
-    }
-    cat_data.SetCategoryColor(0, 10, *wxBLACK);
-    cat_data.SetCategoryLabel(0, 10, "Original Roads");
-    for (size_t i=0; i< num_obs; ++i) {
-        cat_data.AppendIdToCategory(0, 10, i);
-    }
-    cat_data.SetCategoryCount(0, 10, num_obs);
-
+    
     // map marker
     wxString map_marker_path = GenUtils::GetSamplesDir();
     map_marker_path << "map_marker.png";
@@ -158,7 +142,7 @@ wxColour NetworkMapCanvas::GetColorByCost(int cost)
             return color_vec[i];
         }
     }
-    if (cost > 100000) return wxColour(255,255,255,0);
+    if (cost == INT_MAX) return wxColour(255,255,255,0);
     return color_vec[9];
 }
 
@@ -215,7 +199,9 @@ void NetworkMapCanvas::OnSaveHeatmap(wxCommandEvent& event)
 {
     int n_rows = hexagons.size() * hexagons.size();
     if (n_rows <= 0) {
-        // Please specify a proper start location on map to create a heatmap first.
+        wxString msg = _("Please specify a proper start location on map to create a heatmap first.");
+        wxMessageDialog dlg(this, msg, _("Info"),wxOK | wxICON_INFORMATION);
+        dlg.ShowModal();
         return;
     }
 
@@ -233,18 +219,16 @@ void NetworkMapCanvas::OnSaveHeatmap(wxCommandEvent& event)
     OGRTable* mem_table = new OGRTable(cnt);
     vector<bool> undefs(cnt, false);
     int int_len = 20;
-    int dbl_len = 18;
-    int dbl_dec = 7;
     OGRColumnInteger* row_col = new OGRColumnInteger("row", int_len, 0, cnt);
     OGRColumnInteger* col_col = new OGRColumnInteger("col", int_len, 0, cnt);
-    OGRColumnDouble* cost_col = new OGRColumnDouble("cost", dbl_len, dbl_dec, cnt);
+    OGRColumnInteger* cost_col = new OGRColumnInteger("cost", int_len, 0, cnt);
     cnt = 0;
     for (size_t i=0; i<hexagons.size(); ++i) {
         for (size_t j=0; j< hexagons[i].size(); ++j) {
             if (costs[i][j] == INT_MAX) continue;
             row_col->SetValueAt(cnt, (wxInt64)i);
             col_col->SetValueAt(cnt, (wxInt64)j);
-            cost_col->SetValueAt(cnt, costs[i][j]);
+            cost_col->SetValueAt(cnt, (wxInt64)costs[i][j]);
             cnt += 1;
         }
     }
@@ -290,6 +274,9 @@ void NetworkMapCanvas::UpdateStatusBar()
 
 void NetworkMapCanvas::CreateHexMap()
 {
+    for (size_t i=0; i<selectable_shps.size(); ++i) delete selectable_shps[i];
+    selectable_shps.clear();
+
     OGREnvelope extent;
     project->GetMapExtent(extent);
     double hexagon_radius = radius; // meter
@@ -307,17 +294,45 @@ void NetworkMapCanvas::CreateHexMap()
             }
         }
     }
-
+    std::vector<int> selectable_costs;
     for (size_t i=0; i<hexagons.size(); ++i) {
         for (size_t j=0; j< hexagons[i].size(); ++j) {
+            if (costs[i][j] == INT_MAX) continue;
             OGRPolygon poly = hexagons[i][j];
             GdaPolygon* gda_poly = OGRLayerProxy::OGRGeomToGdaShape(&poly);
             wxColour color = GetColorByCost(costs[i][j]);
             wxBrush brush(color);
             gda_poly->setBrush(brush);
             gda_poly->setPen(*wxTRANSPARENT_PEN);
-            background_shps.push_back(gda_poly);
+            selectable_shps.push_back(gda_poly);
+            selectable_costs.push_back(costs[i][j]);
         }
+    }
+
+    // Reset categories
+    cat_data.CreateEmptyCategories(num_time_vals, selectable_shps.size());
+    cat_data.CreateCategoriesAtCanvasTm(num_cats, 0);
+
+    int time[9] = {5, 10, 15, 20, 25, 30, 40, 50, 60};
+    for (size_t i=0; i<selectable_costs.size(); ++i) {
+        bool added = false;
+        for (size_t j=0; j<9; j++) {
+            if (selectable_costs[i] < time[j] * 60) {
+                cat_data.AppendIdToCategory(0, j, i);
+                added = true;
+                break;
+            }
+        }
+        if (added == false) cat_data.AppendIdToCategory(0, 9, i);
+    }
+    wxString labels[10] = {"5 min", "10 min", "15 min", "20 min", "25 min",
+        "30 min", "40 min", "50 min", "60 min", ">60 min"
+    };
+    for (size_t i=0; i< num_cats; ++i) {
+        cat_data.SetCategoryLabel(0, i, labels[i]);
+        cat_data.SetCategoryColor(0, i, color_vec[i]);
+        int count = cat_data.GetNumObsInCategory(0, i);
+        cat_data.SetCategoryCount(0, i, count);
     }
 }
 
@@ -379,17 +394,14 @@ void NetworkMapCanvas::DrawTravelPath()
 void NetworkMapCanvas::PopulateCanvas()
 {
     if (basemap == NULL) InitBasemap();
-    
+    // create hex map and use it as working map
+    CreateHexMap();
     MapCanvas::PopulateCanvas();
-
+    // only draw the latest selected route/path
     if (b_draw_hex_map) {
-        BOOST_FOREACH( GdaShape* shp, foreground_shps ) {
-            delete shp;
-        }
+        BOOST_FOREACH( GdaShape* shp, foreground_shps )  delete shp;
         foreground_shps.clear();
-        CreateHexMap();
     }
-
     ReDraw();
 }
 

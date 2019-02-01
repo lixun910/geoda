@@ -173,7 +173,9 @@ public:
     virtual void RenderToDC(wxDC &dc, int w, int h);
     virtual void UpdateStatusBar();
     virtual wxBitmap* GetPrintLayer();
-    
+    virtual std::vector<int> CreateSelShpsFromProj(
+                                        std::vector<GdaShape*>& selectable_shps,
+                                        Project* project);
     void DisplayMapLayers();
     void AddMapLayer(wxString name, BackgroundMapLayer* map_layer,
                      bool is_hide = false);

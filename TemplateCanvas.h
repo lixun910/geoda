@@ -218,8 +218,9 @@ public:
     /** generic function to create and initialized th*e selectable_shps vector
 		based on a passed-in Project pointer and given an initial canvas
 	    screen size. */
-    static std::vector<int> CreateSelShpsFromProj(std::vector<GdaShape*>& selectable_shps,
-                               Project* project);
+    virtual std::vector<int> CreateSelShpsFromProj(
+                                        std::vector<GdaShape*>& selectable_shps,
+                                        Project* project);
 	
 	/** convert mouse coordiante point to original observation-coordinate
 	 points.  This is an inverse of the affine transformation that converts

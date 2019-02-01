@@ -105,7 +105,8 @@ SliderDialog::SliderDialog(wxWindow * parent,
                   wxALIGN_CENTER_VERTICAL|wxALL);
 
 	boxSizer->Add(subSizer);
-    wxString txt_transparency = wxString::Format(_("Current Transparency: %.2f"), 1.0 - trasp);
+    wxString txt_transparency = _("Current Transparency: %.2f");
+    txt_transparency = wxString::Format(txt_transparency, 1.0 - trasp);
     
     slider_text = new wxStaticText(this,
                                    wxID_ANY,
@@ -113,7 +114,8 @@ SliderDialog::SliderDialog(wxWindow * parent,
                                    wxDefaultPosition,
                                    wxSize(100, -1));
     boxSizer->Add(slider_text, 0, wxGROW|wxALL, 5);
-    boxSizer->Add(new wxButton(this, wxID_CANCEL, _("Close")), 0, wxALIGN_CENTER|wxALL, 10);
+    boxSizer->Add(new wxButton(this, wxID_CANCEL, _("Close")), 0,
+                  wxALIGN_CENTER|wxALL, 10);
     
     topSizer->Fit(this);
     
@@ -128,7 +130,8 @@ void SliderDialog::OnSliderChange( wxCommandEvent & event )
 {
     int val = event.GetInt();
     double trasp = 1.0 - val / 100.0;
-    slider_text->SetLabel(wxString::Format(_("Current Transparency: %.2f"), trasp));
+    wxString lbl = wxString::Format(_("Current Transparency: %.2f"), trasp);
+    slider_text->SetLabel(lbl);
     canvas->tran_unhighlighted = (1-trasp) * 255;
     canvas->ReDraw();
 }
@@ -217,11 +220,13 @@ maplayer_state(project_s->GetMapLayerState())
 	}
 	use_category_brushes = true;
 	cat_classif_def.cat_classif_type = theme_type;
-	if (!ChangeMapType(theme_type, smoothing_type_s, num_categories, weights_id, true, var_info_s, col_ids_s)) {
+	if (!ChangeMapType(theme_type, smoothing_type_s, num_categories, weights_id,
+                       true, var_info_s, col_ids_s)) {
 		// The user possibly clicked cancel, so try again with themeless map
 		vector<GdaVarTools::VarInfo> vi(0);
 		vector<int> cids(0);
-		ChangeMapType(CatClassification::no_theme, no_smoothing, 1, boost::uuids::nil_uuid(), true, vi, cids);
+		ChangeMapType(CatClassification::no_theme, no_smoothing, 1,
+                      boost::uuids::nil_uuid(), true, vi, cids);
 	}
 	highlight_state->registerObserver(this);
     maplayer_state->registerObserver(this);
@@ -480,11 +485,13 @@ void MapCanvas::AddNeighborsToSelection(GalWeight* gal_weights, wxMemoryDC &dc)
         bool revert = false;
         bool crosshatch = false;
         bool is_print = false;
-        helper_DrawSelectableShapes_dc(dc, new_hs, hl_only, revert, crosshatch, is_print);
+        helper_DrawSelectableShapes_dc(dc, new_hs, hl_only, revert,
+                                       crosshatch, is_print);
         if (display_neighbors) {
             wxPen pen(selectable_outline_color);
             wxBrush brush(*wxWHITE);
-            if (GetCcType() != CatClassification::no_theme || selectable_shps_type == points) {
+            if (GetCcType() != CatClassification::no_theme ||
+                selectable_shps_type == points) {
                 // only paint neighbors with white if no_theme, otherwise transparent
                 brush = *wxTRANSPARENT_BRUSH;
             }
@@ -501,7 +508,8 @@ void MapCanvas::AddNeighborsToSelection(GalWeight* gal_weights, wxMemoryDC &dc)
         }
         // paint selected with specified outline color
         wxPen pen(selectable_outline_color);
-        if (selectable_shps_type == points || GetCcType() != CatClassification::no_theme ) {
+        if (selectable_shps_type == points ||
+            GetCcType() != CatClassification::no_theme ) {
             pen.SetColour(*wxRED);
         }
         if (conn_selected_color.Alpha() != 0) {
@@ -691,7 +699,8 @@ void MapCanvas::ResizeSelectableShps(int virtual_scrn_w,
             if (ms)
                 ms->projectToBasemap(basemap);
         }
-        if (!w_graph.empty() && display_weights_graph && boost::uuids::nil_uuid() != weights_id) {
+        if (!w_graph.empty() && display_weights_graph &&
+            boost::uuids::nil_uuid() != weights_id) {
             // this is for resizing window with basemap + connectivity graph
             for (int i=0; i<w_graph.size(); i++) {
                 GdaPolyLine* e = w_graph[i];
@@ -1099,13 +1108,13 @@ int MapCanvas::GetHighlightRecords()
 
 void MapCanvas::DrawHighlighted(wxMemoryDC &dc, bool revert)
 {
-    if (selectable_shps.size() == 0) {
-        return;
-    }
+    if (selectable_shps.size() == 0) return;
+
     vector<bool>& hs = highlight_state->GetHighlight();
     if (use_category_brushes) {
         bool highlight_only = true;
-        DrawSelectableShapes_dc(dc, highlight_only, revert, GdaConst::use_cross_hatching);
+        DrawSelectableShapes_dc(dc, highlight_only, revert,
+                                GdaConst::use_cross_hatching);
         
     } else {
         for (int i=0, iend=selectable_shps.size(); i<iend; i++) {
@@ -1115,7 +1124,9 @@ void MapCanvas::DrawHighlighted(wxMemoryDC &dc, bool revert)
         }
     }
     // highlight connectivity objects and graphs
-    bool show_graph = display_weights_graph && boost::uuids::nil_uuid() != weights_id && !w_graph.empty();
+    bool show_graph = display_weights_graph &&
+                      boost::uuids::nil_uuid() != weights_id &&
+                      !w_graph.empty();
     if (show_graph || display_neighbors) {
         // draw neighbors of selection if needed
         WeightsManInterface* w_man_int = project->GetWManInt();
@@ -1275,7 +1286,8 @@ void MapCanvas::RenderToDC(wxDC &dc, int w, int h)
         double shps_orig_xmin = last_scale_trans.orig_data_x_min;
         double shps_orig_ymin = last_scale_trans.orig_data_y_min;
         double shps_orig_xmax = last_scale_trans.orig_data_x_max;
-        GDA::MapLayer maplayer(shps_orig_ymax, shps_orig_xmin, shps_orig_ymin, shps_orig_xmax, poCT);
+        GDA::MapLayer maplayer(shps_orig_ymax, shps_orig_xmin, shps_orig_ymin,
+                               shps_orig_xmax, poCT);
         if (poCT && maplayer.IsWGS84Valid()) {
             if (print_detailed_basemap) {
                 basemap->ResizeScreen(w, h);
@@ -1296,7 +1308,8 @@ void MapCanvas::RenderToDC(wxDC &dc, int w, int h)
             BOOST_FOREACH( GdaShape* ms, foreground_shps ) {
                 if (ms) ms->projectToBasemap(basemap, basemap_scale);
             }
-            if (!w_graph.empty() && display_weights_graph && boost::uuids::nil_uuid() != weights_id) {
+            if (!w_graph.empty() && display_weights_graph &&
+                boost::uuids::nil_uuid() != weights_id) {
                 for (int i=0; i<w_graph.size(); i++) {
                     GdaPolyLine* e = w_graph[i];
                     e->projectToBasemap(basemap, basemap_scale);
@@ -2137,8 +2150,10 @@ void MapCanvas::DrawHighlight(wxMemoryDC& dc, MapCanvas* map_canvas)
             }
             vector<wxInt64>& ids = aid_idx[aid];
             for (int j=0; j<ids.size(); j++) {
-                if (associated_lines[associated_layer] && !associated_layer->IsHide()) {
-                    dc.DrawLine(selectable_shps[i]->center, associated_layer->GetShape(ids[j])->center);
+                if (associated_lines[associated_layer] &&
+                    !associated_layer->IsHide()) {
+                    dc.DrawLine(selectable_shps[i]->center,
+                                associated_layer->GetShape(ids[j])->center);
                 }
             }
         }
@@ -2153,7 +2168,8 @@ GdaShape* MapCanvas::GetShape(int i)
     return selectable_shps[i];
 }
 
-void MapCanvas::SetLayerAssociation(wxString my_key, AssociateLayerInt* layer, wxString key, bool show_connline)
+void MapCanvas::SetLayerAssociation(wxString my_key, AssociateLayerInt* layer,
+                                    wxString key, bool show_connline)
 {
     associated_layers[layer] = make_pair(my_key, key);
     associated_lines[layer] = show_connline;
@@ -2169,6 +2185,13 @@ bool MapCanvas::IsAssociatedWith(AssociateLayerInt* layer)
         }
     }
     return false;
+}
+
+std::vector<int> MapCanvas::CreateSelShpsFromProj(
+                                        std::vector<GdaShape*>& selectable_shps,
+                                        Project* project)
+{
+    return TemplateCanvas::CreateSelShpsFromProj(selectable_shps, project);
 }
 
 /** This method assumes that v1 is already set and valid.  It will
@@ -2227,7 +2250,8 @@ void MapCanvas::PopulateCanvas()
 			empty_shps_ids = CreateSelShpsFromProj(selectable_shps, project);
 			full_map_redraw_needed = false;
 			
-			if (selectable_shps_type == polygons && (display_mean_centers || display_centroids || display_weights_graph))
+			if (selectable_shps_type == polygons &&
+                (display_mean_centers || display_centroids || display_weights_graph))
             {
 				GdaPoint* p;
 				wxPen cent_pen(wxColour(20, 20, 20));
