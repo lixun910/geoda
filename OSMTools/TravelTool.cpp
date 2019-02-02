@@ -1109,6 +1109,10 @@ TravelHeatMap::~TravelHeatMap()
    if (cpu_graph) delete cpu_graph;
 }
 
+bool TravelHeatMap::IsOpenStreeMap()
+{
+    return is_osm;
+}
 /**
  * This function is for query travel path only
  *

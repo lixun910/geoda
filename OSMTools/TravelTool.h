@@ -219,6 +219,8 @@ namespace OSMTools {
 
         virtual ~TravelHeatMap();
 
+        bool IsOpenStreeMap();
+
         int Query(OGRPoint& from_pt, OGRPoint& to_pt,
                   std::vector<OGRLineString>& ogr_line,
                   std::vector<int>& way_ids);

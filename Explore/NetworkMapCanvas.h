@@ -45,24 +45,13 @@ public:
                      const wxSize& size = wxDefaultSize);
     virtual ~NetworkMapCanvas();
 
-    /** The function handles all mouse events. */
     virtual void OnMouseEvent(wxMouseEvent& event);
     virtual void DrawLayer2();
     virtual void PopulateCanvas();
     virtual void DisplayRightClickMenu(const wxPoint& pos);
     virtual void UpdateStatusBar();
-    
-    //virtual void DisplayRightClickMenu(const wxPoint& pos);
-    //virtual wxString GetCanvasTitle();
-    //virtual wxString GetVariableNames();
-    //virtual bool ChangeMapType(CatClassification::CatClassifType new_map_theme,
-    //                           SmoothingType new_map_smoothing);
-    //virtual void SetCheckMarks(wxMenu* menu);
-    //virtual void TimeChange();
-    //virtual void CreateAndUpdateCategories();
-    //virtual void TimeSyncVariableToggle(int var_index);
-    //virtual void UpdateStatusBar();
-    //virtual void SetWeightsId(boost::uuids::uuid id) { weights_id = id; }
+
+    void UpdateCategoriesByLength();
 
 protected:
     //OSMTools::GradientColor* gradient_color;
@@ -74,6 +63,7 @@ protected:
     int paint_path_thickness;
     std::vector<std::vector<OGRPolygon> > hexagons;
     std::vector<std::vector<int> > costs;
+    std::vector<int> selectable_costs;
     wxBitmap marker_img;
     bool b_draw_hex_map;
     bool b_draw_travel_path;
@@ -89,6 +79,8 @@ protected:
 
     void CreateHexMap();
     void DrawTravelPath();
+    void UpdateCategoriesByTime();
+
 
     wxColour GetColorByCost(int cost);
     void OnToggleRoadNetwork(wxCommandEvent& event);
@@ -117,10 +109,7 @@ public:
     virtual ~NetworkMapFrame();
 
     void OnActivate(wxActivateEvent& event);
-    //virtual void MapMenus();
-    //virtual void UpdateOptionMenuItems();
-    //virtual void UpdateContextMenuItems(wxMenu* menu);
-    //virtual void update(WeightsManState* o){}
+    virtual void OnNaturalBreaks(int num_cats);
 
 protected:
 

@@ -1733,7 +1733,7 @@ bool
 MapCanvas::ChangeMapType(CatClassification::CatClassifType new_map_theme,
                          SmoothingType new_map_smoothing,
                          int num_categories_s,
-                         boost::uuids::uuid weights_id_s,
+                         boost::uuids::uuid weights_id_s, // not sure why it's here
                          bool use_new_var_info_and_col_ids,
                          const vector<GdaVarTools::VarInfo>& new_var_info,
                          const vector<int>& new_col_ids,
@@ -1779,11 +1779,8 @@ MapCanvas::ChangeMapType(CatClassification::CatClassifType new_map_theme,
 	}
 	
 	int new_num_vars = 1;
-	if (new_map_smoothing != no_smoothing) {
-		new_num_vars = 2;
-	} else if (new_map_theme == CatClassification::no_theme) {
-		new_num_vars = 0;
-	}
+	if (new_map_smoothing != no_smoothing) new_num_vars = 2;
+	else if (new_map_theme == CatClassification::no_theme) new_num_vars = 0;
 	
 	int num_vars = GetNumVars();
 	
@@ -3302,9 +3299,11 @@ void MapFrame::OnMapBasemap(wxCommandEvent& e)
         wxMenu* imp = new wxMenu;
         vector<BasemapItem>& items = grp.items;
         for (int j=0; j<items.size(); j++) {
-            wxString xid = wxString::Format("ID_BASEMAP_%s_%s", grp.name, items[j].name);
+            wxString xid = wxString::Format("ID_BASEMAP_%s_%s", grp.name,
+                                            items[j].name);
             imp->AppendCheckItem(XRCID(xid), items[j].name);
-            Connect(XRCID(xid), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MapFrame::OnBasemapSelect));
+            Connect(XRCID(xid), wxEVT_COMMAND_MENU_SELECTED,
+                    wxCommandEventHandler(MapFrame::OnBasemapSelect));
         }
         popupMenu->AppendSubMenu(imp, grp.name);
     }
@@ -3316,7 +3315,8 @@ void MapFrame::OnMapBasemap(wxCommandEvent& e)
             BasemapGroup& grp = basemap_groups[i];
             vector<BasemapItem>& items = grp.items;
             for (int j=0; j<items.size(); j++) {
-                wxString xid = wxString::Format("ID_BASEMAP_%s_%s", grp.name, items[j].name);
+                wxString xid = wxString::Format("ID_BASEMAP_%s_%s", grp.name,
+                                                items[j].name);
                 wxMenuItem* menu = popupMenu->FindItem(XRCID(xid));
                 if (current_item == items[j]) {
                     menu->Check(true);
@@ -3389,7 +3389,8 @@ void MapFrame::AppendCustomCategories(wxMenu* menu, CatClassifManager* ccm)
             sm->Delete(items[i]);
         }
         
-        sm->Append(menu_id[i], _("Create New Custom"), _("Create new custom categories classification."));
+        sm->Append(menu_id[i], _("Create New Custom"),
+                   _("Create new custom categories classification."));
         sm->AppendSeparator();
         
         vector<wxString> titles;
@@ -3399,13 +3400,23 @@ void MapFrame::AppendCustomCategories(wxMenu* menu, CatClassifManager* ccm)
         }
         if (i==0) {
             // regular map men
-            Bind(wxEVT_COMMAND_MENU_SELECTED, &MapFrame::OnCustomCategoryClick, this, GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_A0, GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_A0 + titles.size());
+            Bind(wxEVT_COMMAND_MENU_SELECTED, &MapFrame::OnCustomCategoryClick,
+                 this, GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_A0,
+                 GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_A0 + titles.size());
         } else if (i==1) {
             // conditional horizontal map menu
-            GdaFrame::GetGdaFrame()->Bind(wxEVT_COMMAND_MENU_SELECTED, &GdaFrame::OnCustomCategoryClick_B, GdaFrame::GetGdaFrame(), GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_B0, GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_B0 + titles.size());
+            GdaFrame::GetGdaFrame()->Bind(wxEVT_COMMAND_MENU_SELECTED,
+                    &GdaFrame::OnCustomCategoryClick_B,
+                    GdaFrame::GetGdaFrame(),
+                    GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_B0,
+                    GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_B0 + titles.size());
         } else if (i==2) {
             // conditional verticle map menu
-            GdaFrame::GetGdaFrame()->Bind(wxEVT_COMMAND_MENU_SELECTED, &GdaFrame::OnCustomCategoryClick_C, GdaFrame::GetGdaFrame(), GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_C0, GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_C0 + titles.size());
+            GdaFrame::GetGdaFrame()->Bind(wxEVT_COMMAND_MENU_SELECTED,
+                    &GdaFrame::OnCustomCategoryClick_C,
+                    GdaFrame::GetGdaFrame(),
+                    GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_C0,
+                    GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_C0 + titles.size());
         }
     }
 }
@@ -3442,7 +3453,8 @@ void  MapFrame::update(TimeState* o)
 /** Implementation of WeightsManStateObserver interface */
 void MapFrame::update(WeightsManState* o)
 {
-    if (!no_update_weights && o->GetWeightsId() != ((MapCanvas*) template_canvas)->GetWeightsId()) {
+    boost::uuids::uuid w_id = ((MapCanvas*) template_canvas)->GetWeightsId();
+    if (!no_update_weights && o->GetWeightsId() != w_id) {
         // add_evt
         ((MapCanvas*) template_canvas)->SetWeightsId(o->GetWeightsId());
         return;

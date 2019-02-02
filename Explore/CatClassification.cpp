@@ -1380,9 +1380,11 @@ PopulateCatClassifData(const CatClassifDef& cat_def,
 				}
                 ss.str("");
 				ss << "[";
-                if (min_val == (int) min_val) ss << (int) min_val; else ss << min_val;
+                if (min_val == (int) min_val) ss << (int) min_val;
+                else ss << min_val;
                 ss << " : ";
-                if (max_val == (int) max_val) ss << (int) max_val; else ss << max_val;
+                if (max_val == (int) max_val) ss << (int) max_val;
+                else ss << max_val;
                 ss << "]";
 				cat_data.SetCategoryLabel(t, 0, wxString(ss.str()));
 				cat_data.SetCategoryCount(t, 0, num_obs);

@@ -20,6 +20,7 @@
 #include <wx/xrc/xmlres.h>
 #include <boost/foreach.hpp>
 
+#include "../Algorithms/DataClassify.h"
 #include "../DialogTools/ExportDataDlg.h"
 #include "../DataViewer/OGRTable.h"
 #include "../logger.h"
@@ -112,10 +113,11 @@ void NetworkMapCanvas::DisplayRightClickMenu(const wxPoint& pos)
     sel1 = pos;
 
     wxMenu* popupMenu = new wxMenu(wxEmptyString);
-
-    popupMenu->Append(XRCID("NETWORKMAP_SET_START"), "Set Start Location Here");
-    popupMenu->Append(XRCID("NETWORKMAP_SHOW_MAP"), "Toggle Road/Network");
-    popupMenu->Append(XRCID("NETWORKMAP_SAVE_MAP"), "Save Road/Network Heatmap");
+    wxMenu* optMenu = wxXmlResource::Get()->LoadMenu("ID_ROAD_CHANGE_CLASSIFICATION");
+    popupMenu->AppendSubMenu(optMenu, _("Change Map Classification"));
+    popupMenu->Append(XRCID("NETWORKMAP_SET_START"), _("Set Start Location Here"));
+    popupMenu->Append(XRCID("NETWORKMAP_SHOW_MAP"), _("Toggle Road/Network"));
+    popupMenu->Append(XRCID("NETWORKMAP_SAVE_MAP"), _("Save Road/Network Heatmap"));
 
     Connect(XRCID("NETWORKMAP_SHOW_MAP"), wxEVT_COMMAND_MENU_SELECTED,
             wxCommandEventHandler(NetworkMapCanvas::OnToggleRoadNetwork));
@@ -294,7 +296,7 @@ void NetworkMapCanvas::CreateHexMap()
             }
         }
     }
-    std::vector<int> selectable_costs;
+    selectable_costs.clear();
     for (size_t i=0; i<hexagons.size(); ++i) {
         for (size_t j=0; j< hexagons[i].size(); ++j) {
             if (costs[i][j] == INT_MAX) continue;
@@ -310,7 +312,16 @@ void NetworkMapCanvas::CreateHexMap()
     }
 
     // Reset categories
-    cat_data.CreateEmptyCategories(num_time_vals, selectable_shps.size());
+    if (travel->IsOpenStreeMap()) {
+        UpdateCategoriesByTime();
+    } else {
+        UpdateCategoriesByLength();
+    }
+}
+
+void NetworkMapCanvas::UpdateCategoriesByTime()
+{
+    cat_data.CreateEmptyCategories(num_time_vals, selectable_costs.size());
     cat_data.CreateCategoriesAtCanvasTm(num_cats, 0);
 
     int time[9] = {5, 10, 15, 20, 25, 30, 40, 50, 60};
@@ -330,6 +341,52 @@ void NetworkMapCanvas::CreateHexMap()
     };
     for (size_t i=0; i< num_cats; ++i) {
         cat_data.SetCategoryLabel(0, i, labels[i]);
+        cat_data.SetCategoryColor(0, i, color_vec[i]);
+        int count = cat_data.GetNumObsInCategory(0, i);
+        cat_data.SetCategoryCount(0, i, count);
+    }
+}
+
+void NetworkMapCanvas::UpdateCategoriesByLength()
+{
+    std::vector<double> sel_costs(selectable_costs.size());
+    for (size_t i=0; i<selectable_costs.size(); ++i) {
+        sel_costs[i] = selectable_costs[i];
+    }
+    std::vector<bool> undefs(sel_costs.size(), false);
+    int n_breaks = 10;
+    std::vector<double> breaks = ClassifyUtils::NaturalBreaks(sel_costs,
+                                                              undefs, n_breaks);
+
+    cat_data.CreateEmptyCategories(num_time_vals, sel_costs.size());
+    cat_data.CreateCategoriesAtCanvasTm(n_breaks, 0);
+    
+    for (size_t i=0; i<sel_costs.size(); ++i) {
+        bool added = false;
+        for (size_t j=0; j<breaks.size(); j++) {
+            if (sel_costs[i] < breaks[j]) {
+                cat_data.AppendIdToCategory(0, j, i);
+                added = true;
+                break;
+            }
+        }
+        if (added == false) cat_data.AppendIdToCategory(0, n_breaks, i);
+    }
+
+    color_type = CatClassification::sequential_color_scheme;
+    CatClassification::PickColorSet(color_vec, color_type, n_breaks, false);
+
+    wxString lbl_tpt = "[%.2f, %.2f]";
+    for (size_t i=0; i< n_breaks; ++i) {
+        wxString lbl;
+        if (i == 0) {
+            lbl << "< " << breaks[i];
+        } else if (i < n_breaks - 1) {
+            lbl = wxString::Format(lbl_tpt, breaks[i-1], breaks[i]);
+        } else {
+            lbl << "> " << breaks[i-1];
+        }
+        cat_data.SetCategoryLabel(0, i, lbl);
         cat_data.SetCategoryColor(0, i, color_vec[i]);
         int count = cat_data.GetNumObsInCategory(0, i);
         cat_data.SetCategoryCount(0, i, count);
@@ -386,7 +443,8 @@ void NetworkMapCanvas::DrawTravelPath()
         wxStatusBar* sb = 0;
         if (template_frame) sb = template_frame->GetStatusBar();
         wxString current_txt;
-        current_txt << "cost=" << cost << " seconds";
+        current_txt << "cost=" << cost;
+        if (travel->IsOpenStreeMap()) current_txt << " seconds";
         sb->SetStatusText(current_txt);
     }
 }
@@ -508,4 +566,10 @@ void NetworkMapFrame::OnActivate(wxActivateEvent& event)
         RegisterAsActive("NetworkMapFrame", GetTitle());
     }
     if ( event.GetActive() && template_canvas ) template_canvas->SetFocus();
+}
+
+void NetworkMapFrame::OnNaturalBreaks(int num_cats)
+{
+    NetworkMapCanvas* canvas = (NetworkMapCanvas*) template_canvas;
+    canvas->UpdateCategoriesByLength();
 }

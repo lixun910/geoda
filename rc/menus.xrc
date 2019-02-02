@@ -3255,6 +3255,126 @@
     </object>
     <label>Options</label>
   </object>
+  <object class="wxMenu" name="ID_ROAD_CHANGE_CLASSIFICATION">
+      <object class="wxMenu" name="ID_QUANTILE_SUBMENU">
+          <label>Quantile</label>
+          <object class="wxMenuItem" name="ID_QUANTILE_2">
+              <label>2</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_QUANTILE_3">
+              <label>3</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_QUANTILE_4">
+              <label>4</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_QUANTILE_5">
+              <label>5</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_QUANTILE_6">
+              <label>6</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_QUANTILE_7">
+              <label>7</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_QUANTILE_8">
+              <label>8</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_QUANTILE_9">
+              <label>9</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_QUANTILE_10">
+              <label>10</label>
+              <checkable>1</checkable>
+          </object>
+      </object>
+      <object class="wxMenu" name="ID_NATURAL_BREAKS_SUBMENU">
+          <label>Natural Breaks</label>
+          <object class="wxMenuItem" name="ID_NATURAL_BREAKS_2">
+              <label>2</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_NATURAL_BREAKS_3">
+              <label>3</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_NATURAL_BREAKS_4">
+              <label>4</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_NATURAL_BREAKS_5">
+              <label>5</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_NATURAL_BREAKS_6">
+              <label>6</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_NATURAL_BREAKS_7">
+              <label>7</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_NATURAL_BREAKS_8">
+              <label>8</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_NATURAL_BREAKS_9">
+              <label>9</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_NATURAL_BREAKS_10">
+              <label>10</label>
+              <checkable>1</checkable>
+          </object>
+      </object>
+      <object class="wxMenu" name="ID_EQUAL_INTERVALS_SUBMENU">
+          <label>Equal Intervals</label>
+          <object class="wxMenuItem" name="ID_EQUAL_INTERVALS_2">
+              <label>2</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_EQUAL_INTERVALS_3">
+              <label>3</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_EQUAL_INTERVALS_4">
+              <label>4</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_EQUAL_INTERVALS_5">
+              <label>5</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_EQUAL_INTERVALS_6">
+              <label>6</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_EQUAL_INTERVALS_7">
+              <label>7</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_EQUAL_INTERVALS_8">
+              <label>8</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_EQUAL_INTERVALS_9">
+              <label>9</label>
+              <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="ID_EQUAL_INTERVALS_10">
+              <label>10</label>
+              <checkable>1</checkable>
+          </object>
+      </object>
+      <label>Change Map Classification</label>
+  </object>
   <object class="wxMenu" name="ID_MAP_NEW_VIEW_MENU_OPTIONS">
     <object class="wxMenu" name="ID_CAT_CLASSIF_A_MENU">
       <object class="wxMenuItem" name="ID_MAPANALYSIS_THEMELESS">

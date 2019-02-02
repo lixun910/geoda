@@ -41,6 +41,7 @@
 		A164C0D92202B21B00B00AD0 /* dijkstra.cl in Sources */ = {isa = PBXBuildFile; fileRef = A164C0CE2202B21B00B00AD0 /* dijkstra.cl */; };
 		A164C0DA2202B24300B00AD0 /* dijkstra.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = A164C0CE2202B21B00B00AD0 /* dijkstra.cl */; };
 		A16BA470183D626200D3B7DA /* DatasourceDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A16BA46E183D626200D3B7DA /* DatasourceDlg.cpp */; };
+		A1829C692204F81600F07CBA /* DataClassify.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1829C672204F81600F07CBA /* DataClassify.cpp */; };
 		A186F0A11C16508A00AEBA13 /* GdaCartoDB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A186F09F1C16508A00AEBA13 /* GdaCartoDB.cpp */; };
 		A188EA2B21D58F5600D5EFE7 /* RoadDistancesDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A188EA2921D58F5500D5EFE7 /* RoadDistancesDlg.cpp */; };
 		A1894C3F213F29DC00718FFC /* SpatialJoinDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1894C3D213F29DC00718FFC /* SpatialJoinDlg.cpp */; };
@@ -345,6 +346,7 @@
 		A1230E612130E783002AB30A /* MapLayer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MapLayer.hpp; sourceTree = "<group>"; };
 		A1230E632130E81A002AB30A /* MapLayerTree.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MapLayerTree.cpp; sourceTree = "<group>"; };
 		A1230E642130E81A002AB30A /* MapLayerTree.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MapLayerTree.hpp; sourceTree = "<group>"; };
+		A12789E7220402CE00D3B772 /* TravelTool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TravelTool.h; path = OSMTools/TravelTool.h; sourceTree = "<group>"; };
 		A12E0F4D1705087A00B6059C /* OGRDataAdapter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OGRDataAdapter.h; sourceTree = "<group>"; };
 		A12E0F4E1705087A00B6059C /* OGRDataAdapter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OGRDataAdapter.cpp; sourceTree = "<group>"; };
 		A12F1A3D21E56F6C00535157 /* map_marker.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = map_marker.png; path = BuildTools/CommonDistFiles/web_plugins/map_marker.png; sourceTree = "<group>"; };
@@ -386,6 +388,8 @@
 		A16BA46F183D626200D3B7DA /* DatasourceDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DatasourceDlg.h; sourceTree = "<group>"; };
 		A171FBFE1792332A000DD5A0 /* GdaException.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GdaException.h; sourceTree = "<group>"; };
 		A17336821C06917B00579354 /* WeightsManInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WeightsManInterface.h; path = VarCalc/WeightsManInterface.h; sourceTree = "<group>"; };
+		A1829C672204F81600F07CBA /* DataClassify.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = DataClassify.cpp; path = Algorithms/DataClassify.cpp; sourceTree = "<group>"; };
+		A1829C682204F81600F07CBA /* DataClassify.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DataClassify.h; path = Algorithms/DataClassify.h; sourceTree = "<group>"; };
 		A186F09F1C16508A00AEBA13 /* GdaCartoDB.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GdaCartoDB.cpp; sourceTree = "<group>"; };
 		A186F0A01C16508A00AEBA13 /* GdaCartoDB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GdaCartoDB.h; sourceTree = "<group>"; };
 		A188EA2921D58F5500D5EFE7 /* RoadDistancesDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RoadDistancesDlg.cpp; sourceTree = "<group>"; };
@@ -969,6 +973,7 @@
 				A164C0C82202B21A00B00AD0 /* RoadUtils.cpp */,
 				A164C0CB2202B21B00B00AD0 /* RoadUtils.h */,
 				A164C0CA2202B21B00B00AD0 /* TravelTool.cpp */,
+				A12789E7220402CE00D3B772 /* TravelTool.h */,
 				A164C0C52202B21A00B00AD0 /* uiRoadDownload.cpp */,
 				A164C0D02202B21B00B00AD0 /* uiRoadDownload.h */,
 				A164C0C42202B21A00B00AD0 /* uiTravelDistances.cpp */,
@@ -1101,6 +1106,8 @@
 				A45DBDF01EDDEDAD00C2AA8A /* pca.h */,
 				A45DBDF31EDDEDAD00C2AA8A /* cluster.cpp */,
 				A45DBDF21EDDEDAD00C2AA8A /* cluster.h */,
+				A1829C672204F81600F07CBA /* DataClassify.cpp */,
+				A1829C682204F81600F07CBA /* DataClassify.h */,
 			);
 			name = Algorithms;
 			sourceTree = "<group>";
@@ -1896,6 +1903,7 @@
 				DD115EA312BBDDA000E1CC73 /* ProgressDlg.cpp in Sources */,
 				DDD593AC12E9F34C00F7A7C4 /* GeodaWeight.cpp in Sources */,
 				DDD593B012E9F42100F7A7C4 /* WeightsManager.cpp in Sources */,
+				A1829C692204F81600F07CBA /* DataClassify.cpp in Sources */,
 				A194839C2118BAAA009A87A2 /* mfutils.cpp in Sources */,
 				A1AC05BF1C8645F300B6FE5F /* AdjustYAxisDlg.cpp in Sources */,
 				A194839A2118BAAA009A87A2 /* lines.cpp in Sources */,
