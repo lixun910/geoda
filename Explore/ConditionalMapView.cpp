@@ -981,7 +981,12 @@ BEGIN_EVENT_TABLE(ConditionalMapFrame, ConditionalNewFrame)
 	EVT_ACTIVATE(ConditionalMapFrame::OnActivate)	
 END_EVENT_TABLE()
 
-ConditionalMapFrame::ConditionalMapFrame(wxFrame *parent, Project* project, const vector<GdaVarTools::VarInfo>& var_info, const vector<int>& col_ids, const wxString& title, const wxPoint& pos, const wxSize& size, const long style)
+ConditionalMapFrame::ConditionalMapFrame(wxFrame *parent, Project* project,
+                                         const vector<GdaVarTools::VarInfo>& var_info,
+                                         const vector<int>& col_ids,
+                                         const wxString& title,
+                                         const wxPoint& pos,
+                                         const wxSize& size, const long style)
 : ConditionalNewFrame(parent, project, var_info, col_ids, title, pos, size, style)
 {
     

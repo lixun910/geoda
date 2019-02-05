@@ -30,6 +30,7 @@
 #include <wx/regex.h>
 
 #include "../Project.h"
+#include "../VarTools.h"
 #include "../GeoDa.h"
 #include "../logger.h"
 #include "../ShapeOperations/OGRDataAdapter.h"
@@ -1655,4 +1656,28 @@ bool OGRTable::IsValidDBColName(const wxString& col_nm,
     	*fld_warn_msg = GdaConst::datasrc_field_warning[datasource_type];
 	}
     return false;
+}
+
+GdaVarTools::VarInfo OGRTable::GetVariableInfo(const wxString& col_nm)
+{
+    GdaVarTools::VarInfo var_info;
+
+    int col_idx, tm_idx;
+
+    if (DbColNmToColAndTm(col_nm, col_idx, tm_idx)) {
+        var_info.col_index = col_idx;
+        var_info.name = GetColName(col_idx);
+        var_info.time = tm_idx;
+        var_info.is_time_variant = IsColTimeVariant(col_idx);
+        if (var_info.is_time_variant) {
+            int n_timesteps = GetColTimeSteps(col_idx);
+            var_info.time_min = 0;
+            var_info.time_max = n_timesteps>0 ? n_timesteps - 1 : 0;
+        }
+        GetMinMaxVals(col_idx, var_info.min, var_info.max);
+        var_info.sync_with_global_time = var_info.is_time_variant;
+        var_info.fixed_scale = true;
+    }
+
+    return var_info;
 }

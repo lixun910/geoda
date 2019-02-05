@@ -20,6 +20,7 @@
 #include <wx/xrc/xmlres.h>
 #include <boost/foreach.hpp>
 
+#include "CatClassifManager.h"
 #include "../Algorithms/DataClassify.h"
 #include "../DialogTools/ExportDataDlg.h"
 #include "../DataViewer/OGRTable.h"
@@ -55,10 +56,6 @@ b_draw_hex_map(false), b_draw_travel_path(false), radius(_radius),
 default_speed(_default_speed), penalty(_penalty)
 {
     selectable_shps_type = polygons; // for hex polygons
-    tran_unhighlighted = (1-0.4) * 255; // change default transparency
-    isDrawBasemap = true;
-    basemap_item = GetBasemapSelection(1); // carto
-    DrawBasemap(true, basemap_item);
     
     vector<OGRFeature*>& roads = project->layer_proxy->data;
 
@@ -93,6 +90,47 @@ default_speed(_default_speed), penalty(_penalty)
     b_draw_hex_map = true;
     has_start_loc = true;
 
+    // default time cost categories
+    /*
+    wxString default_time_cost_cat = _("Default Travel Time Category");
+    CatClassifManager* cat_classif_manager = project->GetCatClassifManager();
+    CatClassifState* cc = cat_classif_manager->FindClassifState(default_time_cost_cat);
+    if (cc == NULL && travel->IsOpenStreeMap()) {
+        default_time_cat.title = default_time_cost_cat;
+        default_time_cat.cat_classif_type = CatClassification::custom;
+        default_time_cat.break_vals_type = CatClassification::custom_break_vals;
+        default_time_cat.num_cats = 10;
+        default_time_cat.names.resize(10);
+        default_time_cat.names[0] = _("5 mins");
+        default_time_cat.names[1] = _("10 mins");
+        default_time_cat.names[2] = _("15 mins");
+        default_time_cat.names[3] = _("20 mins");
+        default_time_cat.names[4] = _("25 mins");
+        default_time_cat.names[5] = _("30 mins");
+        default_time_cat.names[6] = _("40 mins");
+        default_time_cat.names[7] = _("50 mins");
+        default_time_cat.names[8] = _("60 mins");
+        default_time_cat.names[9] = _("> 60 mins");
+        default_time_cat.assoc_db_fld_name = "";
+        default_time_cat.breaks.resize(9);
+        default_time_cat.breaks[0] = 300; // seconds
+        default_time_cat.breaks[1] = 600;
+        default_time_cat.breaks[2] = 900;
+        default_time_cat.breaks[3] = 1200;
+        default_time_cat.breaks[4] = 1500;
+        default_time_cat.breaks[5] = 1800;
+        default_time_cat.breaks[6] = 2400;
+        default_time_cat.breaks[7] = 3000;
+        default_time_cat.breaks[8] = 3600;
+        default_time_cat.color_scheme = CatClassification::sequential_color_scheme;
+        cat_classif_manager->CreateNewClassifState(default_time_cat);
+    }
+     */
+    tran_unhighlighted = (1-0.4) * 255; // change default transparency
+    isDrawBasemap = true;
+    basemap_item = GetBasemapSelection(1); // carto
+    DrawBasemap(true, basemap_item);
+    
     PopulateCanvas();
 }
 
@@ -114,38 +152,61 @@ void NetworkMapCanvas::DisplayRightClickMenu(const wxPoint& pos)
 
     wxMenu* popupMenu = new wxMenu(wxEmptyString);
     wxMenu* optMenu = wxXmlResource::Get()->LoadMenu("ID_ROAD_CHANGE_CLASSIFICATION");
+    optMenu->Append(XRCID("NETWORKMAP_TIME_CATEGORIES"),
+                    _("Default Travel Time Categories"));
     popupMenu->AppendSubMenu(optMenu, _("Change Map Classification"));
     popupMenu->Append(XRCID("NETWORKMAP_SET_START"), _("Set Start Location Here"));
-    popupMenu->Append(XRCID("NETWORKMAP_SHOW_MAP"), _("Toggle Road/Network"));
+    //popupMenu->Append(XRCID("NETWORKMAP_SHOW_MAP"), _("Toggle Road/Network"));
     popupMenu->Append(XRCID("NETWORKMAP_SAVE_MAP"), _("Save Road/Network Heatmap"));
 
-    Connect(XRCID("NETWORKMAP_SHOW_MAP"), wxEVT_COMMAND_MENU_SELECTED,
-            wxCommandEventHandler(NetworkMapCanvas::OnToggleRoadNetwork));
+    //Connect(XRCID("NETWORKMAP_SHOW_MAP"), wxEVT_COMMAND_MENU_SELECTED,
+    //        wxCommandEventHandler(NetworkMapCanvas::OnToggleRoadNetwork));
     Connect(XRCID("NETWORKMAP_SET_START"), wxEVT_COMMAND_MENU_SELECTED,
             wxCommandEventHandler(NetworkMapCanvas::OnSetStartLocation));
     Connect(XRCID("NETWORKMAP_SAVE_MAP"), wxEVT_COMMAND_MENU_SELECTED,
             wxCommandEventHandler(NetworkMapCanvas::OnSaveHeatmap));
+    Connect(XRCID("NETWORKMAP_TIME_CATEGORIES"), wxEVT_COMMAND_MENU_SELECTED,
+            wxCommandEventHandler(NetworkMapCanvas::OnDefaultTimeCategories));
+
     PopupMenu(popupMenu, pos);
+}
+
+void NetworkMapCanvas::OnDefaultTimeCategories(wxCommandEvent& event)
+{
+    UpdateCategoriesByTime();
+    ReDraw();
+    if (template_frame) {
+        TemplateLegend* legend = template_frame->GetTemplateLegend();
+        if (legend) {
+            legend->Recreate();
+        }
+    }
 }
 
 void NetworkMapCanvas::OnToggleRoadNetwork(wxCommandEvent& event)
 {
-    is_hide = !is_hide;
-    layer0_valid = false;
-    PopulateCanvas();
 }
 
 wxColour NetworkMapCanvas::GetColorByCost(int cost)
 {
-    int time[9] = {5, 10, 15, 20, 25, 30, 40, 50, 60};
-
-    for (size_t i=0; i<9; ++i) {
-        if (cost < time[i] * 60) {
-            return color_vec[i];
-        }
-    }
     if (cost == INT_MAX) return wxColour(255,255,255,0);
-    return color_vec[9];
+
+    if (travel->IsOpenStreeMap()) {
+        int time[9] = {5, 10, 15, 20, 25, 30, 40, 50, 60};
+        for (size_t i=0; i<9; ++i) {
+            if (cost < time[i] * 60) {
+                return color_vec[i];
+            }
+        }
+        return color_vec[9];
+    } else {
+        for (size_t i=0; i<breaks.size(); ++i) {
+            if (cost < breaks[i]) {
+                return color_vec[i];
+            }
+        }
+        return color_vec[breaks.size() -1];
+    }
 }
 
 void NetworkMapCanvas::OnMouseEvent(wxMouseEvent& event)
@@ -276,9 +337,6 @@ void NetworkMapCanvas::UpdateStatusBar()
 
 void NetworkMapCanvas::CreateHexMap()
 {
-    for (size_t i=0; i<selectable_shps.size(); ++i) delete selectable_shps[i];
-    selectable_shps.clear();
-
     OGREnvelope extent;
     project->GetMapExtent(extent);
     double hexagon_radius = radius; // meter
@@ -287,16 +345,25 @@ void NetworkMapCanvas::CreateHexMap()
     travel->QueryHexMap(from_pt, extent, hexagon_radius, hexagons, costs,
                         create_hexagons);
 
-    // draw hexagon distance map
-    int max_cost = INT_MIN;
-    for (size_t i=0; i<costs.size(); ++i) {
-        for (size_t j=0; j< costs[i].size(); ++j) {
-            if (costs[i][j] < INT_MAX && costs[i][j] > max_cost) {
-                max_cost = costs[i][j];
-            }
+    // Get selectable objects and its costs
+    selectable_costs.clear();
+    for (size_t i=0; i<hexagons.size(); ++i) {
+        for (size_t j=0; j< hexagons[i].size(); ++j) {
+            if (costs[i][j] == INT_MAX) continue;
+            selectable_costs.push_back(costs[i][j]);
         }
     }
-    selectable_costs.clear();
+
+    // Use selectable Costs to create categories
+    if (travel->IsOpenStreeMap()) {
+        UpdateCategoriesByTime();
+    } else {
+        UpdateCategoriesByLength(natural_breaks);
+    }
+
+    // Create Selectable Shapes
+    for (size_t i=0; i<selectable_shps.size(); ++i) delete selectable_shps[i];
+    selectable_shps.clear();
     for (size_t i=0; i<hexagons.size(); ++i) {
         for (size_t j=0; j< hexagons[i].size(); ++j) {
             if (costs[i][j] == INT_MAX) continue;
@@ -307,20 +374,17 @@ void NetworkMapCanvas::CreateHexMap()
             gda_poly->setBrush(brush);
             gda_poly->setPen(*wxTRANSPARENT_PEN);
             selectable_shps.push_back(gda_poly);
-            selectable_costs.push_back(costs[i][j]);
         }
-    }
-
-    // Reset categories
-    if (travel->IsOpenStreeMap()) {
-        UpdateCategoriesByTime();
-    } else {
-        UpdateCategoriesByLength();
     }
 }
 
 void NetworkMapCanvas::UpdateCategoriesByTime()
 {
+    // default cat is 10
+    num_cats  = 10;
+    color_type = CatClassification::sequential_color_scheme;
+    CatClassification::PickColorSet(color_vec, color_type, num_cats, false);
+
     cat_data.CreateEmptyCategories(num_time_vals, selectable_costs.size());
     cat_data.CreateCategoriesAtCanvasTm(num_cats, 0);
 
@@ -339,6 +403,7 @@ void NetworkMapCanvas::UpdateCategoriesByTime()
     wxString labels[10] = {"5 min", "10 min", "15 min", "20 min", "25 min",
         "30 min", "40 min", "50 min", "60 min", ">60 min"
     };
+
     for (size_t i=0; i< num_cats; ++i) {
         cat_data.SetCategoryLabel(0, i, labels[i]);
         cat_data.SetCategoryColor(0, i, color_vec[i]);
@@ -347,16 +412,21 @@ void NetworkMapCanvas::UpdateCategoriesByTime()
     }
 }
 
-void NetworkMapCanvas::UpdateCategoriesByLength()
+void NetworkMapCanvas::UpdateCategoriesByLength(BreakMethod method, int num_cats)
 {
     std::vector<double> sel_costs(selectable_costs.size());
     for (size_t i=0; i<selectable_costs.size(); ++i) {
         sel_costs[i] = selectable_costs[i];
     }
     std::vector<bool> undefs(sel_costs.size(), false);
-    int n_breaks = 10;
-    std::vector<double> breaks = ClassifyUtils::NaturalBreaks(sel_costs,
-                                                              undefs, n_breaks);
+    int n_breaks = num_cats;
+    breaks.clear();
+    if (method == natural_breaks)
+        breaks = ClassifyUtils::NaturalBreaks(sel_costs, undefs, n_breaks);
+    else if (method == quantile_breaks)
+        breaks = ClassifyUtils::QuantileBreaks(sel_costs, undefs, n_breaks);
+    else
+        breaks = ClassifyUtils::EqualBreaks(sel_costs, undefs, n_breaks);
 
     cat_data.CreateEmptyCategories(num_time_vals, sel_costs.size());
     cat_data.CreateCategoriesAtCanvasTm(n_breaks, 0);
@@ -571,5 +641,23 @@ void NetworkMapFrame::OnActivate(wxActivateEvent& event)
 void NetworkMapFrame::OnNaturalBreaks(int num_cats)
 {
     NetworkMapCanvas* canvas = (NetworkMapCanvas*) template_canvas;
-    canvas->UpdateCategoriesByLength();
+    canvas->UpdateCategoriesByLength(NetworkMapCanvas::natural_breaks, num_cats);
+    canvas->ReDraw();
+    template_legend->Recreate();
+}
+
+void NetworkMapFrame::OnEqualIntervals(int num_cats)
+{
+    NetworkMapCanvas* canvas = (NetworkMapCanvas*) template_canvas;
+    canvas->UpdateCategoriesByLength(NetworkMapCanvas::equal_breaks, num_cats);
+    canvas->ReDraw();
+    template_legend->Recreate();
+}
+
+void NetworkMapFrame::OnQuantile(int num_cats)
+{
+    NetworkMapCanvas* canvas = (NetworkMapCanvas*) template_canvas;
+    canvas->UpdateCategoriesByLength(NetworkMapCanvas::quantile_breaks, num_cats);
+    canvas->ReDraw();
+    template_legend->Recreate();
 }

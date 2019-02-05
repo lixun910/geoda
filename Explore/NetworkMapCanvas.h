@@ -31,6 +31,8 @@ class NetworkMapCanvas : public MapCanvas
 {
     DECLARE_CLASS(NetworkMapCanvas)
 public:
+    enum BreakMethod {natural_breaks, quantile_breaks, equal_breaks};
+
     NetworkMapCanvas(wxWindow *parent,
                      TemplateFrame* frame,
                      Project* project,
@@ -51,7 +53,8 @@ public:
     virtual void DisplayRightClickMenu(const wxPoint& pos);
     virtual void UpdateStatusBar();
 
-    void UpdateCategoriesByLength();
+    void UpdateCategoriesByLength(BreakMethod method, int num_cats = 10);
+    void UpdateCategoriesByTime();
 
 protected:
     //OSMTools::GradientColor* gradient_color;
@@ -76,17 +79,17 @@ protected:
     std::vector<wxColour> color_vec;
     std::vector<wxColour> color_labels;
     CatClassification::ColorScheme color_type;
+    CatClassifDef default_time_cat;
+    std::vector<double> breaks;
 
     void CreateHexMap();
     void DrawTravelPath();
-    void UpdateCategoriesByTime();
-
 
     wxColour GetColorByCost(int cost);
     void OnToggleRoadNetwork(wxCommandEvent& event);
     void OnSetStartLocation(wxCommandEvent& event);
     void OnSaveHeatmap(wxCommandEvent& event);
-
+    void OnDefaultTimeCategories(wxCommandEvent& event);
     DECLARE_EVENT_TABLE()
 };
 
@@ -110,6 +113,8 @@ public:
 
     void OnActivate(wxActivateEvent& event);
     virtual void OnNaturalBreaks(int num_cats);
+    virtual void OnEqualIntervals(int num_cats);
+    virtual void OnQuantile(int num_cats);
 
 protected:
 

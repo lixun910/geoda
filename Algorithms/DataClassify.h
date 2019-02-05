@@ -29,8 +29,18 @@ protected:
 
     static std::vector<int> sort(std::vector<double>& vals);
 
+    static double percentile(double x, std::vector<double> &v);
+    
 public:
     static std::vector<double> NaturalBreaks(const std::vector<double>& vals,
+                                             const std::vector<bool>& undefs,
+                                             int n_breaks);
+
+    static std::vector<double> QuantileBreaks(const std::vector<double>& vals,
+                                             const std::vector<bool>& undefs,
+                                             int n_breaks);
+
+    static std::vector<double> EqualBreaks(const std::vector<double>& vals,
                                              const std::vector<bool>& undefs,
                                              int n_breaks);
 };

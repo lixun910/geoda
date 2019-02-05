@@ -20,6 +20,7 @@
 #include <set>
 #include <boost/foreach.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <wx/log.h>
 #include "../Explore/CatClassifManager.h"
 #include "../GdaException.h"
 #include "../logger.h"
@@ -28,20 +29,20 @@
 
 CustomClassifPtree::CustomClassifPtree()
 {
-    LOG_MSG("Entering CustomClassifPtree::CustomClassifPtree()");
-    LOG_MSG("Exiting CustomClassifPtree::CustomClassifPtree()");
+    wxLogMessage("Entering CustomClassifPtree::CustomClassifPtree()");
+    wxLogMessage("Exiting CustomClassifPtree::CustomClassifPtree()");
 }
 
 CustomClassifPtree::CustomClassifPtree(const CustomClassifPtree& o)
 {
-    LOG_MSG("Entering CustomClassifPtree::CustomClassifPtree(const CustomClassifPtree& o)");
+    wxLogMessage("Entering CustomClassifPtree::CustomClassifPtree(const CustomClassifPtree& o)");
     
     std::list<CatClassifDef>::const_iterator it;
     for (it = o.cc.begin(); it != o.cc.end(); ++it) {
         cc.push_back( *it );
     }
     
-    LOG_MSG("Exiting CustomClassifPtree::CustomClassifPtree(const CustomClassifPtree& o)");
+    wxLogMessage("Exiting CustomClassifPtree::CustomClassifPtree(const CustomClassifPtree& o)");
 }
 
 CustomClassifPtree::CustomClassifPtree(const boost::property_tree::ptree& pt,
@@ -62,7 +63,7 @@ CustomClassifPtree* CustomClassifPtree::Clone()
 void CustomClassifPtree::ReadPtree(const boost::property_tree::ptree& pt,
 								   const wxString& proj_path)
 {
-	LOG_MSG("Entering CustomClassifPtree::ReadPtree");
+	wxLogMessage("Entering CustomClassifPtree::ReadPtree");
 	using boost::property_tree::ptree;
 	using namespace std;
 	
@@ -268,7 +269,7 @@ void CustomClassifPtree::ReadPtree(const boost::property_tree::ptree& pt,
 		throw GdaException(e.what());
 	}
 	
-	LOG_MSG("Exiting CustomClassifPtree::ReadPtree");
+	wxLogMessage("Exiting CustomClassifPtree::ReadPtree");
 }
 
 void CustomClassifPtree::WritePtree(boost::property_tree::ptree& pt,
@@ -281,6 +282,11 @@ void CustomClassifPtree::WritePtree(boost::property_tree::ptree& pt,
 
 		// Write each custom classification definition
 		BOOST_FOREACH(const CatClassifDef& c, cc) {
+            if (c.assoc_db_fld_name.empty()) {
+                // empty field name means it's a virtual in-memory catogry
+                // e.g. travel time categories
+                continue;
+            }
 			ptree& sub = subtree.add("classification_definition", "");
 			sub.put("title", c.title);
 			CatClassification::BreakValsType type = c.break_vals_type;

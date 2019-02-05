@@ -420,13 +420,7 @@ public:
 					   const vector<GdaVarTools::VarInfo>& new_var_info,
 					   const vector<int>& new_col_ids,
 					   const wxString& custom_classif_title = wxEmptyString);
-    void SetLegendLabel(int cat, wxString label) {
-        if (!template_canvas) return;
-        MapCanvas* map_canvs_ref = (MapCanvas*) template_canvas;
-        map_canvs_ref->SetLegendLabel(cat, label);
-        if (!template_legend) return;
-        template_legend->Recreate();
-    }
+    void SetLegendLabel(int cat, wxString label);
     void AppendCustomCategories(wxMenu* menu, CatClassifManager* ccm);
     
 	
@@ -434,6 +428,7 @@ public:
     vector<int> col_ids;
     
 protected:
+    //Project* project;
     wxBoxSizer* rbox;
 
     MapTreeFrame* map_tree;

@@ -726,8 +726,8 @@ void Project::UpdateProjectConf()
         cc->SetCatClassifList(GetCatClassifManager());
 	WeightsManPtree* spatial_weights = layer_conf->GetWeightsManPtree();
 	WeightsNewManager* wnm = ((WeightsNewManager*) GetWManInt());
-	if (spatial_weights) spatial_weights->
-		SetWeightsMetaInfoList(wnm->GetPtreeEntries());
+	if (spatial_weights)
+        spatial_weights->SetWeightsMetaInfoList(wnm->GetPtreeEntries());
 	DefaultVarsPtree* default_vars = layer_conf->GetDefaultVarsPtree();
 	{
 		std::vector<wxString> def_tm_ids(default_var_time.size());
@@ -1481,8 +1481,8 @@ bool Project::CommonProjectInit()
 	save_manager = new SaveButtonManager(GetTableState(), GetWManState());
     
 	if (spatial_weights) {
-		((WeightsNewManager*) w_man_int)->
-		Init(spatial_weights->GetWeightsMetaInfoList());
+        const std::list<WeightsPtreeEntry>& ws = spatial_weights->GetWeightsMetaInfoList();
+		((WeightsNewManager*) w_man_int)->Init(ws);
 	}
     // For create Variable Selection Dialog, which has maximum 4 variables
     // to select from table

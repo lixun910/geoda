@@ -3847,8 +3847,18 @@ void MapFrame::OnCustomCategoryClick(wxCommandEvent& event)
     ccm->GetTitles(titles);
     int idx = xrc_id - GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_A0;
     if (idx < 0 || idx >= titles.size()) return;
+    // get variable defined in custom category
     wxString cc_title = titles[idx];
-    
+    CatClassifState* cat_classif_state = ccm->FindClassifState(cc_title);
+    CatClassifDef& cat_classif = cat_classif_state->GetCatClassif();
+    wxString sel_var_name = cat_classif.assoc_db_fld_name;
+    if (!sel_var_name.empty()) {
+        TableInterface* tbl = project->GetTableInt();
+        GdaVarTools::VarInfo col_info = tbl->GetVariableInfo(sel_var_name);
+        var_info.push_back(col_info);
+        col_ids.push_back(col_info.col_index);
+    }
+
     if (var_info.empty() == false && col_ids.empty() == false) {
         ChangeMapType(CatClassification::custom,
                       MapCanvas::no_smoothing,
@@ -3862,6 +3872,15 @@ void MapFrame::OnCustomCategoryClick(wxCommandEvent& event)
                       4, boost::uuids::nil_uuid(),
                       true, dlg.var_info, dlg.col_ids, cc_title);
     }
+}
+
+void MapFrame::SetLegendLabel(int cat, wxString label)
+{
+    if (!template_canvas) return;
+    MapCanvas* map_canvs_ref = (MapCanvas*) template_canvas;
+    map_canvs_ref->SetLegendLabel(cat, label);
+    if (!template_legend) return;
+    template_legend->Recreate();
 }
 
 void MapFrame::OnSaveRates()

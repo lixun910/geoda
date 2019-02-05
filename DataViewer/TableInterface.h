@@ -30,7 +30,7 @@
 #include "TableState.h"
 #include "TimeState.h"
 #include "TableStateObserver.h"
-
+#include "../VarTools.h"
 #include "../GdaConst.h"
 #include "../VarCalc/GdaFlexValue.h"
 
@@ -272,6 +272,7 @@ public:
     virtual bool IsValidDBColName(const wxString& col_nm,
                                   wxString* fld_warn_msg=0) =0;
 
+    virtual GdaVarTools::VarInfo GetVariableInfo(const wxString& col_nm) = 0;
 	
     /**
      * belows are non-virtual functions
@@ -331,8 +332,7 @@ public:
 	 * for groups.  This is generally much less strict than database
 	 * column names.  Does not verify that name is unique. */
 	virtual bool IsValidGroupName(const wxString&  grp_nm) const;
-    
-    
+
 		
 protected:
 	wxString open_err_msg;

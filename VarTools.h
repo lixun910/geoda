@@ -202,6 +202,7 @@ private:
 struct VarInfo {
 	VarInfo();
 
+    int col_index;
     bool is_hide;
 	// Primary Attributes
 	wxString name;

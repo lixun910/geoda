@@ -679,13 +679,22 @@ void GdaFrame::UpdateToolbarAndMenus()
             CatClassifManager* ccm = project_p->GetCatClassifManager();
             ccm->GetTitles(titles);
             
-            sm->Append(XRCID("ID_NEW_CUSTOM_CAT_CLASSIF_A"), _("Create New Custom"), _("Create new custom categories classification."));
+            sm->Append(XRCID("ID_NEW_CUSTOM_CAT_CLASSIF_A"),
+                       _("Create New Custom"),
+                       _("Create new custom categories classification."));
             sm->AppendSeparator();
             
             for (size_t j=0; j<titles.size(); j++) {
-                wxMenuItem* new_mi = sm->Append(GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_A0+j, titles[j]);
+                int itemid = GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_A0+j;
+                wxMenuItem* new_mi = sm->Append(itemid, titles[j]);
             }
-            GdaFrame::GetGdaFrame()->Bind(wxEVT_COMMAND_MENU_SELECTED, &GdaFrame::OnCustomCategoryClick, GdaFrame::GetGdaFrame(), GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_A0, GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_A0 + titles.size());
+            int itemid_start = GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_A0;
+            int itemid_end = GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_A0 + titles.size();
+
+            GdaFrame::GetGdaFrame()->Bind(wxEVT_COMMAND_MENU_SELECTED,
+                                          &GdaFrame::OnCustomCategoryClick,
+                                          GdaFrame::GetGdaFrame(),
+                                          itemid_start, itemid_end);
         }
     }
 }
@@ -730,7 +739,8 @@ GdaFrame::GdaFrame(const wxString& title, const wxPoint& pos,
 		}
 	}
     
-    wxObject* tb_obj = wxXmlResource::Get()->LoadObject(this, "ToolBar", "wxAuiToolBar");
+    wxObject* tb_obj = wxXmlResource::Get()->LoadObject(this, "ToolBar",
+                                                        "wxAuiToolBar");
 	wxAuiToolBar* tb1 = (wxAuiToolBar*)tb_obj;
     tb1->SetMargins(10,10);
     tb1->SetMinSize(GetMinSize());
@@ -921,10 +931,11 @@ bool GdaFrame::OnCloseProject(bool ignore_unsaved_changes)
 		if (project_p->GetWManState()) {
             project_p->GetWManState()->closeAndDeleteWhenEmpty();
         }
-        
-        if (project_p->GetFramesManager()) {
-            project_p->GetFramesManager()->closeAndDeleteWhenEmpty();
-            std::list<FramesManagerObserver*> observers(project_p->GetFramesManager()->getCopyObservers());
+        FramesManager* frame_manager = project_p->GetFramesManager();
+        if (frame_manager) {
+            frame_manager->closeAndDeleteWhenEmpty();
+            std::list<FramesManagerObserver*> observers;
+            observers = frame_manager->getCopyObservers();
             std::list<FramesManagerObserver*>::iterator it;
             for (it=observers.begin(); it != observers.end(); ++it) {
 				FramesManagerObserver* fmo = *it;
@@ -2121,13 +2132,21 @@ void GdaFrame::OnMapChoices(wxCommandEvent& event)
                 CatClassifManager* ccm = project_p->GetCatClassifManager();
                 ccm->GetTitles(titles);
                
-                sm->Append(XRCID("ID_NEW_CUSTOM_CAT_CLASSIF_A"), _("Create New Custom"), _("Create new custom categories classification."));
+                sm->Append(XRCID("ID_NEW_CUSTOM_CAT_CLASSIF_A"),
+                           _("Create New Custom"),
+                           _("Create new custom categories classification."));
                 sm->AppendSeparator();
-                
+
                 for (size_t j=0; j<titles.size(); j++) {
-                    wxMenuItem* new_mi = sm->Append(GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_A0+j, titles[j]);
+                    int itemid = GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_A0+j;
+                    wxMenuItem* new_mi = sm->Append(itemid, titles[j]);
                 }
-                GdaFrame::GetGdaFrame()->Bind(wxEVT_COMMAND_MENU_SELECTED, &GdaFrame::OnCustomCategoryClick, GdaFrame::GetGdaFrame(), GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_A0, GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_A0 + titles.size());
+                int itemid_start = GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_A0;
+                int itemid_end = GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_A0 + titles.size();
+                GdaFrame::GetGdaFrame()->Bind(wxEVT_COMMAND_MENU_SELECTED,
+                                              &GdaFrame::OnCustomCategoryClick,
+                                              GdaFrame::GetGdaFrame(),
+                                              itemid_start, itemid_end);
             }
         }
         PopupMenu(popupMenu, wxDefaultPosition);

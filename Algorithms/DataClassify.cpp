@@ -5,6 +5,7 @@
 //  Created by Xun Li on 2/1/19.
 //
 #include <set>
+#include <cfloat>
 #include <boost/unordered_map.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
@@ -168,5 +169,76 @@ std::vector<double> ClassifyUtils::NaturalBreaks(const std::vector<double> &_val
         breaks[i] = vals[best_breaks[i]];
     }
 
+    return breaks;
+}
+
+// v is a sorted array
+double ClassifyUtils::percentile(double x, std::vector<double> &v)
+{
+    int N = v.size();
+    double Nd = (double) N;
+    double p_0 = (100.0/Nd) * (1.0-0.5);
+    double p_Nm1 = (100.0/Nd) * (Nd-0.5);
+
+    if (x <= p_0)
+        return v[0];
+
+    if (x >= p_Nm1)
+        return v[N-1];
+
+    for (int i=1; i<N; i++) {
+        double p_i = (100.0/Nd) * ((((double) i)+1.0)-0.5);
+        if (x == p_i) return v[i];
+        if (x < p_i) {
+            double p_im1 = (100.0/Nd) * ((((double) i))-0.5);
+            return v[i-1] + Nd*((x-p_im1)/100.0)*(v[i]-v[i-1]);
+        }
+    }
+    return v[N-1]; // execution should never get here
+}
+
+std::vector<double> ClassifyUtils::QuantileBreaks(const std::vector<double> &_vals,
+                                                 const std::vector<bool> &undefs,
+                                                 int n_breaks)
+{
+    std::vector<double> breaks;
+    std::vector<double> vals = _vals;
+    // sort input array
+    std::vector<int> indices = sort(vals);
+    double val;
+    std::vector<double> valid_vals;
+    for (size_t i=0; i<vals.size(); ++i) {
+        if (undefs[ indices[i] ]) continue;
+        val = vals[i];
+        valid_vals.push_back(val);
+    }
+
+    for (size_t i=0; i<n_breaks; ++i) {
+        double b = ((i+1)*100.0)/((double) n_breaks);
+        val = percentile(b, vals);
+        breaks.push_back(val);
+    }
+    return breaks;
+}
+
+std::vector<double> ClassifyUtils::EqualBreaks(const std::vector<double> &_vals,
+                                               const std::vector<bool> &undefs,
+                                               int n_breaks)
+{
+    std::vector<double> breaks;
+
+    double min_v = DBL_MAX, max_v = DBL_MIN, v;
+    for (size_t i=0; i<_vals.size();++i) {
+        if (undefs[i]) continue;
+        v = _vals[i];
+        if (v < min_v) min_v = v;
+        if (v > max_v) max_v = v;
+    }
+
+    double gap = (max_v - min_v) / n_breaks;
+    for (size_t i=0; i<n_breaks; ++i) {
+        v = v + gap;
+        breaks.push_back(v);
+    }
     return breaks;
 }

@@ -188,6 +188,7 @@ public:
 	virtual void RenameTimeStep(int time, const wxString& new_name);
 	virtual bool IsValidDBColName(const wxString& col_nm,
 								  wxString* fld_warn_msg=0);
+    virtual GdaVarTools::VarInfo GetVariableInfo(const wxString& col_nm);
 };
 
 #endif
