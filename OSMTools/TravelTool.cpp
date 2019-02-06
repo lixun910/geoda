@@ -6,6 +6,7 @@
 #include <boost/thread.hpp>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
+#include <hdf5.h>
 #include "TravelTool.h"
 
 
@@ -601,9 +602,14 @@ void TravelDistanceMatrix::GetDistanceMatrix(std::vector<OGRFeature *> query_poi
 
     ComputeDistMatrix(results);
 
+    pt::ptime startTimeGPUCPU = pt::microsec_clock::local_time();
+
     std::vector<wxString> query_ids;
-    SaveQueryResults(out_file.mb_str(wxConvUTF8), query_size, results,
-                     query_ids);
+    SaveQueryResults(out_file.mb_str(wxConvUTF8), query_size, results, query_ids);
+    //SaveMatrixToHDF5(out_file.mb_str(wxConvUTF8), query_size, results, query_ids);
+    pt::time_duration timeGPUCPU = pt::microsec_clock::local_time() - startTimeGPUCPU;
+    printf("\nrunHDF5 - CPU Time: %f s\n", (float)timeGPUCPU.total_milliseconds() / 1000.0f);
+
 
     free(results);
 }
@@ -900,6 +906,29 @@ bool TravelDistanceMatrix::SaveQueryResults(const char* file_path,
 
     fclose(fp);
 
+    return true;
+}
+
+bool TravelDistanceMatrix::SaveMatrixToHDF5(const char* file_path,
+                                            int n, int* data,
+                                            const std::vector<wxString>& query_ids)
+{
+    if (file_path == 0) return false;
+
+    const char *ds_name = "DistanceMatrix";
+    int rank = 2;
+    hsize_t dims[2] = {n, n};
+    hid_t file = H5Fcreate(file_path, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    hid_t dataspace = H5Screate_simple(rank, dims, NULL);
+    hid_t datatype = H5Tcopy(H5T_NATIVE_INT);
+    herr_t status = H5Tset_order(datatype, H5T_ORDER_LE);
+    hid_t dataset = H5Dcreate2(file, ds_name, datatype, dataspace,
+                               H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    status = H5Dwrite(dataset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
+    H5Sclose(dataspace);
+    H5Tclose(datatype);
+    H5Dclose(dataset);
+    H5Fclose(file);
     return true;
 }
 

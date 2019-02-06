@@ -559,6 +559,38 @@ if ! [ -f "$PREFIX/lib/$LIB_CHECKER" ] ; then
 fi
 
 #########################################################################
+# install hdf5
+#########################################################################
+LIB_NAME=hdf5-1.10.4
+LIB_URL=https://s3.amazonaws.com/hdf-wordpress-1/wp-content/uploads/manual/HDF5/HDF5_1_10_4/hdf5-1.10.4.tar.bz2
+LIB_CHECKER=libhdf5.a
+LIB_FILENAME=$LIB_NAME.tar.bz2
+echo $LIB_FILENAME
+cd $DOWNLOAD_HOME
+
+if ! [ -f "$LIB_FILENAME" ] ; then
+        curl -O $LIB_URL
+fi
+
+if ! [ -d "$LIB_NAME" ]; then
+    tar -xf $LIB_FILENAME
+fi
+
+cd $DOWNLOAD_HOME/$LIB_NAME
+if ! [ -f "bld/bin/$LIB_CHECKER" ] ; then
+    mkdir bld
+    cd bld
+    cmake -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX .. 
+    $MAKER
+    make install
+fi
+
+if ! [ -f "$PREFIX/lib/$LIB_CHECKER" ] ; then
+    echo "Error! Exit"
+    exit
+fi
+
+#########################################################################
 # build GeoDa
 #########################################################################
 cd $GEODA_HOME

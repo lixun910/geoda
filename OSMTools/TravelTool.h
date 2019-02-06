@@ -174,6 +174,10 @@ namespace OSMTools {
                           int n_query, int* results,
                           const std::vector<wxString>& query_ids);
 
+    bool SaveMatrixToHDF5(const char* file_path,
+                          int n, int* data,
+                          const std::vector<wxString>& query_ids);
+
         void ComputeDistMatrix(int* results);
 
         void ComputeDistMatrixCPU(int* results, int query_size, int nCPUs);

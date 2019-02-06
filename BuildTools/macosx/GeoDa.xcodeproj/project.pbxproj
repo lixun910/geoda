@@ -2225,8 +2225,11 @@
 					"./temp/CLAPACK-3.2.1/lapack.a",
 					"-L./libraries/lib",
 					"-lgdal",
+					"-lhdf5",
 					"-lcurl",
 					./libraries/lib/libjson_spirit.a,
+					"-rpath",
+					/Users/xun/geoda_trunk/BuildTools/macosx/libraries/lib/,
 				);
 				PREBINDING = NO;
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
@@ -2321,6 +2324,7 @@
 					"./temp/CLAPACK-3.2.1/lapack.a",
 					"-L./libraries/lib",
 					"-lgdal",
+					"-lhdf5",
 					"-lcurl",
 					./libraries/lib/libjson_spirit.a,
 				);

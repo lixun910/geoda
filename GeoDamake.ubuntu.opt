@@ -19,7 +19,7 @@ LIBS = $(WXLIBS) \
         $(GEODA_HOME)/libraries/include/boost/stage/lib/libboost_thread.a \
         $(GEODA_HOME)/libraries/include/boost/stage/lib/libboost_system.a \
         $(GEODA_HOME)/libraries/lib/libjson_spirit.a \
-        -L/usr/lib/x86_64-linux-gnu -lgdal -lcurl -lcares -lGL -lGLU -lglut -lrt -lidn -lssl -lrtmp -lwebkitgtk-1.0
+        -L/usr/lib/x86_64-linux-gnu -lgdal -lcurl -lcares -lGL -lGLU -lglut -lrt -lidn -lssl -lrtmp -lwebkitgtk-1.0 -lhdf5
 # Note: Library -lrtmp causes a missing library problem at runtime on
 #       Ubuntu 14.10 and later.
 

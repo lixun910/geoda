@@ -51,6 +51,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     sudo apt-get install librtmp-dev
     sudo apt-get install libidn11-dev 
     sudo apt-get install libldap-dev
+    sudo apt-get install libhdf5-dev
 fi
 
 unset ORACLE_HOME

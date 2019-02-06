@@ -273,6 +273,39 @@ if ! [ -f "$PREFIX/lib/$LIB_CHECKER" ] ; then
     echo "Error! Exit"
     exit
 fi
+
+#########################################################################
+# install wxWidgets library
+#########################################################################
+LIB_NAME=wxWidgets-3.0.2
+LIB_URL=https://s3.us-east-2.amazonaws.com/geodabuild/wxWidgets-3.0.2.tar.bz2
+LIB_FILENAME=$(basename "$LIB_URL" ".tar")
+LIB_CHECKER=libwx_baseu-3.0.a
+echo $LIB_FILENAME
+
+cd $DOWNLOAD_HOME
+if ! [ -f "$LIB_FILENAME" ] ; then
+        curl -k -o $LIB_FILENAME $LIB_URL
+fi
+
+if ! [ -d "$LIB_NAME" ]; then
+    tar -xf $LIB_FILENAME
+fi
+
+if ! [ -f "$PREFIX/lib/$LIB_CHECKER" ] ; then
+    cd $LIB_NAME
+    make clean
+    cp -rf $GEODA_HOME/dep/$LIB_NAME/* .
+    ./configure CFLAGS="$GDA_CFLAGS" CXXFLAGS="$GDA_CXXFLAGS" LDFLAGS="$GDA_LDFLAGS" OBJCFLAGS="-arch x86_64" OBJCXXFLAGS="-arch x86_64" --with-cocoa --disable-shared --disable-monolithic --with-opengl --enable-postscript --enable-textfile --without-liblzma --enable-webview --enable-compat28 --prefix=$PREFIX
+    $MAKER 
+    make install
+    cd ..
+fi
+
+if ! [ -f "$PREFIX/lib/$LIB_CHECKER" ] ; then
+    echo "Error! Exit"
+    exit
+fi
 #########################################################################
 # MySQL 
 #########################################################################
@@ -497,31 +530,30 @@ if ! [ -f "$PREFIX/lib/$LIB_CHECKER" ] ; then
 fi
 
 #########################################################################
-# install wxWidgets library
+# install hdf5
 #########################################################################
-LIB_NAME=wxWidgets-3.0.2
-LIB_URL=https://s3.us-east-2.amazonaws.com/geodabuild/wxWidgets-3.0.2.tar.bz2
-LIB_FILENAME=$(basename "$LIB_URL" ".tar")
-LIB_CHECKER=libwx_baseu-3.0.a
+LIB_NAME=hdf5-1.10.4
+LIB_URL=https://s3.amazonaws.com/hdf-wordpress-1/wp-content/uploads/manual/HDF5/HDF5_1_10_4/hdf5-1.10.4.tar.bz2
+LIB_CHECKER=libhdf5.a
+LIB_FILENAME=$LIB_NAME.tar.bz2
 echo $LIB_FILENAME
-
 cd $DOWNLOAD_HOME
+
 if ! [ -f "$LIB_FILENAME" ] ; then
-        curl -k -o $LIB_FILENAME $LIB_URL
+        curl -O $LIB_URL
 fi
 
 if ! [ -d "$LIB_NAME" ]; then
     tar -xf $LIB_FILENAME
 fi
 
-if ! [ -f "$PREFIX/lib/$LIB_CHECKER" ] ; then
-    cd $LIB_NAME
-    make clean
-    cp -rf $GEODA_HOME/dep/$LIB_NAME/* .
-    ./configure CFLAGS="$GDA_CFLAGS" CXXFLAGS="$GDA_CXXFLAGS" LDFLAGS="$GDA_LDFLAGS" OBJCFLAGS="-arch x86_64" OBJCXXFLAGS="-arch x86_64" --with-cocoa --disable-shared --disable-monolithic --with-opengl --enable-postscript --enable-textfile --without-liblzma --enable-webview --enable-compat28 --prefix=$PREFIX
-    $MAKER 
+cd $DOWNLOAD_HOME/$LIB_NAME
+if ! [ -f "bld/bin/$LIB_CHECKER" ] ; then
+    mkdir bld
+    cd bld
+    cmake -DCMAKE_INSTALL_PREFIX:PATH=$PREFIX .. 
+    $MAKER
     make install
-    cd ..
 fi
 
 if ! [ -f "$PREFIX/lib/$LIB_CHECKER" ] ; then
