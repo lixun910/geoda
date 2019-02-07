@@ -177,7 +177,8 @@ namespace OSMTools {
     bool SaveMatrixToHDF5(const char* file_path,
                           int n, int* data,
                           const std::vector<wxString>& query_ids);
-
+    void ReadHDF5ToMatrix(const char* file_path);
+    
         void ComputeDistMatrix(int* results);
 
         void ComputeDistMatrixCPU(int* results, int query_size, int nCPUs);

@@ -932,6 +932,51 @@ bool TravelDistanceMatrix::SaveMatrixToHDF5(const char* file_path,
     return true;
 }
 
+void TravelDistanceMatrix::ReadHDF5ToMatrix(const char* file_path)
+{
+    pt::ptime startTimeGPUCPU = pt::microsec_clock::local_time();
+
+    const char *ds_name = "DistanceMatrix";
+    hsize_t     dims_out[2];
+
+    hid_t file = H5Fopen(file_path, H5F_ACC_RDONLY, H5P_DEFAULT);
+    hid_t dataset = H5Dopen2(file, ds_name, H5P_DEFAULT);
+
+    hid_t datatype  = H5Dget_type(dataset);
+    H5T_class_t t_class     = H5Tget_class(datatype);
+    H5T_order_t order     = H5Tget_order(datatype);
+    size_t size  = H5Tget_size(datatype);
+    hid_t dataspace = H5Dget_space(dataset);
+    int rank = H5Sget_simple_extent_ndims(dataspace);
+    int status_n  = H5Sget_simple_extent_dims(dataspace, dims_out, NULL);
+
+    hsize_t      count[2];              /* size of the hyperslab in the file */
+    hsize_t      offset[2];             /* hyperslab offset in the file */
+    hsize_t      count_out[3];          /* size of the hyperslab in memory */
+    hsize_t      offset_out[3];         /* hyperslab offset in memory */
+
+    herr_t status;
+
+    int rank_out = 2;
+    hid_t memspace = H5Screate_simple(rank_out, dims_out, NULL);
+
+    size_t results_mem = sizeof(int) * (size_t)dims_out[0] * (size_t)dims_out[1];
+    int *data_out = (int*) malloc(results_mem);
+
+    status = H5Dread(dataset, H5T_NATIVE_INT, memspace, dataspace,
+                     H5P_DEFAULT, data_out);
+
+    H5Tclose(datatype);
+    H5Dclose(dataset);
+    H5Sclose(dataspace);
+    H5Sclose(memspace);
+    H5Fclose(file);
+
+    pt::time_duration timeGPUCPU = pt::microsec_clock::local_time() - startTimeGPUCPU;
+    printf("\nreadHDF5 - CPU Time: %f s\n", (float)timeGPUCPU.total_milliseconds() / 1000.0f);
+
+}
+
 void TravelDistanceMatrix::SaveMergedRoads(const char* shp_file_name)
 {
     const char *pszDriverName = "ESRI Shapefile";
