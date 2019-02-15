@@ -34,7 +34,7 @@
 #include "../DataViewer/TableStateObserver.h"
 #include "../ShapeOperations/WeightsManStateObserver.h"
 #include "../VarCalc/WeightsMetaInfo.h"
-#include "../Weights/DistUtils.h"
+#include "../Weights/DistanceWeights.h"
 
 class wxSpinButton;
 class FramesManager;
@@ -193,7 +193,7 @@ protected:
 	std::vector<double>	m_XCOO;
 	std::vector<double>	m_YCOO;
 	
-    Gda::DistUtils* dist_util;
+    Gda::DistanceWeights* dist_util;
     std::vector<wxString> col_names;
     
 	WeightsMetaInfo::DistanceMetricEnum dist_metric;

@@ -7,7 +7,7 @@
 
 #include <cfloat>
 #include <cmath>
-#include "DistUtils.h"
+#include "DistanceWeights.h"
 
 #ifndef M_PI
     #define M_PI 3.1415926535897932384626433832795
@@ -15,7 +15,7 @@
 
 using namespace Gda;
 
-DistUtils::DistUtils(const std::vector<std::vector<double> >& input_data,
+DistanceWeights::DistanceWeights(const std::vector<std::vector<double> >& input_data,
                      const std::vector<std::vector<bool> >& mask,
                      int distance_metric)
 {
@@ -59,7 +59,7 @@ DistUtils::DistUtils(const std::vector<std::vector<double> >& input_data,
     kdTree = new ANNkd_tree(data, n_valid_rows, n_cols /*dim*/);
 }
 
-DistUtils::~DistUtils()
+DistanceWeights::~DistanceWeights()
 {
     for (size_t i=0; i<n_valid_rows; i++) delete[] data[i];
     delete[] data;
@@ -70,7 +70,7 @@ DistUtils::~DistUtils()
     ANN_DIST_TYPE = ANNuse_euclidean_dist;
 }
 
-double DistUtils::GetMinThreshold()
+double DistanceWeights::GetMinThreshold()
 {
     double max_1nn_dist = 0;
     
@@ -100,7 +100,7 @@ double DistUtils::GetMinThreshold()
 
  More: http://www-sop.inria.fr/members/Gregoire.Malandain/diameter/
  */
-double DistUtils::GetMaxThreshold()
+double DistanceWeights::GetMaxThreshold()
 {
     srand(0);
     int k = n_valid_rows;
@@ -127,7 +127,7 @@ double DistUtils::GetMaxThreshold()
     return ANN_ROOT(dist_cand);
 }
 
-Gda::Weights DistUtils::CreateDistBandWeights(double band, bool is_inverse,
+Gda::Weights DistanceWeights::CreateDistBandWeights(double band, bool is_inverse,
                                                 int power)
 {
     Gda::Weights weights;
@@ -163,7 +163,7 @@ Gda::Weights DistUtils::CreateDistBandWeights(double band, bool is_inverse,
     return weights;
 }
 
-Gda::Weights DistUtils::CreateKNNWeights(int k, bool is_inverse, int power)
+Gda::Weights DistanceWeights::CreateKNNWeights(int k, bool is_inverse, int power)
 {
     Gda::Weights weights;
     
@@ -196,7 +196,7 @@ Gda::Weights DistUtils::CreateKNNWeights(int k, bool is_inverse, int power)
     return weights;
 }
 
-Gda::Weights DistUtils::CreateAdaptiveKernelWeights(int kernel_type, int k,
+Gda::Weights DistanceWeights::CreateAdaptiveKernelWeights(int kernel_type, int k,
                                                     bool is_adaptive_bandwidth,
                                                     bool apply_kernel_to_diag)
 {
@@ -266,7 +266,7 @@ Gda::Weights DistUtils::CreateAdaptiveKernelWeights(int kernel_type, int k,
     return weights;
 }
 
-Gda::Weights DistUtils::CreateAdaptiveKernelWeights(int kernel_type, double band,
+Gda::Weights DistanceWeights::CreateAdaptiveKernelWeights(int kernel_type, double band,
                                            bool apply_kernel_to_diag)
 {
     Gda::Weights weights;
@@ -298,7 +298,7 @@ Gda::Weights DistUtils::CreateAdaptiveKernelWeights(int kernel_type, double band
     return weights;
 }
 
-void DistUtils::ApplyKernel(Gda::Weights& w, int kernel_type,
+void DistanceWeights::ApplyKernel(Gda::Weights& w, int kernel_type,
                             bool apply_kernel_to_diag)
 {
     double gaussian_const = pow(M_PI * 2.0, -0.5);

@@ -23,8 +23,9 @@
 #include <vector>
 #include <wx/string.h>
 
-struct WeightsMetaInfo
+class WeightsMetaInfo
 {
+public:
 	enum WeightTypeEnum {
 		WT_custom, WT_rook, WT_queen, WT_threshold, WT_inverse, WT_kernel,
         WT_knn, WT_tree

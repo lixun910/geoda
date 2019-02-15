@@ -18,7 +18,7 @@
 namespace Gda {
     typedef std::vector<std::vector<std::pair<int, double> > > Weights;
     
-    class DistUtils
+    class DistanceWeights
     {
     protected:
         ANNkd_tree* kdTree;
@@ -31,12 +31,12 @@ namespace Gda {
         std::map<unsigned long, unsigned long> ann_idx_to_row;
         std::map<unsigned long, unsigned long> row_to_ann_idx;
     public:
-        DistUtils(const std::vector<std::vector<double> >& input_data,
+        DistanceWeights(const std::vector<std::vector<double> >& input_data,
                   const std::vector<std::vector<bool> >& mask,
                   int distance_metric = ANNuse_euclidean_dist);
-        ~DistUtils();
+        ~DistanceWeights();
         
-        // The minimum threshold distance guarantees that every observation has
+        // T6he minimum threshold distance guarantees that every observation has
         // at least one neighbor if creating a weights
         double GetMinThreshold();
         

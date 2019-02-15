@@ -288,7 +288,7 @@ void CreatingWeightDlg::UpdateThresholdValuesMultiVars()
     if (dist_util) {
         delete dist_util;
     }
-    dist_util = new Gda::DistUtils(data, undefs, metric);
+    dist_util = new Gda::DistanceWeights(data, undefs, metric);
     m_thres_min_multivars = dist_util->GetMinThreshold();
     m_thres_max_multivars = dist_util->GetMaxThreshold();
     double thres_range = m_thres_max_multivars - m_thres_min_multivars;

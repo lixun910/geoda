@@ -19,7 +19,7 @@
 		A12E0F4F1705087A00B6059C /* OGRDataAdapter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A12E0F4E1705087A00B6059C /* OGRDataAdapter.cpp */; };
 		A1311C6720FFDF7100008D7F /* localjc_kernel.cl in CopyFiles */ = {isa = PBXBuildFile; fileRef = A4E00F0F20FD8ECC0038BA80 /* localjc_kernel.cl */; };
 		A13B6B9418760CF100F93ACF /* SaveAsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A13B6B9318760CF100F93ACF /* SaveAsDlg.cpp */; };
-		A14735AA21A5F72D00CA69B2 /* DistUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A14735A921A5F72D00CA69B2 /* DistUtils.cpp */; };
+		A14735AA21A5F72D00CA69B2 /* DistanceWeights.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A14735A921A5F72D00CA69B2 /* DistanceWeights.cpp */; };
 		A14735B521A65F1800CA69B2 /* bd_tree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A14735AB21A65F1600CA69B2 /* bd_tree.cpp */; };
 		A14735B621A65F1800CA69B2 /* kd_dump.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A14735AC21A65F1600CA69B2 /* kd_dump.cpp */; };
 		A14735B721A65F1800CA69B2 /* bd_fix_rad_search.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A14735AD21A65F1700CA69B2 /* bd_fix_rad_search.cpp */; };
@@ -54,6 +54,8 @@
 		A1C194A31B38FC67003DA7CA /* libc++.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A1C194A21B38FC67003DA7CA /* libc++.dylib */; };
 		A1C9F3ED18B55EE000E14394 /* FieldNameCorrectionDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1C9F3EC18B55EE000E14394 /* FieldNameCorrectionDlg.cpp */; };
 		A1CE3D331C1A427A0010F170 /* PublishDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1CE3D311C1A427A0010F170 /* PublishDlg.cpp */; };
+		A1D28E8622151F6D00CC1D4F /* ContiguityWeights.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1D28E8422151F6D00CC1D4F /* ContiguityWeights.cpp */; };
+		A1D28E892215234300CC1D4F /* AbstractWeights.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1D28E872215234300CC1D4F /* AbstractWeights.cpp */; };
 		A1D82DEF174D3EB6003DE20A /* ConnectDatasourceDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1D82DEE174D3EB6003DE20A /* ConnectDatasourceDlg.cpp */; };
 		A1DA623A17BCBC070070CAAB /* AutoCompTextCtrl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1DA623817BCBC070070CAAB /* AutoCompTextCtrl.cpp */; };
 		A1E5BC841DBFE661005739E9 /* ReportBugDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1E5BC831DBFE661005739E9 /* ReportBugDlg.cpp */; };
@@ -333,8 +335,8 @@
 		A12E0F4E1705087A00B6059C /* OGRDataAdapter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OGRDataAdapter.cpp; sourceTree = "<group>"; };
 		A13B6B9218760CF100F93ACF /* SaveAsDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SaveAsDlg.h; sourceTree = "<group>"; };
 		A13B6B9318760CF100F93ACF /* SaveAsDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SaveAsDlg.cpp; sourceTree = "<group>"; };
-		A14735A821A5F72D00CA69B2 /* DistUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DistUtils.h; sourceTree = "<group>"; };
-		A14735A921A5F72D00CA69B2 /* DistUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DistUtils.cpp; sourceTree = "<group>"; };
+		A14735A821A5F72D00CA69B2 /* DistanceWeights.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DistanceWeights.h; sourceTree = "<group>"; };
+		A14735A921A5F72D00CA69B2 /* DistanceWeights.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DistanceWeights.cpp; sourceTree = "<group>"; };
 		A14735AB21A65F1600CA69B2 /* bd_tree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = bd_tree.cpp; sourceTree = "<group>"; };
 		A14735AC21A65F1600CA69B2 /* kd_dump.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = kd_dump.cpp; sourceTree = "<group>"; };
 		A14735AD21A65F1700CA69B2 /* bd_fix_rad_search.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = bd_fix_rad_search.cpp; sourceTree = "<group>"; };
@@ -399,6 +401,10 @@
 		A1C9F3EC18B55EE000E14394 /* FieldNameCorrectionDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FieldNameCorrectionDlg.cpp; sourceTree = "<group>"; };
 		A1CE3D311C1A427A0010F170 /* PublishDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PublishDlg.cpp; sourceTree = "<group>"; };
 		A1CE3D321C1A427A0010F170 /* PublishDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PublishDlg.h; sourceTree = "<group>"; };
+		A1D28E8422151F6D00CC1D4F /* ContiguityWeights.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ContiguityWeights.cpp; sourceTree = "<group>"; };
+		A1D28E8522151F6D00CC1D4F /* ContiguityWeights.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ContiguityWeights.hpp; sourceTree = "<group>"; };
+		A1D28E872215234300CC1D4F /* AbstractWeights.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AbstractWeights.cpp; sourceTree = "<group>"; };
+		A1D28E882215234300CC1D4F /* AbstractWeights.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = AbstractWeights.hpp; sourceTree = "<group>"; };
 		A1D82DED174D3EB6003DE20A /* ConnectDatasourceDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectDatasourceDlg.h; sourceTree = "<group>"; };
 		A1D82DEE174D3EB6003DE20A /* ConnectDatasourceDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConnectDatasourceDlg.cpp; sourceTree = "<group>"; };
 		A1DA623817BCBC070070CAAB /* AutoCompTextCtrl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AutoCompTextCtrl.cpp; sourceTree = "<group>"; };
@@ -901,8 +907,12 @@
 		A14735A721A5F6CE00CA69B2 /* Weights */ = {
 			isa = PBXGroup;
 			children = (
-				A14735A821A5F72D00CA69B2 /* DistUtils.h */,
-				A14735A921A5F72D00CA69B2 /* DistUtils.cpp */,
+				A1D28E872215234300CC1D4F /* AbstractWeights.cpp */,
+				A1D28E882215234300CC1D4F /* AbstractWeights.hpp */,
+				A14735A821A5F72D00CA69B2 /* DistanceWeights.h */,
+				A14735A921A5F72D00CA69B2 /* DistanceWeights.cpp */,
+				A1D28E8422151F6D00CC1D4F /* ContiguityWeights.cpp */,
+				A1D28E8522151F6D00CC1D4F /* ContiguityWeights.hpp */,
 			);
 			path = Weights;
 			sourceTree = "<group>";
@@ -1889,7 +1899,7 @@
 				A10EF2F021273E7E00564FE1 /* AbstractCanvas.cpp in Sources */,
 				A194839B2118BAAA009A87A2 /* basic2.cpp in Sources */,
 				A1E77FDC17889BE200CC1037 /* OGRTable.cpp in Sources */,
-				A14735AA21A5F72D00CA69B2 /* DistUtils.cpp in Sources */,
+				A14735AA21A5F72D00CA69B2 /* DistanceWeights.cpp in Sources */,
 				A4404A12209275550007753D /* hdbscan.cpp in Sources */,
 				A1E78139178A90A100CC1037 /* OGRDatasourceProxy.cpp in Sources */,
 				A4ED7D552097F114008685D6 /* kd_pr_search.cpp in Sources */,
@@ -1953,7 +1963,9 @@
 				DDC906921A129CFF002334D2 /* SimpleAxisCanvas.cpp in Sources */,
 				DDC906931A129CFF002334D2 /* SimpleHistCanvas.cpp in Sources */,
 				DDC906941A129CFF002334D2 /* SimpleScatterPlotCanvas.cpp in Sources */,
+				A1D28E8622151F6D00CC1D4F /* ContiguityWeights.cpp in Sources */,
 				DD76D1331A151C4E00A01FA5 /* LineChartView.cpp in Sources */,
+				A1D28E892215234300CC1D4F /* AbstractWeights.cpp in Sources */,
 				DD76D15A1A15430600A01FA5 /* LineChartCanvas.cpp in Sources */,
 				DD6CDA7A1A255CEF00FCF2B8 /* LineChartStats.cpp in Sources */,
 				DD88CF081A4253B700803196 /* CovSpView.cpp in Sources */,
