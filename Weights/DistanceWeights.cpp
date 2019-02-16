@@ -10,18 +10,18 @@
 #include "DistanceWeights.h"
 
 #ifndef M_PI
-    #define M_PI 3.1415926535897932384626433832795
+#define M_PI 3.1415926535897932384626433832795
 #endif
 
 using namespace Gda;
 
 DistanceWeights::DistanceWeights(const std::vector<std::vector<double> >& input_data,
-                     const std::vector<std::vector<bool> >& mask,
-                     int distance_metric)
+                                 const std::vector<std::vector<bool> >& mask,
+                                 int distance_metric)
 {
     eps = 0.0;
     ANN_DIST_TYPE = distance_metric;
-    
+
     n_cols = input_data.size();
     if (n_cols > 0) {
         n_rows = input_data[0].size();
@@ -63,7 +63,7 @@ DistanceWeights::~DistanceWeights()
 {
     for (size_t i=0; i<n_valid_rows; i++) delete[] data[i];
     delete[] data;
-    
+
     if (kdTree) delete kdTree;
 
     // reset this global variable, so it won't impact using ANN in other code
@@ -73,7 +73,7 @@ DistanceWeights::~DistanceWeights()
 double DistanceWeights::GetMinThreshold()
 {
     double max_1nn_dist = 0;
-    
+
     int k = 2; // the first one is alway the query point itself
     ANNidxArray nnIdx = new ANNidx[k];
     ANNdistArray dists = new ANNdist[k];
@@ -107,9 +107,9 @@ double DistanceWeights::GetMaxThreshold()
     int x_idx;
     int y_idx;
     double dist_cand = 0;
-    
+
     int n_iter = 10;
-    
+
     ANNidxArray nnIdx = new ANNidx[k];
     ANNdistArray dists = new ANNdist[k];
     for (size_t i=0; i<n_iter; i++) {
@@ -128,13 +128,13 @@ double DistanceWeights::GetMaxThreshold()
 }
 
 Gda::Weights DistanceWeights::CreateDistBandWeights(double band, bool is_inverse,
-                                                int power)
+                                                    int power)
 {
     Gda::Weights weights;
-    
+
     double radius = ANN_POW(band);
     double w;
-    
+
     for (size_t i=0; i<n_rows; i++) {
         std::vector<std::pair<int, double> > nbrs;
         if (row_mask[i] == false) {
@@ -159,14 +159,14 @@ Gda::Weights DistanceWeights::CreateDistBandWeights(double band, bool is_inverse
         }
         weights.push_back(nbrs);
     }
-    
+
     return weights;
 }
 
 Gda::Weights DistanceWeights::CreateKNNWeights(int k, bool is_inverse, int power)
 {
     Gda::Weights weights;
-    
+
     double w;
     ANNidxArray nnIdx = new ANNidx[k+1];
     ANNdistArray dists = new ANNdist[k+1];
@@ -192,20 +192,20 @@ Gda::Weights DistanceWeights::CreateKNNWeights(int k, bool is_inverse, int power
     }
     delete[] nnIdx;
     delete[] dists;
-    
+
     return weights;
 }
 
 Gda::Weights DistanceWeights::CreateAdaptiveKernelWeights(int kernel_type, int k,
-                                                    bool is_adaptive_bandwidth,
-                                                    bool apply_kernel_to_diag)
+                                                          bool is_adaptive_bandwidth,
+                                                          bool apply_kernel_to_diag)
 {
     Gda::Weights weights;
     double w;
     double max_knn_bandwidth = 0;
     ANNidxArray nnIdx = new ANNidx[k+1];
     ANNdistArray dists = new ANNdist[k+1];
-    
+
     if (is_adaptive_bandwidth) {
         for (size_t i=0; i<n_rows; i++) {
             std::vector<std::pair<int, double> > nbrs;
@@ -257,22 +257,22 @@ Gda::Weights DistanceWeights::CreateAdaptiveKernelWeights(int kernel_type, int k
             }
         }
     }
-    
+
     delete[] nnIdx;
     delete[] dists;
-    
+
     ApplyKernel(weights, kernel_type, apply_kernel_to_diag);
-    
+
     return weights;
 }
 
 Gda::Weights DistanceWeights::CreateAdaptiveKernelWeights(int kernel_type, double band,
-                                           bool apply_kernel_to_diag)
+                                                          bool apply_kernel_to_diag)
 {
     Gda::Weights weights;
     double radius = ANN_POW(band);
     double w;
-    
+
     for (size_t i=0; i<n_rows; i++) {
         std::vector<std::pair<int, double> > nbrs;
         if (row_mask[i] == false) {
@@ -299,10 +299,10 @@ Gda::Weights DistanceWeights::CreateAdaptiveKernelWeights(int kernel_type, doubl
 }
 
 void DistanceWeights::ApplyKernel(Gda::Weights& w, int kernel_type,
-                            bool apply_kernel_to_diag)
+                                  bool apply_kernel_to_diag)
 {
     double gaussian_const = pow(M_PI * 2.0, -0.5);
-    
+
     for (size_t i=0; i<w.size(); i++) {
 
         for (size_t j=0; j<w[i].size(); j++) {

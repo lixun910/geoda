@@ -1,23 +1,25 @@
 //
-//  DistUtils.h
-//  GeoDa
-//
-//  Created by Xun Li on 11/21/18.
+// Created by Xun Li on 2/15/19.
 //
 
-#ifndef DistUtils_h
-#define DistUtils_h
+#ifndef SPATIALWEIGHTS_DISTANCEWEIGHTS_H
+#define SPATIALWEIGHTS_DISTANCEWEIGHTS_H
+
 
 #include <map>
 #include <vector>
 #include <stdio.h>
 
+#ifdef __GEODA__
 #include "../kNN/ANN/ANN.h"
+#else
+#include <ANN/ANN.h>
+#endif
 
 
 namespace Gda {
     typedef std::vector<std::vector<std::pair<int, double> > > Weights;
-    
+
     class DistanceWeights
     {
     protected:
@@ -32,36 +34,38 @@ namespace Gda {
         std::map<unsigned long, unsigned long> row_to_ann_idx;
     public:
         DistanceWeights(const std::vector<std::vector<double> >& input_data,
-                  const std::vector<std::vector<bool> >& mask,
-                  int distance_metric = ANNuse_euclidean_dist);
+                        const std::vector<std::vector<bool> >& mask,
+                        int distance_metric = ANNuse_euclidean_dist);
         ~DistanceWeights();
-        
+
         // T6he minimum threshold distance guarantees that every observation has
         // at least one neighbor if creating a weights
         double GetMinThreshold();
-        
+
         // The maximu, threshold distance should be the diameter of the space
         // represents by all data points
         double GetMaxThreshold();
-        
+
         Gda::Weights CreateDistBandWeights(double band, bool is_inverse,
-                                             int power);
-        
+                                           int power);
+
         Gda::Weights CreateKNNWeights(int k, bool is_inverse, int power);
-        
+
         // is_adaptive_bandwidth: true: use distance of k n-neighbors as bandwidth
         //                        false: use max KNN as bandwidth
         // apply_kernel_to_diag:  true: apply kernel to diagnal weights
         //                        false: diagonal weights = 1
         Gda::Weights CreateAdaptiveKernelWeights(int kernel_type, int k,
-            bool is_adaptive_bandwidth = true,
-            bool apply_kernel_to_diag = false);
-        
+                                                 bool is_adaptive_bandwidth = true,
+                                                 bool apply_kernel_to_diag = false);
+
         Gda::Weights CreateAdaptiveKernelWeights(int kernel_type, double band,
-            bool apply_kernel_to_diag = false);
-        
+                                                 bool apply_kernel_to_diag = false);
+
         void ApplyKernel(Gda::Weights& w, int kernel_type,
                          bool apply_kernel_to_diag);
     };
 }
-#endif /* DistUtils_h */
+
+
+#endif //SPATIALWEIGHTS_DISTANCEWEIGHTS_H

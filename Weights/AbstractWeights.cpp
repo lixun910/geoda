@@ -5,11 +5,11 @@
 #include "WeightsIO.h"
 #include "AbstractWeights.h"
 
-GalElement::GalElement() {
+Gda::GalElement::GalElement() {
 
 }
 
-bool GalElement::Check(long nbrIdx)
+bool Gda::GalElement::Check(long nbrIdx)
 {
     if (nbrLookup.find(nbrIdx) != nbrLookup.end())
         return true;
@@ -18,7 +18,7 @@ bool GalElement::Check(long nbrIdx)
 
 // return row standardized weights value
 // called by Transpose Weights Matrix
-double GalElement::GetRW(int idx)
+double Gda::GalElement::GetRW(int idx)
 {
     size_t sz = nbr.size();
     nbrAvgW.resize(sz);
@@ -36,7 +36,7 @@ double GalElement::GetRW(int idx)
     return 0;
 }
 
-void GalElement::SetSizeNbrs(size_t	sz)
+void Gda::GalElement::SetSizeNbrs(size_t	sz)
 {
     nbr.resize(sz);
     nbrWeight.resize(sz);
@@ -46,7 +46,7 @@ void GalElement::SetSizeNbrs(size_t	sz)
 }
 
 // which neighbor, what ID
-void GalElement::SetNbr(size_t pos, long n)
+void Gda::GalElement::SetNbr(size_t pos, long n)
 {
     if (pos < nbr.size()) {
         nbr[pos] = n;
@@ -59,7 +59,7 @@ void GalElement::SetNbr(size_t pos, long n)
 }
 
 // which neighbor, what ID, what value
-void GalElement::SetNbr(size_t pos, long n, double w)
+void Gda::GalElement::SetNbr(size_t pos, long n, double w)
 {
     if (pos < nbr.size()) {
         nbr[pos] = n;
@@ -79,7 +79,7 @@ void GalElement::SetNbr(size_t pos, long n, double w)
 
 // Update neighbor information on the fly using undefs information
 // NOTE: this has to be used with a copy of weights (keep the original weights!)
-void GalElement::Update(const std::vector<bool>& undefs)
+void Gda::GalElement::Update(const std::vector<bool>& undefs)
 {
     std::vector<int> undef_obj_positions;
 
@@ -110,7 +110,7 @@ void GalElement::Update(const std::vector<bool>& undefs)
     }
 }
 
-void GalElement::SetNbrs(const GalElement& gal)
+void Gda::GalElement::SetNbrs(const GalElement& gal)
 {
     size_t sz = gal.Size();
     nbr.resize(sz);
@@ -123,24 +123,24 @@ void GalElement::SetNbrs(const GalElement& gal)
     nbrAvgW = gal.nbrAvgW;
 }
 
-const std::vector<long> & GalElement::GetNbrs() const
+const std::vector<long> & Gda::GalElement::GetNbrs() const
 {
     return nbr;
 }
 
-const std::vector<double> & GalElement::GetNbrWeights() const
+const std::vector<double> & Gda::GalElement::GetNbrWeights() const
 {
     return nbrWeight;
 }
 
-void GalElement::SortNbrs()
+void Gda::GalElement::SortNbrs()
 {
     std::sort(nbr.begin(), nbr.end(), std::greater<long>());
 }
 
 // Compute spatial lag for a contiguity weights matrix.
 // Automatically performs standardization of the result.
-double GalElement::SpatialLag(const std::vector<double>& x) const
+double Gda::GalElement::SpatialLag(const std::vector<double>& x) const
 {
     double lag = 0;
     size_t sz = Size();
@@ -155,7 +155,7 @@ double GalElement::SpatialLag(const std::vector<double>& x) const
 
 // Compute spatial lag for a contiguity weights matrix.
 // Automatically performs standardization of the result.
-double GalElement::SpatialLag(const double *x) const
+double Gda::GalElement::SpatialLag(const double *x) const
 {
     double lag = 0;
     size_t sz = Size();
@@ -167,7 +167,7 @@ double GalElement::SpatialLag(const double *x) const
 }
 
 //
-double GalElement::SpatialLag(const std::vector<double>& x,
+double Gda::GalElement::SpatialLag(const std::vector<double>& x,
                               const int* perm) const
 {
     // todo: this should also handle ReadGWtAsGAL like previous 2 functions
@@ -178,11 +178,11 @@ double GalElement::SpatialLag(const std::vector<double>& x,
     return lag;
 }
 
-long GalElement::Size() const {
+long Gda::GalElement::Size() const {
     return nbr.size();
 }
 
-long GalElement::operator[](size_t n) const {
+long Gda::GalElement::operator[](size_t n) const {
     return nbr[n];
 }
 
@@ -212,7 +212,7 @@ bool AbstractWeights::Save(const char *file_path) {
     return wio.Save(file_path);
 }
 
-GalElement *AbstractWeights::GetGalElements() {
+Gda::GalElement *AbstractWeights::GetGalElements() {
     return 0;
 }
 
