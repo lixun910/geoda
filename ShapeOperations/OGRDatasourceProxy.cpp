@@ -2,7 +2,7 @@
  * GeoDa TM, Copyright (C) 2011-2015 by Luc Anselin - all rights reserved
  *
  * This file is part of GeoDa.
- * 
+ *
  * GeoDa is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -43,7 +43,7 @@ OGRDatasourceProxy::OGRDatasourceProxy(wxString _ds_name, GdaConst::DataSourceTy
 {
     ds_name = _ds_name;
     ds_type = _ds_type;
-   
+
     const char* pszDsPath = ds_name.mb_str(wxConvUTF8);
     //const char* pszDsPath = ds_name.c_str();
     wxString msg;
@@ -51,13 +51,13 @@ OGRDatasourceProxy::OGRDatasourceProxy(wxString _ds_name, GdaConst::DataSourceTy
              "check if the data type/format is supported by GeoDa.\n\nTip: you "
              "can set up the necessary GeoDa driver by following the "
              "instructions at:\n http://geodacenter.github.io/formats.html");
-    
+
     if (ds_type == GdaConst::ds_unknown) {
         throw GdaException(msg);
     }
-    
+
     CPLErrorReset();
-    
+
     if (ds_type == GdaConst::ds_csv) {
         if (GdaConst::gda_ogr_csv_header == 0) {
             const char *papszOpenOptions[255] = {"AUTODETECT_TYPE=YES",
@@ -88,13 +88,13 @@ OGRDatasourceProxy::OGRDatasourceProxy(wxString _ds_name, GdaConst::DataSourceTy
                                        GDAL_OF_VECTOR|GDAL_OF_UPDATE,
                                        NULL, NULL, NULL);
     }
-    
+
     is_writable = true;
 	if (!ds) {
         // try without UPDATE
         ds = (GDALDataset*) GDALOpenEx(pszDsPath, GDAL_OF_VECTOR,
                                        NULL, NULL, NULL);
-        
+
         if (ds==0) {
             wxString error_detail(CPLGetLastErrorMsg(), wxConvUTF8);
             if ( error_detail.IsEmpty() || error_detail == "Unknown") {
@@ -105,15 +105,15 @@ OGRDatasourceProxy::OGRDatasourceProxy(wxString _ds_name, GdaConst::DataSourceTy
         }
         is_writable = false;
 	}
-    
+
     std::string driver_name = ds->GetDriverName();
-    
+
     if (ds_type == GdaConst::ds_unknown &&
         GdaConst::datasrc_str_to_type.find(driver_name) != GdaConst::datasrc_str_to_type.end())
     {
         ds_type = GdaConst::datasrc_str_to_type[driver_name];
     }
-    
+
     //is_writable = ds->TestCapability( ODsCCreateLayer );
 	layer_count = ds->GetLayerCount();
 }
@@ -125,10 +125,10 @@ OGRDatasourceProxy::OGRDatasourceProxy(wxString format, wxString dest_datasource
 	ostringstream error_message;
 	const char* pszFormat = format.c_str();
 	const char* pszDestDataSource = GET_ENCODED_FILENAME(ds_name);
-    
+
 	GDALDriver *poDriver;
 	poDriver = GetGDALDriverManager()->GetDriverByName(pszFormat);
-	
+
 	if( poDriver == NULL ){
         error_message << "The format \"" << format;
         error_message << "\" is not supported (or read-only) by GeoDa";
@@ -142,12 +142,12 @@ OGRDatasourceProxy::OGRDatasourceProxy(wxString format, wxString dest_datasource
         error_message <<".\n\nNote: Please check if the related plugin has been installed.";
 		throw GdaException(error_message.str().c_str());
 	}
-	
+
     ds_type = GetGdaDataSourceType(poDriver);
-    
+
 	// create the output data source.
 	ds = poDriver->Create( pszDestDataSource, 0,0,0,GDT_Unknown, NULL);
-        
+
 	if(ds == NULL ) {
 		// driver failed to load
 		error_message << "Unfortunately, GeoDa is not able to execute this request. \n\nDetails: "<< CPLGetLastErrorMsg();
@@ -158,7 +158,7 @@ OGRDatasourceProxy::OGRDatasourceProxy(wxString format, wxString dest_datasource
 		error_message << "GeoDa can't write layer to this datasource. \n\nDetails: "<< CPLGetLastErrorMsg();
 		throw GdaException(error_message.str().c_str());
     }
-    
+
 	layer_count = ds->GetLayerCount();
 }
 
@@ -171,7 +171,7 @@ OGRDatasourceProxy::~OGRDatasourceProxy()
             delete it->second;
 	}
 	layer_pool.clear();
-    
+
 	// clean ogr data sources
 	//OGRDataSource::DestroyDataSource(ds);
 	GDALClose(ds);
@@ -181,16 +181,16 @@ GdaConst::DataSourceType
 OGRDatasourceProxy::GetGdaDataSourceType(GDALDriver *poDriver)
 {
     if (poDriver == NULL) return GdaConst::ds_unknown;
-    
+
     const char* drv_name = GDALGetDriverShortName(poDriver);
     string ogr_ds_type(drv_name);
-    
+
     if (ogr_ds_type.find("Carto") != std::string::npos) {
        return GdaConst::datasrc_str_to_type["Carto"];
-        
+
     } else if (GdaConst::datasrc_str_to_type.find(ogr_ds_type) == GdaConst::datasrc_str_to_type.end()) {
 		return GdaConst::ds_unknown;
-        
+
 	} else {
 		return GdaConst::datasrc_str_to_type[ogr_ds_type];
 	}
@@ -201,10 +201,10 @@ vector<wxString> OGRDatasourceProxy::GetLayerNames()
 	// GetLayerNames can happen before actually read data from layer
 	// , so this provide us a chance to store all OGRLayer instance
 	// in this datasource proxy for future use.
-    
+
 	if (layer_count == layer_pool.size() && layer_count > 0) {
 		// return layer names from pool directly
-        
+
     } else if (layer_count == 0){
        // try to read (by default) first layer
        // Note: http://ogi.state.ok.us/geoserver/wfs?VERSION=1.1.0&REQUEST=GetFeature&typename=okcounties
@@ -216,7 +216,7 @@ vector<wxString> OGRDatasourceProxy::GetLayerNames()
             this->layer_names.push_back(layer_name);
             layer_pool[layer_name] = new OGRLayerProxy(layer_name,layer,ds_type);
         }
-        
+
 	} else {
 		// read and store layer one by one, get the layer name
 		int system_layers = 0;
@@ -238,7 +238,7 @@ vector<wxString> OGRDatasourceProxy::GetLayerNames()
             layer_pool[layer_name] = new OGRLayerProxy(layer_name, layer,ds_type);
 		}
         layer_count = layer_count - system_layers;
-        
+
 	}
 	return this->layer_names;
 }
@@ -294,11 +294,11 @@ bool OGRDatasourceProxy::DeleteLayer(wxString layer_name)
 OGRLayerProxy* OGRDatasourceProxy::GetLayerProxy(wxString layer_name)
 {
 	OGRLayerProxy* layer_proxy;
-	
+
 	if (layer_pool.count(layer_name) > 0) {
 		// find it from pool and return it
 		layer_proxy = layer_pool[layer_name];
-        
+
 	} else {
 		// otherwise, create one and store it in pool
 		OGRLayer* layer = ds->GetLayerByName(layer_name.c_str());
@@ -311,11 +311,11 @@ OGRLayerProxy* OGRDatasourceProxy::GetLayerProxy(wxString layer_name)
                 throw GdaException(error_message.mb_str());
             }
 		}
-		
+
 		layer_proxy = new OGRLayerProxy(layer_name, layer, ds_type);
 		layer_pool[layer_name] = layer_proxy;
 	}
-	
+
 	return layer_proxy;
 }
 
@@ -327,7 +327,7 @@ void OGRDatasourceProxy::CreateDataSource(wxString format,
 	const char* pszDestDataSource = dest_datasource.c_str();
 	GDALDriver *poDriver;
 	poDriver = GetGDALDriverManager()->GetDriverByName(pszFormat);
-	
+
 	if( poDriver == NULL ){
         error_message << _("Current OGR dirver ");
         error_message << format;
@@ -335,8 +335,8 @@ void OGRDatasourceProxy::CreateDataSource(wxString format,
         error_message << CPLGetLastErrorMsg();
 		throw GdaException(error_message.mb_str());
 	}
-	
-	// Create the output data source.  
+
+	// Create the output data source.
 	GDALDataset *poODS = poDriver->Create( pszDestDataSource, 0,0,0,GDT_Unknown, NULL);
 	if( poODS == NULL ) {
 		// driver failed to load
@@ -365,17 +365,25 @@ OGRDatasourceProxy::CreateLayer(wxString layer_name,
         error_message << CPLGetLastErrorMsg();
 		throw GdaException(error_message.mb_str());
     }
-    
-    OGRSpatialReference *poOutputSRS = spatial_ref;
 
-    // PRECISION is for database e.g. MSSQL
-    // LAUNDER is for database: rename desired field name
-    // ENCODING: set to "" to avoid any recoding
-    const char* papszLCO[50] = {"OVERWRITE=yes", "PRECISION=no", "LAUNDER=yes", "ENCODING="};
-    
-    OGRLayer *poDstLayer = ds->CreateLayer(layer_name.mb_str(),
-                                           poOutputSRS, eGType, (char**)papszLCO);
-    
+    OGRSpatialReference *poOutputSRS = spatial_ref;
+    OGRLayer *poDstLayer;
+    if (ds_type == GdaConst::ds_mysql || ds_type == GdaConst::ds_postgresql ||
+        ds_type == GdaConst::ds_ms_sql || ds_type == GdaConst::ds_sqlite ) {
+        // PRECISION is for database e.g. MSSQL
+        // OVERWRITE: This may be "YES" to force an existing layer of the
+        // desired name to be destroyed before creating the requested layer.
+        // LAUNDER is for database: rename desired field name
+        const char* papszLCO[50] = {"PRECISION=no", "LAUNDER=yes"};
+        poDstLayer = ds->CreateLayer(layer_name.mb_str(), poOutputSRS, eGType,
+                                     (char**)papszLCO);
+    } else {
+        // ENCODING: set to "" to avoid any recoding
+        const char* papszLCO[50] = {"OVERWRITE=yes", "LAUNDER=no", "ENCODING="};
+        poDstLayer = ds->CreateLayer(layer_name.mb_str(), poOutputSRS, eGType,
+                                     (char**)papszLCO);
+    }
+
     if( poDstLayer == NULL ) {
         error_message << _("Can't write/create layer \"");
         error_message << layer_name;
@@ -383,29 +391,24 @@ OGRDatasourceProxy::CreateLayer(wxString layer_name,
         error_message << CPLGetLastErrorMsg();
 		throw GdaException(error_message.mb_str());
     }
-    
+
     map<wxString, pair<int, int> >::iterator field_it;
-    
+
     // create fields using TableInterface:table
     if ( table != NULL ) {
-        
         std::vector<int> col_id_map; // using orders in wxGrid
         table->FillColIdMap(col_id_map);
-        
         for (int _id=0; _id < table->GetNumberCols(); _id++) {
             int id = col_id_map[_id];
             bool is_time_var = table->IsColTimeVariant(id);
             int time_steps = is_time_var ? table->GetTimeSteps() : 1;
-            
             for ( int t=0; t < time_steps; t++ ) {
-                
                 wxString fname = table->GetColName(id, t);
                 if (fname.empty()) {
                     wxString tmp = _("Can't create layer %s with empty field (%s) name.");
                     error_message << wxString::Format(tmp, layer_name, id);
                     throw GdaException(error_message.mb_str());
                 }
-                
                 OGRFieldType ogr_type;
                 int ogr_fwidth = table->GetColLength(id, t);
                 int ogr_fprecision = table->GetColDecimals(id, t);
@@ -439,7 +442,6 @@ OGRDatasourceProxy::CreateLayer(wxString layer_name,
         }
     }
     OGRLayerProxy* layer =  new OGRLayerProxy(poDstLayer, ds_type, eGType);
-    
     layer_pool[layer_name] = layer;
     return layer;
 }

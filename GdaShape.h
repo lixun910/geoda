@@ -186,7 +186,7 @@ public:
 	virtual bool Contains(const wxPoint& pt) { return pointWithin(pt); };
 	virtual bool regionIntersect(const wxRegion& region) { return false; };
 	virtual void applyScaleTrans(const GdaScaleTrans& A);
-    virtual void projectToBasemap(GDA::Basemap* basemap, double scale_factor = 1.0);
+    virtual void projectToBasemap(Gda::Basemap* basemap, double scale_factor = 1.0);
 	virtual void paintSelf(wxDC& dc) = 0;
 	virtual void paintSelf(wxGraphicsContext* gc) = 0;
 	
@@ -288,7 +288,7 @@ public:
 	virtual bool pointWithin(const wxPoint& pt);
 	virtual bool regionIntersect(const wxRegion& r);
 	virtual void applyScaleTrans(const GdaScaleTrans& A);
-    virtual void projectToBasemap(GDA::Basemap* basemap, double scale_factor = 1.0);
+    virtual void projectToBasemap(Gda::Basemap* basemap, double scale_factor = 1.0);
 	virtual void paintSelf(wxDC& dc);
 	virtual void paintSelf(wxGraphicsContext* gc);
     
@@ -316,7 +316,7 @@ public:
 	virtual bool pointWithin(const wxPoint& pt);
 	virtual bool regionIntersect(const wxRegion& r);
 	virtual void applyScaleTrans(const GdaScaleTrans& A);
-	virtual void projectToBasemap(GDA::Basemap* basemap, double scale_factor = 1.0);
+	virtual void projectToBasemap(Gda::Basemap* basemap, double scale_factor = 1.0);
 	static wxRealPoint CalculateCentroid(int n, wxRealPoint* pts);
 	virtual void paintSelf(wxDC& dc);
 	virtual void paintSelf(wxGraphicsContext* gc);
@@ -363,7 +363,7 @@ public:
 	virtual bool regionIntersect(const wxRegion& r);
 	virtual void applyScaleTrans(const GdaScaleTrans& A);
    
-    virtual void projectToBasemap(GDA::Basemap* basemap, double scale_factor = 1);
+    virtual void projectToBasemap(Gda::Basemap* basemap, double scale_factor = 1);
     
 	virtual void paintSelf(wxDC& dc);
 	virtual void paintSelf(wxGraphicsContext* gc);

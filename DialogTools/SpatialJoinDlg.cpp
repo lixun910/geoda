@@ -26,14 +26,14 @@ SpatialJoinWorker::SpatialJoinWorker(BackgroundMapLayer* _ml, Project* _project)
     ml = _ml;
     project = _project;
     spatial_counts.resize(project->GetNumRecords());
-    
+
     // always use points to create a rtree, since in normal case
     // the number of points are larger than the number of polygons
 }
 
 SpatialJoinWorker::~SpatialJoinWorker()
 {
-    
+
 }
 
 vector<wxInt64> SpatialJoinWorker::GetResults()
@@ -48,7 +48,7 @@ void SpatialJoinWorker::Run()
     int quotient = initial / nCPUs;
     int remainder = initial % nCPUs;
     int tot_threads = (quotient > 0) ? nCPUs : remainder;
-    
+
     boost::thread_group threadPool;
     for (int i=0; i<tot_threads; i++) {
         int a=0;
@@ -63,7 +63,7 @@ void SpatialJoinWorker::Run()
         boost::thread* worker = new boost::thread(boost::bind(&SpatialJoinWorker::sub_run,this,a,b));
         threadPool.add_thread(worker);
     }
-    
+
     threadPool.join_all();
 }
 
@@ -71,7 +71,7 @@ CountPointsInPolygon::CountPointsInPolygon(BackgroundMapLayer* _ml, Project* _pr
 : SpatialJoinWorker(_ml, _project)
 {
     num_polygons = project->GetNumRecords();
-    
+
     // using selected layer (points) to create rtree
     int n = ml->shapes.size();
     double x, y;
@@ -136,7 +136,7 @@ void AssignPolygonToPoint::sub_run(int start, int end)
         // create a box, tl, br
         OGREnvelope box;
         ogr_poly->getEnvelope(&box);
-        
+
         box_2d b(pt_2d(box.MinX, box.MinY), pt_2d(box.MaxX, box.MaxY));
         // query points in this box
         std::vector<pt_2d_val> q;
@@ -249,12 +249,12 @@ SpatialJoinDlg::SpatialJoinDlg(wxWindow* parent, Project* _project)
 {
     project = _project;
     panel = new wxPanel(this, -1);
-    
+
     wxString info = _("Please select a map layer to apply "
                       "spatial join to current map (%s):");
     info = wxString::Format(info, project->GetProjectTitle());
     wxStaticText* st = new wxStaticText(panel, wxID_ANY, info);
-    
+
     map_list = new wxChoice(panel, wxID_ANY, wxDefaultPosition, wxSize(160,-1));
     field_st = new wxStaticText(panel, wxID_ANY, "Select ID Variable (Optional)");
     field_list = new wxChoice(panel, wxID_ANY, wxDefaultPosition, wxSize(100,-1));
@@ -262,37 +262,31 @@ SpatialJoinDlg::SpatialJoinDlg(wxWindow* parent, Project* _project)
     mbox->Add(map_list, 0, wxALIGN_CENTER | wxALL, 5);
     mbox->Add(field_st, 0, wxALIGN_CENTER | wxALL, 5);
     mbox->Add(field_list, 0, wxALIGN_CENTER | wxALL, 5);
-    
+
     cbox = new wxBoxSizer(wxVERTICAL);
     cbox->Add(st, 0, wxALIGN_CENTER | wxALL, 15);
     cbox->Add(mbox, 0, wxALIGN_CENTER | wxALL, 10);
     panel->SetSizerAndFit(cbox);
-    
-    wxButton* add_btn = new wxButton(this, XRCID("IDC_SPATIALJOIN_ADD_LAYER"),
-        _("Add Map Layer"), wxDefaultPosition,  wxDefaultSize, wxBU_EXACTFIT);
-    wxButton* ok_btn = new wxButton(this, wxID_ANY, _("OK"), wxDefaultPosition,
-                                    wxDefaultSize, wxBU_EXACTFIT);
-    wxButton* cancel_btn = new wxButton(this, wxID_CANCEL, _("Close"),
-                            wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
-    
+
+    wxButton* ok_btn = new wxButton(this, wxID_ANY, _("OK"), wxDefaultPosition,  wxDefaultSize, wxBU_EXACTFIT);
+    wxButton* cancel_btn = new wxButton(this, wxID_CANCEL, _("Close"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+
     wxBoxSizer* hbox = new wxBoxSizer(wxHORIZONTAL);
-    hbox->Add(add_btn, 0, wxALIGN_CENTER | wxALL, 5);
     hbox->Add(ok_btn, 0, wxALIGN_CENTER | wxALL, 5);
     hbox->Add(cancel_btn, 0, wxALIGN_CENTER | wxALL, 5);
-    
+
     vbox = new wxBoxSizer(wxVERTICAL);
     vbox->Add(panel, 1, wxALL, 15);
     vbox->Add(hbox, 0, wxALIGN_CENTER | wxALL, 10);
-    
+
     SetSizer(vbox);
     vbox->Fit(this);
-    
+
     Center();
-    
+
     map_list->Bind(wxEVT_CHOICE, &SpatialJoinDlg::OnLayerSelect, this);
-    add_btn->Bind(wxEVT_BUTTON, &SpatialJoinDlg::OnAddMapLayer, this);
     ok_btn->Bind(wxEVT_BUTTON, &SpatialJoinDlg::OnOK, this);
-    
+
     InitMapList();
     field_st->Disable();
     field_list->Disable();
@@ -305,7 +299,7 @@ void SpatialJoinDlg::InitMapList()
 {
     map_list->Clear();
     map<wxString, BackgroundMapLayer*>::iterator it;
-    
+
     for (it=project->bg_maps.begin(); it!=project->bg_maps.end(); it++) {
         wxString name = it->first;
         map_list->Append(name);
@@ -336,40 +330,12 @@ void SpatialJoinDlg::UpdateFieldList(wxString name)
             }
             field_list->Enable();
             field_st->Enable();
-            
+
         } else {
             field_list->Clear();
             field_list->Disable();
             field_st->Disable();
         }
-    }
-}
-
-void SpatialJoinDlg::OnAddMapLayer(wxCommandEvent& e)
-{
-    ConnectDatasourceDlg connect_dlg(this, wxDefaultPosition, wxDefaultSize);
-    if (connect_dlg.ShowModal() != wxID_OK) {
-        return;
-    }
-    wxString proj_title = connect_dlg.GetProjectTitle();
-    wxString layer_name = connect_dlg.GetLayerName();
-    IDataSource* datasource = connect_dlg.GetDataSource();
-    wxString datasource_name = datasource->GetOGRConnectStr();
-    GdaConst::DataSourceType ds_type = datasource->GetType();
-    
-    BackgroundMapLayer* map_layer = project->AddMapLayer(datasource_name,
-                                                         ds_type, layer_name);
-    if (map_layer == NULL) {
-        wxMessageDialog dlg (this, _("GeoDa could not load this layer. \n"
-                                     "Please check if the datasource is valid "
-                                     "and not table only."),
-                             _("Load Layer Failed."), wxOK | wxICON_ERROR);
-        dlg.ShowModal();
-    } else {
-        map_list->Append(layer_name);
-        UpdateFieldList(layer_name);
-        MapLayerState* ml_state = project->GetMapLayerState();
-        ml_state->notifyObservers();
     }
 }
 
@@ -392,7 +358,7 @@ void SpatialJoinDlg::OnOK(wxCommandEvent& e)
     wxString layer_name = map_list->GetString(layer_idx);
     BackgroundMapLayer* ml = NULL;
     ml = project->GetMapLayer(layer_name);
-    
+
     if (ml) {
         int n = ml->GetNumRecords();
         if (project->IsPointTypeData() &&
@@ -406,7 +372,7 @@ void SpatialJoinDlg::OnOK(wxCommandEvent& e)
         }
         wxString label = "Spatial Count";
         wxString field_name = "SC";
-        
+
         SpatialJoinWorker* sj;
         if (project->GetShapeType() == Shapefile::POINT_TYP ||
             project->GetShapeType() == Shapefile::POLY_LINE) {
@@ -415,7 +381,7 @@ void SpatialJoinDlg::OnOK(wxCommandEvent& e)
             for (int i=0; i<n; i++) {
                 poly_ids.push_back(i);
             }
-            
+
             int field_idx = field_list->GetSelection();
             if (field_idx > 0) {
                 wxString field_name = field_list->GetString(field_idx);
@@ -453,7 +419,7 @@ void SpatialJoinDlg::OnOK(wxCommandEvent& e)
             }
         }
         sj->Run();
-        
+
         wxString dlg_title = _("Save Results to Table: ") + label;
         vector<wxInt64> spatial_counts = sj->GetResults();
         // save results
@@ -468,9 +434,8 @@ void SpatialJoinDlg::OnOK(wxCommandEvent& e)
         SaveToTableDlg dlg(project, this, new_data, dlg_title,
                            wxDefaultPosition, wxSize(400,400));
         dlg.ShowModal();
-        
+
         delete sj;
         EndDialog(wxID_OK);
     }
 }
-

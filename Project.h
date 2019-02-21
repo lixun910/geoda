@@ -74,23 +74,24 @@ class MapLayerState;
 class Project {
 public:
 	Project(const wxString& proj_fname);
+
     Project(const wxString& project_title,
             const wxString& layername,
             IDataSource* p_datasource);
-	virtual ~Project();
+
+    virtual ~Project();
 
 	bool IsValid() { return is_project_valid; }
 	wxString GetOpenErrorMessage() { return open_err_msg; }
 	IDataSource* GetDataSource() { return datasource; }
-	wxString GetProjectTitle(); /// assumed to be primary layer name
+	wxString GetProjectTitle(); /// assumed to be layer name
 	GdaConst::DataSourceType GetDatasourceType();
     
 	bool IsTableOnlyProject();
-	bool isTableOnly; // variable data only, no geometry layers
     bool IsDataTypeChanged();
     bool IsFileDataSource();
     bool HasUnsavedChange();
-    
+    bool IsFieldCaseSensitive();
     bool IsPointTypeData() { return main_data.header.shape_type == Shapefile::POINT_TYP;}
 
     int GetShapeType() { return main_data.header.shape_type; }
@@ -126,6 +127,7 @@ public:
 
     int                 GetNumRecordsNoneEmpty();
 	int                 GetNumRecords() { return num_records; }
+	int                 GetNumFields();
 	HighlightState*     GetHighlightState() { return highlight_state; }
 	HighlightState*     GetConMapHlightState() { return con_map_hl_state; }
 	CovSpHLStateProxy*  GetPairsHLState();
@@ -230,7 +232,10 @@ public:
 	/** NOTE: This function needs a better home. */
 	static bool CanModifyGrpAndShowMsgIfNot(TableState* table_state,
                                             const wxString& grp_nm);
-	
+
+    // variable data only, no geometry layers
+    bool isTableOnly;
+
 	/// main_data is the only public remaining attribute in Project
 	Shapefile::Main main_data;
     OGRSpatialReference* sourceSR;
@@ -238,7 +243,7 @@ public:
 	
 	// ".gda" project file data
 	wxString layer_title; // optional project::layers::layer::title field
-	wxString layername; // optional project::layers::layer::layername field
+	wxString layername;   // optional project::layers::layer::layername field
 	wxString project_title; // optional project::title field;
     
 	// active project filename if exists.  Filename only, no directory
@@ -246,7 +251,8 @@ public:
 	// project file.
 	wxString	proj_file_no_ext;
 	wxFileName	working_dir;
-    
+
+    // in-memory OGRLayer reference
     OGRLayerProxy* layer_proxy;
     
     // Voronoi Diagram related
@@ -257,7 +263,7 @@ public:
 	/** Save in-memory Table+Geometries to OGR DataSource */
 	Shapefile::ShapeType GetGdaGeometries(vector<GdaShape*>& geometries);
     
-private:
+protected:
 	bool CommonProjectInit();
 	bool InitFromOgrLayer();
     // only for ESRI Shapefile .cpg file

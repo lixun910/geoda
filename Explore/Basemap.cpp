@@ -40,14 +40,13 @@
 #include "Basemap.h"
 
 using namespace std;
-using namespace GDA;
+using namespace Gda;
 
-BasemapItem GetBasemapSelection(int idx)
+BasemapItem Gda::GetBasemapSelection(int idx, wxString basemap_sources)
 {
     BasemapItem basemap_item;
  
     idx = idx - 1; // first item [0] is choice "no basemap"
-    wxString basemap_sources = GdaConst::gda_basemap_sources;
     wxString encoded_str= wxString::FromUTF8((const char*)basemap_sources.mb_str());
     if (encoded_str.IsEmpty() == false) {
         basemap_sources = encoded_str;
@@ -89,7 +88,7 @@ BasemapItem GetBasemapSelection(int idx)
     return basemap_item;
 }
 
-vector<BasemapGroup> ExtractBasemapResources(wxString basemap_sources) {
+vector<BasemapGroup> Gda::ExtractBasemapResources(wxString basemap_sources) {
     vector<wxString> group_names;
     map<wxString, BasemapGroup> group_dict;
     
@@ -287,6 +286,25 @@ void Basemap::Reset(int map_type)
     SetupMapType(basemap_item);
 }
 
+void Basemap::Extent(double _n, double _w, double _s, double _e,
+                     OGRCoordinateTransformation *_poCT)
+{
+    if (poCT!= NULL) {
+        poCT->Transform(1, &_w, &_n);
+        poCT->Transform(1, &_e, &_s);
+    }
+    map->north = _n;
+    map->south= _s;
+    map->west= _w;
+    map->east= _e;
+    origMap->north = _n;
+    origMap->south= _s;
+    origMap->west= _w;
+    origMap->east= _e;
+    GetEasyZoomLevel();
+    SetupMapType(basemap_item);
+}
+
 void Basemap::ResizeScreen(int _width, int _height)
 {
     if (screen) {
@@ -353,6 +371,15 @@ bool Basemap::Zoom(bool is_zoomin, int x0, int y0, int x1, int y1)
     GetEasyZoomLevel();
     GetTiles();
     return true;
+}
+
+bool Basemap::IsExtentChanged()
+{
+    bool no_change = (origMap->north == map->north &&
+                      origMap->south == map->south &&
+                      origMap->east == map->east &&
+                      origMap->west == map->west);
+    return !no_change;
 }
 
 void Basemap::ZoomIn(int mouseX, int mouseY)
@@ -684,6 +711,8 @@ XYFraction* Basemap::LatLngToXY(LatLng &latlng)
     return new XYFraction(xp, yp);
 }
 
+// This function is used to convert lng/lat to screen (x,y)
+// This function will be called by projectToBasemap()
 void Basemap::LatLngToXY(double lng, double lat, int &x, int &y)
 {
     if (poCT!= NULL) {
@@ -694,8 +723,12 @@ void Basemap::LatLngToXY(double lng, double lat, int &x, int &y)
     double yy = (1.0 - log(tan(lat_rad) + 1.0 / cos(lat_rad)) / M_PI) / 2.0 * nn;
     y = (int)(yy * 256 - topP) - offsetY;
    
-    double xx = (lng + 180.0 ) / 360.0 * nn;
-    x = (int)(xx * 256 - leftP) - offsetX;
+    double xx = (lng + 180.0 );
+    xx = xx / 360.0 * nn;
+
+    x = (int)(xx *256 - leftP);
+    if (x < -256) x = nn*256 + x;
+    x = x - offsetX;
     
     if ( endX > nn) {
         if (x <0) {

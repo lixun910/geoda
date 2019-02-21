@@ -2,7 +2,7 @@
  * GeoDa TM, Copyright (C) 2011-2015 by Luc Anselin - all rights reserved
  *
  * This file is part of GeoDa.
- * 
+ *
  * GeoDa is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -24,9 +24,11 @@
 #include <sstream>
 #include <vector>
 #include <map>
+#include <boost/unordered_map.hpp>
 #include <wx/msgdlg.h>
 #include "GalWeight.h"
 #include "GwtWeight.h"
+#include "GeodaWeight.h"
 #include "../DataViewer/TableInterface.h"
 #include "../GdaConst.h"
 #include "../GenUtils.h"
@@ -41,7 +43,7 @@ wxString WeightUtils::ReadIdField(const wxString& fname)
     if (ext != "gal" && ext != "gwt" && ext != "kwt") {
         return "";
     }
-	
+
 #ifdef __WIN32__
 	ifstream file(fname.wc_str());
 #else
@@ -49,7 +51,7 @@ wxString WeightUtils::ReadIdField(const wxString& fname)
 	file.open(GET_ENCODED_FILENAME(fname), ios::in);  // a text file
 #endif
 	if (!(file.is_open() && file.good())) return "";
-	
+
 	// Header line is identical for GWT and GAL
 	// First determine if header line is correct
 	// Can be either: int int string string  (type n_obs filename field)
@@ -57,17 +59,17 @@ wxString WeightUtils::ReadIdField(const wxString& fname)
 	string str;
 	getline(file, str);
 	stringstream ss (str, stringstream::in | stringstream::out);
-		
+
 	wxInt64 num1 = 0;
 	wxInt64 num2 = 0;
 	wxInt64 num_obs = 0;
 	string dbf_name, t_key_field;
-    
-    
+
+
     string line;
     std::getline(ss, line);
     wxString header(line);
-    
+
     // detect if header contains string with empty space, which should be quoted
     if (header.Contains("\"")) {
         int start_quote = header.find("\"");
@@ -81,15 +83,15 @@ wxString WeightUtils::ReadIdField(const wxString& fname)
         wxString num2_str = nums.SubString(break_pos+1, nums.length()-1);
         num1_str.ToLongLong(&num1);
         num2_str.ToLongLong(&num2);
-        
+
     } else {
-    
+
         ss.clear();
         ss.seekg(0, ios::beg); // reset to beginning
         ss >> num1 >> num2 >> dbf_name >> t_key_field;
     }
-    
-    
+
+
 	wxString key_field(t_key_field);
 	if (num2 == 0) {
 		key_field = "";
@@ -97,10 +99,10 @@ wxString WeightUtils::ReadIdField(const wxString& fname)
 	} else {
 		num_obs = num2;
 	}
-	
+
 	file.clear();
 	if (file.is_open()) file.close();
-	
+
 	return key_field;
 }
 
@@ -114,31 +116,31 @@ GalElement* WeightUtils::ReadGal(const wxString& fname,
 	ifstream file;
 	file.open(GET_ENCODED_FILENAME(fname), ios::in);  // a text file
 #endif
-	
+
 	if (!(file.is_open() && file.good())) {
 		return 0;
 	}
-	
+
 	// First determine if header line is correct
 	// Can be either: int int string string  (type n_obs filename field)
 	// or : int (n_obs)
-	
+
 	int line_cnt = 0;
 	bool use_rec_order = false;
 	string str;
 	getline(file, str);
 	line_cnt++;
 	stringstream ss (str, stringstream::in | stringstream::out);
-	
+
 	wxInt64 num1 = 0;
 	wxInt64 num2 = 0;
 	wxInt64 num_obs = 0;
 	string dbf_name, t_key_field;
-  
+
     string line;
     std::getline(ss, line);
     wxString header(line);
-    
+
     // detect if header contains string with empty space, which should be quoted
     if (header.Contains("\"")) {
         int start_quote = header.find("\"");
@@ -152,15 +154,15 @@ GalElement* WeightUtils::ReadGal(const wxString& fname,
         wxString num2_str = nums.SubString(break_pos+1, nums.length()-1);
         num1_str.ToLongLong(&num1);
         num2_str.ToLongLong(&num2);
-        
+
     } else {
-        
+
         ss.clear();
         ss.seekg(0, ios::beg); // reset to beginning
         ss >> num1 >> num2 >> dbf_name >> t_key_field;
     }
-    
-    
+
+
 	wxString key_field(t_key_field);
 	if (num2 == 0) {
 		use_rec_order = true;
@@ -171,7 +173,7 @@ GalElement* WeightUtils::ReadGal(const wxString& fname,
 			use_rec_order = true;
 		}
 	}
-	
+
 	if (table_int != NULL && num_obs != table_int->GetNumberRows()) {
 		wxString msg = "The number of observations specified in chosen ";
 		msg << "weights file is " << num_obs << ", but the number in the ";
@@ -181,7 +183,7 @@ GalElement* WeightUtils::ReadGal(const wxString& fname,
 		dlg.ShowModal();
 		return 0;
 	}
-	
+
 	// Note: we want to be able to support blank lines.  If an observation
 	// has no neighbors, then we'd like to be able to not include the
 	// observation, or, if it is recorded, then the following line can
@@ -189,7 +191,7 @@ GalElement* WeightUtils::ReadGal(const wxString& fname,
     // note: we use wxString as key (convert int to string) for the case of any
     // string type numbers (e.g. the FIPS)
 	map<wxString, int> id_map;
-    
+
 	if (use_rec_order) {
 		// we need to traverse through every second line of the file and
 		// record the max and min values.  So long as the max and min
@@ -240,10 +242,10 @@ GalElement* WeightUtils::ReadGal(const wxString& fname,
             iid << i+min_val;
             id_map[ iid ] = i;
         }
-        
+
 	} else if ( table_int != NULL) {
 		int col=0, tm=0;
-        
+
 		table_int->DbColNmToColAndTm(key_field, col, tm);
 		if (col == wxNOT_FOUND) {
             wxString msg = _("Specified key value field \"%s\" on first line of weights file not found in currently loaded Table.");
@@ -286,7 +288,7 @@ GalElement* WeightUtils::ReadGal(const wxString& fname,
 			return 0;
 		}
 	}
-	
+
 	GalElement* gal = new GalElement[num_obs];
 	file.clear();
 	file.seekg(0, ios::beg); // reset to beginning
@@ -365,11 +367,11 @@ GalElement* WeightUtils::ReadGal(const wxString& fname,
 				}
 			}
 		}
-	}	
-	
+	}
+
 	file.clear();
 	if (file.is_open()) file.close();
-	
+
 	return gal;
 }
 
@@ -385,30 +387,30 @@ GalElement* WeightUtils::ReadGwtAsGal(const wxString& fname,
 	ifstream file;
 	file.open(GET_ENCODED_FILENAME(fname), ios::in);  // a text file
 #endif
- 
+
 	if (!(file.is_open() && file.good())) {
 		return 0;
 	}
-	
+
 	// First determine if header line is correct
 	// Can be either: int int string string  (type n_obs filename field)
 	// or : int (n_obs)
-	
+
 	bool use_rec_order = false;
 	string str;
 	getline(file, str);
 	cout << str << endl;
 	stringstream ss(str, stringstream::in | stringstream::out);
-	
+
 	wxInt64 num1 = 0;
 	wxInt64 num2 = 0;
-	wxInt64 num_obs = 0;	
+	wxInt64 num_obs = 0;
 	string dbf_name, t_key_field;
-    
+
     string line;
     std::getline(ss, line);
     wxString header(line);
-    
+
     // detect if header contains string with empty space, which should be quoted
     if (header.Contains("\"")) {
         int start_quote = header.find("\"");
@@ -422,14 +424,14 @@ GalElement* WeightUtils::ReadGwtAsGal(const wxString& fname,
         wxString num2_str = nums.SubString(break_pos+1, nums.length()-1);
         num1_str.ToLongLong(&num1);
         num2_str.ToLongLong(&num2);
-        
+
     } else {
-        
+
         ss.clear();
         ss.seekg(0, ios::beg); // reset to beginning
         ss >> num1 >> num2 >> dbf_name >> t_key_field;
     }
-    
+
 	wxString key_field(t_key_field);
 	if (num2 == 0) {
 		use_rec_order = true;
@@ -440,7 +442,7 @@ GalElement* WeightUtils::ReadGwtAsGal(const wxString& fname,
 			use_rec_order = true;
 		}
 	}
-	
+
 	if (table_int != NULL && num_obs != table_int->GetNumberRows()) {
         wxString msg = _("The number of observations specified in chosen weights file is %d, but the number in the current Table is %d, which is incompatible.");
         msg = wxString::Format(msg, num_obs, table_int->GetNumberRows());
@@ -448,7 +450,7 @@ GalElement* WeightUtils::ReadGwtAsGal(const wxString& fname,
 		dlg.ShowModal();
 		return 0;
 	}
-	
+
 	file.clear();
 	file.seekg(0, ios::beg); // reset to beginning
 	getline(file, str); // skip header line
@@ -490,7 +492,7 @@ GalElement* WeightUtils::ReadGwtAsGal(const wxString& fname,
                     iid << i+min_val;
                     id_map[ iid ] = i;
                 }
-        
+
 	} else if (table_int != NULL) {
 		int col, tm;
 		table_int->DbColNmToColAndTm(key_field, col, tm);
@@ -558,7 +560,7 @@ GalElement* WeightUtils::ReadGwtAsGal(const wxString& fname,
                 nbr_histogram[obs1].insert(obs2);
 		}
 	}
-	
+
 	vector<size_t> gal_cnt(num_obs, 0);
 	GalElement* gal = new GalElement[num_obs];
 	file.clear();
@@ -584,7 +586,7 @@ GalElement* WeightUtils::ReadGwtAsGal(const wxString& fname,
                     obs = obs1;
 				if (it2 == id_map.end())
                     obs = obs2;
-                
+
                 wxString msg;
 				if (use_rec_order) {
                     msg = _("On line %d of weights file, observation id %d encountered which is out of allowed observation range of 1 through %d.");
@@ -593,13 +595,13 @@ GalElement* WeightUtils::ReadGwtAsGal(const wxString& fname,
                     msg = _("On line %d of weights file, observation id %d encountered which does not exist in field \"%s\" of the Table.");
                     msg = wxString::Format(msg, line_num+1, obs, key_field);
 				}
-                
+
 				wxMessageDialog dlg(NULL, msg, _("Error"), wxOK | wxICON_ERROR);
 				dlg.ShowModal();
 				delete [] gal;
 				return 0;
 			}
-			
+
 			gwt_obs1 = (*it1).second; // value
 			gwt_obs2 = (*it2).second; // value
 			if (gal[gwt_obs1].Size() == 0) {
@@ -611,11 +613,11 @@ GalElement* WeightUtils::ReadGwtAsGal(const wxString& fname,
             }
 		}
 		line_num++;
-	}	
-	
+	}
+
 	file.clear();
 	if (file.is_open()) file.close();
-	
+
 	return gal;
 }
 
@@ -635,26 +637,26 @@ GwtElement* WeightUtils::ReadGwt(const wxString& fname,
 	if (!(file.is_open() && file.good())) {
 		return 0;
 	}
-	
+
 	// First determine if header line is correct
 	// Can be either: int int string string  (type n_obs filename field)
 	// or : int (n_obs)
-	
+
 	bool use_rec_order = false;
 	string str;
 	getline(file, str);
 	cout << str << endl;
 	stringstream ss(str, stringstream::in | stringstream::out);
-	
+
 	wxInt64 num1 = 0;
 	wxInt64 num2 = 0;
-	wxInt64 num_obs = 0;	
+	wxInt64 num_obs = 0;
 	string dbf_name, t_key_field;
-    
+
     string line;
     std::getline(ss, line);
     wxString header(line);
-    
+
     // detect if header contains string with empty space, which should be quoted
     if (header.Contains("\"")) {
         int start_quote = header.find("\"");
@@ -668,14 +670,14 @@ GwtElement* WeightUtils::ReadGwt(const wxString& fname,
         wxString num2_str = nums.SubString(break_pos+1, nums.length()-1);
         num1_str.ToLongLong(&num1);
         num2_str.ToLongLong(&num2);
-        
+
     } else {
-        
+
         ss.clear();
         ss.seekg(0, ios::beg); // reset to beginning
         ss >> num1 >> num2 >> dbf_name >> t_key_field;
     }
-    
+
 	wxString key_field(t_key_field);
 	if (num2 == 0) {
 		use_rec_order = true;
@@ -686,7 +688,7 @@ GwtElement* WeightUtils::ReadGwt(const wxString& fname,
 			use_rec_order = true;
 		}
 	}
-	
+
 	if (num_obs != table_int->GetNumberRows()) {
 		wxString msg = "The number of observations specified in chosen ";
 		msg << "weights file is " << num_obs << ", but the number in the ";
@@ -696,7 +698,7 @@ GwtElement* WeightUtils::ReadGwt(const wxString& fname,
 		dlg.ShowModal();
 		return 0;
 	}
-	
+
 	file.clear();
 	file.seekg(0, ios::beg); // reset to beginning
 	getline(file, str); // skip header line
@@ -781,7 +783,7 @@ GwtElement* WeightUtils::ReadGwt(const wxString& fname,
 		if (!str.empty()) {
 			stringstream ss (str, stringstream::in | stringstream::out);
 			ss >> obs1;
-			
+
 			it = nbr_histogram.find(obs1);
 			if (it == nbr_histogram.end()) {
 				nbr_histogram[obs1] = 1;
@@ -790,7 +792,7 @@ GwtElement* WeightUtils::ReadGwt(const wxString& fname,
 			}
 		}
 	}
-	
+
 	GwtElement* gwt = new GwtElement[num_obs];
 	file.clear();
 	file.seekg(0, ios::beg); // reset to beginning
@@ -828,25 +830,25 @@ GwtElement* WeightUtils::ReadGwt(const wxString& fname,
 			}
 			gwt_obs1 = (*it1).second; // value
 			gwt_obs2 = (*it2).second; // value
-            
+
 			if (gwt[gwt_obs1].empty())
                 gwt[gwt_obs1].alloc(nbr_histogram[obs1]);
-            
+
 			gwt[gwt_obs1].Push(GwtNeighbor(gwt_obs2, w_val));
 		}
 		line_num++;
-	}	
-	
+	}
+
 	if (file.is_open()) file.close();
-	
+
 	return gwt;
 }
 
-GalElement* WeightUtils::Gwt2Gal(GwtElement* Gwt, long obs) 
+GalElement* WeightUtils::Gwt2Gal(GwtElement* Gwt, long obs)
 {
 	if (Gwt == NULL) return NULL;
 	GalElement* Gal = new GalElement[obs];
-	
+
 	for (int i=0; i<obs; i++) {
 		Gal[i].SetSizeNbrs(Gwt[i].Size());
 		for (int j=0, sz=Gwt[i].Size(); j<sz; j++) {
@@ -864,21 +866,21 @@ void WeightUtils::LoadGwtInMan(WeightsManInterface* w_man_int,
                                WeightsMetaInfo::WeightTypeEnum type)
 {
     int rows = table_int->GetNumberRows();
-    
+
     WeightsMetaInfo wmi;
-    
+
     GalElement* tempGal = WeightUtils::ReadGwtAsGal(filepath, table_int);
     if (tempGal == NULL) {
         return;
     }
-    
+
     GalWeight* w = new GalWeight();
     w->num_obs = rows;
     w->wflnm = filepath;
     w->gal = tempGal;
     w->id_field = id_field;
     w->is_symmetric = true;
-    
+
     w->GetNbrStats();
     wmi.num_obs = w->GetNumObs();
     wmi.id_var = id_field;
@@ -893,7 +895,7 @@ void WeightUtils::LoadGwtInMan(WeightsManInterface* w_man_int,
 
     WeightsMetaInfo e(wmi);
     e.filename = filepath;
-    
+
     boost::uuids::uuid uid = w_man_int->RequestWeights(e);
     if (uid.is_nil()) {
         bool success = ((WeightsNewManager*) w_man_int)->AssociateGal(uid, w);
@@ -949,4 +951,85 @@ void WeightUtils::LoadGalInMan(WeightsManInterface* w_man_int,
     }
 }
 
+GalWeight* WeightUtils::WeightsIntersection(std::vector<GeoDaWeight*> ws)
+{
+    // Get the intersection from an array of weights
+    int num_obs = ws[0]->GetNumObs();
+    wxString id_field = ws[0]->GetIDName();
+    GalElement* gal = new GalElement[num_obs];
+    boost::unordered_map<int, int>::iterator it;
 
+    size_t n_w = ws.size();
+    for (size_t i=0; i<num_obs; ++i) {
+        boost::unordered_map<int, int> nbr_dict;
+
+        for (size_t j=0; j<n_w; ++j) {
+            GeoDaWeight* w = ws[j];
+            const std::vector<long>& nbr_ids = w->GetNeighbors(i);
+            for (size_t k=0; k<nbr_ids.size(); ++k) {
+                if (nbr_dict.find(nbr_ids[k])==nbr_dict.end()) {
+                    nbr_dict[ nbr_ids[k] ] = 1;
+                } else {
+                    nbr_dict[ nbr_ids[k] ] += 1;
+                }
+            }
+        }
+        // the intersect observation should be shared by ws.size() weights
+        std::vector<long> nbrs;
+        for (it=nbr_dict.begin(); it !=nbr_dict.end(); ++it) {
+            if (it->second == n_w) {
+                nbrs.push_back(it->first);
+            }
+        }
+        gal[i].SetSizeNbrs(nbrs.size());
+        for (size_t j=0; j<nbrs.size(); ++j) {
+            gal[i].SetNbr(j, nbrs[j]);
+        }
+    }
+
+    GalWeight* new_w = new GalWeight();
+    new_w->num_obs = num_obs;
+    new_w->gal = gal;
+    new_w->is_symmetric = false;
+
+    new_w->id_field = id_field;
+    return new_w;
+}
+
+GalWeight* WeightUtils::WeightsUnion(std::vector<GeoDaWeight*> ws)
+{
+    int num_obs = ws[0]->GetNumObs();
+    wxString id_field = ws[0]->GetIDName();
+    GalElement* gal = new GalElement[num_obs];
+    boost::unordered_map<int, int>::iterator it;
+
+    for (size_t i=0; i<num_obs; ++i) {
+        boost::unordered_map<int, int> nbr_dict;
+
+        for (size_t j=0; j<ws.size(); ++j) {
+            GeoDaWeight* w = ws[j];
+            const std::vector<long>& nbr_ids = w->GetNeighbors(i);
+            for (size_t k=0; k<nbr_ids.size(); ++k) {
+                nbr_dict[ nbr_ids[k] ] = 1;
+            }
+        }
+
+        std::vector<long> nbrs;
+        for (it=nbr_dict.begin(); it !=nbr_dict.end(); ++it) {
+            nbrs.push_back(it->first);
+        }
+        gal[i].SetSizeNbrs(nbrs.size());
+        for (size_t j=0; j<nbrs.size(); ++j) {
+            gal[i].SetNbr(j, nbrs[j]);
+        }
+    }
+
+    GalWeight* new_w = new GalWeight();
+    new_w->num_obs = num_obs;
+    new_w->gal = gal;
+    new_w->is_symmetric = true;
+
+    //new_w->wflnm = filepath;
+    new_w->id_field = id_field;
+    return new_w;
+}

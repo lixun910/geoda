@@ -2,7 +2,7 @@
  * GeoDa TM, Copyright (C) 2011-2015 by Luc Anselin - all rights reserved
  *
  * This file is part of GeoDa.
- * 
+ *
  * GeoDa is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,8 +20,11 @@
 #ifndef __GEODA_CENTER_WEIGHT_UTILS_H__
 #define __GEODA_CENTER_WEIGHT_UTILS_H__
 
+#include <vector>
+
 #include "../VarCalc/WeightsMetaInfo.h"
 
+class GeoDaWeight;
 class TableInterface;
 class GalWeight;
 class GwtWeight;
@@ -31,18 +34,26 @@ class WeightsManInterface;
 
 namespace WeightUtils {
 	wxString ReadIdField(const wxString& w_fname);
+
 	GalElement* ReadGal(const wxString& w_fname, TableInterface* table_int);
-	
-	GalElement* ReadGwtAsGal(const wxString& w_fname,
-							 TableInterface* table_int);
+
+	GalElement* ReadGwtAsGal(const wxString& w_fname, TableInterface* table_int);
+
 	GwtElement* ReadGwt(const wxString& w_fname, TableInterface* table_int);
+
 	GalElement* Gwt2Gal(GwtElement* Gwt, long obs);
+
     void LoadGwtInMan(WeightsManInterface* w_man_int, wxString filepath,
                       TableInterface* table_int, wxString id_field,
                       WeightsMetaInfo::WeightTypeEnum type);
+
     void LoadGalInMan(WeightsManInterface* w_man_int, wxString filepath,
                       TableInterface* table_int, wxString id_field,
                       WeightsMetaInfo::WeightTypeEnum type);
+
+    GalWeight* WeightsIntersection(std::vector<GeoDaWeight*> ws);
+
+    GalWeight* WeightsUnion(std::vector<GeoDaWeight*> ws);
 }
 
 #endif

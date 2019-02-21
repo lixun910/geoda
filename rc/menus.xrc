@@ -82,25 +82,17 @@
               <label>Snap Points to Roads</label>
           </object>
       </object>
-    </object>
-    <object class="wxMenu" name="ID_MENU">
-      <label>T&amp;able</label>
       <object class="wxMenuItem" name="ID_TABLE_SPATIAL_JOIN">
           <label>Spatial Join</label>
       </object>
-      <object class="separator"/>
+    </object>
+    <object class="wxMenu" name="ID_MENU">
+      <label>T&amp;able</label>
       <object class="wxMenuItem" name="ID_TABLE_AGGREGATION_DATA">
         <label>Aggregate</label>
       </object>
       <object class="wxMenuItem" name="ID_TABLE_MERGE_TABLE_DATA">
         <label>Merge</label>
-      </object>
-      <object class="separator"/>
-      <object class="wxMenuItem" name="ID_TABLE_GEOCODING">
-        <label>Geocode</label>
-      </object>
-      <object class="wxMenuItem" name="ID_POINTS_FROM_TABLE">
-          <label>Points from Table</label>
       </object>
       <object class="separator"/>
       <object class="wxMenuItem" name="ID_TABLE_RANGE_SELECTION">
@@ -119,11 +111,11 @@
         <label>Move Selected to Top</label>
       </object>
       <object class="separator"/>
-      
+
       <object class="wxMenuItem" name="ID_TABLE_FIELD_CALCULATION">
         <label>Calculator</label>
       </object>
-	  
+
       <object class="wxMenuItem" name="ID_TABLE_ADD_COLUMN">
         <label>Add Variable</label>
       </object>
@@ -246,9 +238,7 @@
           <checkable>1</checkable>
         </object>
       </object>
-      <object class="wxMenuItem" name="ID_TABLE_SET_LOCALE">
-        <label>Set Number Separators</label>
-      </object>
+
     </object>
     <object class="wxMenu" name="ID_CAT_CLASSIF_A_MENU">
       <label>&amp;Map</label>
@@ -634,7 +624,7 @@
       <checked>1</checked>
     </object>
     <object class="separator"/>
-    
+
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -669,7 +659,7 @@
       <checked>1</checked>
     </object>
     <object class="separator"/>
-    
+
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -702,7 +692,7 @@
       <checked>1</checked>
     </object>
     <object class="separator"/>
-    
+
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -818,7 +808,7 @@
 		  <checkable>1</checkable>
         </object>
 	  </object>
-	
+
 	  <object class="wxMenu" name="ID_EQUAL_INTERVALS_SUBMENU">
 		<label>Equal Intervals</label>
 		<object class="wxMenuItem" name="ID_EQUAL_INTERVALS_2">
@@ -872,7 +862,7 @@
         <label>Themeless</label>
         <checkable>1</checkable>
       </object>
-      
+
 	  <object class="wxMenu" name="ID_COND_VERT_QUANT_SUBMENU">
 		<label>Quantile</label>
 		<object class="wxMenuItem" name="ID_COND_VERT_QUANT_2">
@@ -1063,12 +1053,12 @@
 		  <checkable>1</checkable>
         </object>
 	  </object>
-	  
+
       <object class="wxMenuItem" name="ID_COND_HORIZ_CHOROPLETH_PERCENTILE">
         <label>Percentile</label>
         <checkable>1</checkable>
       </object>
-      
+
       <object class="wxMenuItem" name="ID_COND_HORIZ_HINGE_15">
           <label>Box Map (Hinge=1.5)</label>
           <checkable>1</checkable>
@@ -1077,7 +1067,7 @@
           <label>Box Map (Hinge=3.0)</label>
           <checkable>1</checkable>
       </object>
-      
+
       <object class="wxMenuItem" name="ID_COND_HORIZ_CHOROPLETH_STDDEV">
         <label>Standard Deviation</label>
         <checkable>1</checkable>
@@ -1086,7 +1076,7 @@
         <label>Unique Values</label>
         <checkable>1</checkable>
       </object>
-      
+
 	  <object class="wxMenu" name="ID_COND_HORIZ_NAT_BRKS_SUBMENU">
 		<label>Natural Breaks</label>
 		<object class="wxMenuItem" name="ID_COND_HORIZ_NAT_BRKS_2">
@@ -1126,7 +1116,7 @@
 		  <checkable>1</checkable>
         </object>
 	  </object>
-	
+
 	  <object class="wxMenu" name="ID_COND_HORIZ_EQU_INTS_SUBMENU">
 		<label>Equal Intervals</label>
 		<object class="wxMenuItem" name="ID_COND_HORIZ_EQU_INTS_2">
@@ -1216,7 +1206,7 @@
       <checked>1</checked>
     </object>
     <object class="separator"/>
-    
+
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -1273,7 +1263,7 @@
 		  <checkable>1</checkable>
         </object>
 	  </object>
-	  
+
       <object class="wxMenuItem" name="ID_COND_VERT_CHOROPLETH_PERCENTILE">
         <label>Percentile</label>
         <checkable>1</checkable>
@@ -1294,7 +1284,7 @@
         <label>Unique Values</label>
         <checkable>1</checkable>
       </object>
-	
+
 	  <object class="wxMenu" name="ID_COND_VERT_NAT_BRKS_SUBMENU">
 		<label>Natural Breaks</label>
 		<object class="wxMenuItem" name="ID_COND_VERT_NAT_BRKS_2">
@@ -1334,7 +1324,7 @@
 		  <checkable>1</checkable>
         </object>
 	  </object>
-	
+
 	  <object class="wxMenu" name="ID_COND_VERT_EQU_INTS_SUBMENU">
 		<label>Equal Intervals</label>
 		<object class="wxMenuItem" name="ID_COND_VERT_EQU_INTS_2">
@@ -1388,7 +1378,7 @@
         <label>Themeless</label>
         <checkable>1</checkable>
       </object>
-      
+
 	  <object class="wxMenu" name="ID_COND_HORIZ_QUANT_SUBMENU">
 		<label>Quantile</label>
 		<object class="wxMenuItem" name="ID_COND_HORIZ_QUANT_2">
@@ -1428,7 +1418,7 @@
 		  <checkable>1</checkable>
         </object>
 	  </object>
-	  
+
       <object class="wxMenuItem" name="ID_COND_HORIZ_CHOROPLETH_PERCENTILE">
         <label>Percentile</label>
         <checkable>1</checkable>
@@ -1449,7 +1439,7 @@
         <label>Unique Values</label>
         <checkable>1</checkable>
       </object>
-      
+
 	  <object class="wxMenu" name="ID_COND_HORIZ_NAT_BRKS_SUBMENU">
 		<label>Natural Breaks</label>
 		<object class="wxMenuItem" name="ID_COND_HORIZ_NAT_BRKS_2">
@@ -1489,7 +1479,7 @@
 		  <checkable>1</checkable>
         </object>
 	  </object>
-	
+
 	  <object class="wxMenu" name="ID_COND_HORIZ_EQU_INTS_SUBMENU">
 		<label>Equal Intervals</label>
 		<object class="wxMenuItem" name="ID_COND_HORIZ_EQU_INTS_2">
@@ -1538,7 +1528,7 @@
       </object>
       <label>Horizontal Bins Breaks</label>
     </object>
-    
+
     <object class="wxMenuItem" name="ID_VIEW_LINEAR_SMOOTHER">
       <label>Show Linear Smoother</label>
       <checkable>1</checkable>
@@ -1601,9 +1591,9 @@
         <label>Background Color</label>
       </object>
     </object>
-    
+
     <object class="separator"/>
-    
+
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -1621,7 +1611,7 @@
         <label>Themeless</label>
         <checkable>1</checkable>
       </object>
-	  
+
       <object class="wxMenu" name="ID_COND_VERT_QUANT_SUBMENU">
 		<label>Quantile</label>
 		<object class="wxMenuItem" name="ID_COND_VERT_QUANT_2">
@@ -1661,7 +1651,7 @@
 		  <checkable>1</checkable>
         </object>
 	  </object>
-	  
+
       <object class="wxMenuItem" name="ID_COND_VERT_CHOROPLETH_PERCENTILE">
         <label>Percentile</label>
         <checkable>1</checkable>
@@ -1682,7 +1672,7 @@
         <label>Unique Values</label>
         <checkable>1</checkable>
       </object>
-	  
+
       <object class="wxMenu" name="ID_COND_VERT_NAT_BRKS_SUBMENU">
 		<label>Natural Breaks</label>
 		<object class="wxMenuItem" name="ID_COND_VERT_NAT_BRKS_2">
@@ -1722,7 +1712,7 @@
 		  <checkable>1</checkable>
         </object>
 	  </object>
-	
+
 	  <object class="wxMenu" name="ID_COND_VERT_EQU_INTS_SUBMENU">
 		<label>Equal Intervals</label>
 		<object class="wxMenuItem" name="ID_COND_VERT_EQU_INTS_2">
@@ -1776,7 +1766,7 @@
         <label>Themeless</label>
         <checkable>1</checkable>
       </object>
-	  
+
 	  <object class="wxMenu" name="ID_COND_HORIZ_QUANT_SUBMENU">
 		<label>Quantile</label>
 		<object class="wxMenuItem" name="ID_COND_HORIZ_QUANT_2">
@@ -1816,7 +1806,7 @@
 		  <checkable>1</checkable>
         </object>
 	  </object>
-	  
+
       <object class="wxMenuItem" name="ID_COND_HORIZ_CHOROPLETH_PERCENTILE">
         <label>Percentile</label>
         <checkable>1</checkable>
@@ -1838,7 +1828,7 @@
         <label>Unique Values</label>
         <checkable>1</checkable>
       </object>
-	  
+
       <object class="wxMenu" name="ID_COND_HORIZ_NAT_BRKS_SUBMENU">
 		<label>Natural Breaks</label>
 		<object class="wxMenuItem" name="ID_COND_HORIZ_NAT_BRKS_2">
@@ -1878,7 +1868,7 @@
 		  <checkable>1</checkable>
         </object>
 	  </object>
-	
+
 	  <object class="wxMenu" name="ID_COND_HORIZ_EQU_INTS_SUBMENU">
 		<label>Equal Intervals</label>
 		<object class="wxMenuItem" name="ID_COND_HORIZ_EQU_INTS_2">
@@ -2180,7 +2170,7 @@
       <checked>1</checked>
     </object>
     <object class="separator"/>
-    
+
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -2224,9 +2214,9 @@
         <label>Background Color</label>
       </object>
     </object>
-    
+
     <object class="separator"/>
-    
+
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -2274,7 +2264,7 @@
       <checked>1</checked>
     </object>
     <object class="separator"/>
-    
+
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -2360,7 +2350,7 @@
       <checkable>1</checkable>
       <checked>1</checked>
     </object>
-    
+
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -2371,7 +2361,7 @@
     <object class="wxMenuItem" name="ID_SAVE_CANVAS_IMAGE_AS">
         <label>Save Image As</label>
     </object>
-	
+
     <object class="separator"/>
       <object class="wxMenu" name="ID_BASEMAP_MENU">
           <label>Basemap</label>
@@ -2430,7 +2420,7 @@
       <checked>1</checked>
     </object>
     <object class="separator"/>
-    
+
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -2602,7 +2592,7 @@
       <checked>1</checked>
     </object>
     <object class="separator"/>
-    
+
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -2770,7 +2760,7 @@
           <checked>1</checked>
       </object>
       <object class="separator"/>
-      
+
       <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
           <label>Save Selection</label>
       </object>
@@ -2953,7 +2943,7 @@
           <checked>1</checked>
       </object>
       <object class="separator"/>
-      
+
       <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
           <label>Save Selection</label>
       </object>
@@ -3120,7 +3110,7 @@
       <checked>1</checked>
     </object>
     <object class="separator"/>
-    
+
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -3230,7 +3220,7 @@
       <checked>1</checked>
     </object>
     <object class="separator"/>
-    
+
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -3421,7 +3411,7 @@
 		  <checkable>1</checkable>
         </object>
 	  </object>
-		  
+
       <object class="wxMenuItem" name="ID_MAPANALYSIS_CHOROPLETH_PERCENTILE">
         <label>Percentile</label>
         <checkable>1</checkable>
@@ -3485,7 +3475,7 @@
 		  <checkable>1</checkable>
         </object>
 	  </object>
-	
+
 	  <object class="wxMenu" name="ID_EQUAL_INTERVALS_SUBMENU">
 		<label>Equal Intervals</label>
 		<object class="wxMenuItem" name="ID_EQUAL_INTERVALS_2">
@@ -3728,7 +3718,7 @@
       <checked>1</checked>
     </object>
     <object class="separator"/>
-    
+
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -3869,7 +3859,7 @@
 		  <checkable>1</checkable>
         </object>
 	  </object>
-	
+
 	  <object class="wxMenu" name="ID_EQUAL_INTERVALS_SUBMENU">
 		<label>Equal Intervals</label>
 		<object class="wxMenuItem" name="ID_EQUAL_INTERVALS_2">
@@ -3924,7 +3914,7 @@
     <object class="separator"/>
     <object class="wxMenu" name="ID_VIEW_DATA_SUBMENU">
         <label>Data</label>
-    
+
         <object class="wxMenuItem" name="ID_VIEW_STANDARDIZED_DATA">
             <label>View Standardized Data</label>
             <checkable>1</checkable>
@@ -3950,7 +3940,7 @@
         </object>
 
     </object>
-    
+
     <object class="wxMenu" name="ID_MENU">
       <label>Selection Shape</label>
       <object class="wxMenuItem" name="ID_SELECT_WITH_RECT">
@@ -3973,7 +3963,7 @@
       </object>
     </object>
     <object class="separator"/>
-    
+
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -4008,7 +3998,7 @@
               <label>Set Display Precision of Y-Axis</label>
           </object>
       </object>
-      
+
 
       <!--
     <object class="wxMenuItem" name="ID_COMPARE_REGIMES">
@@ -4027,7 +4017,7 @@
       <checked>0</checked>
     </object>
     <object class="separator"/>
-    
+
        <object class="wxMenuItem" name="ID_DISPLAY_STATISTICS">
        <label>Display Statistics</label>
        <checkable>1</checkable>
@@ -4072,7 +4062,7 @@
             <checkable>1</checkable>
         </object>
     </object>
-    
+
     <object class="wxMenu" name="ID_SCATTER_DATA_MENU">
         <label>Data</label>
         <object class="wxMenuItem" name="ID_VIEW_STANDARDIZED_DATA">
@@ -4101,7 +4091,7 @@
             <label>Edit LOWESS Parameters</label>
         </object>
     </object>
-    
+
     <object class="wxMenu" name="ID_SCATTER_DATA_MENU">
         <label>View</label>
         <object class="wxMenuItem" name="ID_ADJUST_AXIS_PRECISION">
@@ -4118,7 +4108,7 @@
             <checked>0</checked>
         </object>
     </object>
-    
+
     <object class="wxMenu" name="ID_MENU">
         <label>Color</label>
         <object class="wxMenuItem" name="ID_SELECTABLE_OUTLINE_COLOR">
@@ -4128,7 +4118,7 @@
             <label>Point Color</label>
         </object>
     </object>
-    
+
     <label>Options</label>
   </object>
   <object class="wxMenu" name="ID_CORRELOGRAM_MENU_OPTIONS">
@@ -4249,7 +4239,7 @@
             <label>Edit LOWESS Parameters</label>
         </object>
     </object>
-    
+
     <object class="wxMenu" name="ID_SCATTER_VIEW_MENU">
         <label>View</label>
         <object class="wxMenuItem" name="ID_ADJUST_AXIS_PRECISION">
@@ -4280,7 +4270,7 @@
             <checked>1</checked>
         </object>
     </object>
-    
+
     <object class="wxMenu" name="ID_MENU">
       <label>Color</label>
       <object class="wxMenuItem" name="ID_SELECTABLE_OUTLINE_COLOR">
@@ -4293,9 +4283,9 @@
         <label>Background Color</label>
       </object>
     </object>
-    
+
     <object class="separator"/>
-    
+
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -4414,7 +4404,7 @@
 		  <checkable>1</checkable>
         </object>
 	  </object>
-	
+
 	  <object class="wxMenu" name="ID_EQUAL_INTERVALS_SUBMENU">
 		<label>Equal Intervals</label>
 		<object class="wxMenuItem" name="ID_EQUAL_INTERVALS_2">
@@ -4526,7 +4516,7 @@
       <checked>1</checked>
     </object>
     <object class="separator"/>
-    
+
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -4576,7 +4566,7 @@
       <checked>1</checked>
     </object>
     <object class="separator"/>
-    
+
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -4624,7 +4614,7 @@
       <checked>1</checked>
     </object>
     <object class="separator"/>
-    
+
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -4637,23 +4627,12 @@
     <label>Options</label>
   </object>
   <object class="wxMenu" name="ID_TABLE_VIEW_MENU_CONTEXT">
-      <object class="wxMenuItem" name="ID_TABLE_SPATIAL_JOIN">
-          <label>Spatial Join</label>
-      </object>
-      <object class="separator"/>
     <object class="wxMenuItem" name="ID_TABLE_AGGREGATION_DATA">
       <label>Aggregate</label>
     </object>
     <object class="wxMenuItem" name="ID_TABLE_MERGE_TABLE_DATA">
       <label>Merge</label>
     </object>
-    <object class="separator"/>
-      <object class="wxMenuItem" name="ID_TABLE_GEOCODING">
-        <label>Geocode</label>
-      </object>
-      <object class="wxMenuItem" name="ID_POINTS_FROM_TABLE">
-          <label>Points from Table</label>
-      </object>
     <object class="separator"/>
     <object class="wxMenuItem" name="ID_TABLE_RANGE_SELECTION">
       <label>Selection Tool</label>
@@ -4674,7 +4653,7 @@
     <object class="wxMenuItem" name="ID_TABLE_FIELD_CALCULATION">
       <label>Calculator</label>
     </object>
-	
+
     <object class="wxMenuItem" name="ID_TABLE_ADD_COLUMN">
       <label>Add Variable</label>
     </object>
@@ -4694,7 +4673,7 @@
     <object class="wxMenuItem" name="ID_TABLE_CHANGE_FIELD_TYPE">
       <label>Change Variable Type</label>
     </object>
-    
+
     <object class="separator"/>
     <object class="wxMenuItem" name="ID_SHOW_DATA_MOVIE">
       <label>Animation</label>
@@ -4708,7 +4687,7 @@
     <object class="wxMenuItem" name="ID_VAR_GROUPING_EDITOR">
       <label>Variable Grouping Editor</label>
     </object>
-     
+
     <object class="wxMenuItem" name="ID_TABLE_GROUP">
       <label>Group Selected</label>
     </object>
@@ -4720,7 +4699,7 @@
     </object>
 	-->
     <object class="separator"/>
-    
+
     <object class="separator"/>
     <object class="wxMenu" name="ID_TABLE_ENCODING">
       <label>Encode</label>
@@ -4826,9 +4805,7 @@
         <checkable>1</checkable>
       </object>
     </object>
-    <object class="wxMenuItem" name="ID_TABLE_SET_LOCALE">
-      <label>Set Number Separators</label>
-    </object>
+
     <label>Table</label>
   </object>
   <object class="wxMenu" name="ID_REPORT_VIEW_MENU_CONTEXT">
@@ -4878,7 +4855,7 @@
       <checked>1</checked>
     </object>
     <object class="separator"/>
-    
+
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -4916,7 +4893,7 @@
       <checked>1</checked>
     </object>
     <object class="separator"/>
-    
+
     <object class="wxMenuItem" name="ID_SAVE_SELECTED_TO_COLUMN">
       <label>Save Selection</label>
     </object>
@@ -5033,7 +5010,20 @@
     <object class="wxMenuItem" name="IDM_MUL_LOCAL_GEARY">
         <label>Multivariate Local Geary</label>
     </object>
-    
+  </object>
+  <object class="wxMenu" name="ID_TOOLS_MENU">
+      <object class="wxMenu" name="ID_MENU">
+          <label>Shape</label>
+          <object class="wxMenuItem" name="ID_POINTS_FROM_TABLE">
+              <label>Points from Table</label>
+          </object>
+          <object class="wxMenuItem" name="ID_SHAPE_POLYGONS_FROM_GRID">
+              <label>Create Grid</label>
+          </object>
+      </object>
+      <object class="wxMenuItem" name="ID_TABLE_SPATIAL_JOIN">
+          <label>Spatial Join</label>
+      </object>
   </object>
   <object class="wxMenu" name="ID_GETIS_MENU">
     <label>Local G Maps</label>

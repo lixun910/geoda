@@ -2,7 +2,7 @@
  * GeoDa TM, Copyright (C) 2011-2015 by Luc Anselin - all rights reserved
  *
  * This file is part of GeoDa.
- * 
+ *
  * GeoDa is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -76,8 +76,8 @@ public:
              const wxSize& size,
              long style);
 	virtual ~GdaFrame();
-	
-    
+
+
 	void EnableTool(const wxString& id_str, bool enable);
 	void EnableTool(int xrc_id, bool enable);
 	boost::uuids::uuid GetWeightsId(const wxString& caption = _("Choose Weights"));
@@ -185,7 +185,6 @@ public:
 	void OnMergeTableData(wxCommandEvent& event);
 	void OnAggregateData(wxCommandEvent& event);
     void OnSpatialJoin(wxCommandEvent& event);
-    void OnGeocoding(wxCommandEvent& event);
 	void OnExportToCsvFile(wxCommandEvent& event); // not used currently
 	void OnExportToOGR(wxCommandEvent& event);
 	void OnExportSelectedToOGR(wxCommandEvent& event);
@@ -220,6 +219,7 @@ public:
 	void OnExploreLineChart(wxCommandEvent& event);
 	void OnExploreCovScatterPlot(wxCommandEvent& event);
 	void OnExploreCorrelogram(wxCommandEvent& event);
+	void OnToolsChoices(wxCommandEvent& event);
 	void OnMoranMenuChoices(wxCommandEvent& event);
 	void OnOpenMSPL(wxCommandEvent& event);
 	void OnOpenGMoran(wxCommandEvent& event);
@@ -476,19 +476,19 @@ public:
 	// Conditional Scatter Plot
 	void OnDisplayAxesScaleValues(wxCommandEvent& event);
 	void OnDisplaySlopeValues(wxCommandEvent& event);
-	
+
 	void OnTimeSyncVariable(int var_index);
 	void OnTimeSyncVariable1(wxCommandEvent& event);
 	void OnTimeSyncVariable2(wxCommandEvent& event);
 	void OnTimeSyncVariable3(wxCommandEvent& event);
 	void OnTimeSyncVariable4(wxCommandEvent& event);
-	
+
 	void OnFixedScaleVariable(int var_index);
 	void OnFixedScaleVariable1(wxCommandEvent& event);
 	void OnFixedScaleVariable2(wxCommandEvent& event);
 	void OnFixedScaleVariable3(wxCommandEvent& event);
 	void OnFixedScaleVariable4(wxCommandEvent& event);
-	
+
 	void OnPlotsPerView(int plots_per_view);
 	void OnPlotsPerView1(wxCommandEvent& event);
 	void OnPlotsPerView2(wxCommandEvent& event);
@@ -502,14 +502,14 @@ public:
 	void OnPlotsPerView10(wxCommandEvent& event);
 	void OnPlotsPerViewOther(wxCommandEvent& event);
 	void OnPlotsPerViewAll(wxCommandEvent& event);
-	
+
 	void OnDisplayStatusBar(wxCommandEvent& event);
-	
+
 	void OnHelpAbout(wxCommandEvent& event);
 	void OnReportBug(wxCommandEvent& event);
 	void OnCheckUpdates(wxCommandEvent& event);
 	void OnCheckTestMode(wxCommandEvent& event);
-    
+
     void OnTableSetLocale(wxCommandEvent& event);
     void OnEncodingUTF8(wxCommandEvent& event);
 	void OnEncodingUTF16(wxCommandEvent& event);
@@ -550,8 +550,8 @@ public:
 	static Project* GetProject() { return projectOpen ? project_p : 0; }
 	static GdaFrame* GetGdaFrame() { return gda_frame; }
 	static bool IsProjectOpen();
-	
-    
+
+
 	struct MenuItem {
 		MenuItem(const wxString& t, const wxString& u) :menu_title(t), url(u){};
 		wxString menu_title;
@@ -563,7 +563,7 @@ public:
 	static bool GetHtmlMenuItemsSqlite();
 	static int sqlite3_GetHtmlMenuItemsCB(void *data, int argc,
 										  char **argv, char **azColName);
-	
+
     void CheckUpdate();
     void InitWithProject(wxString gda_file_path=wxEmptyString);
 
@@ -574,7 +574,7 @@ protected:
 	static Project* project_p;
 	static bool projectOpen;
 	static std::list<wxAuiToolBar*> toolbar_list;
-	
+
 	DECLARE_EVENT_TABLE()
 };
 
@@ -590,11 +590,10 @@ public:
 	LineChartEventDelay();
 	LineChartEventDelay(LineChartFrame* lc_frame, const wxString& cb_name);
 	virtual ~LineChartEventDelay();
-	
+
 	LineChartFrame* lc_frame;
 	wxString cb_name;
 	virtual void Notify();
 };
 
 #endif
-

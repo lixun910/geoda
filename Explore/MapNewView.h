@@ -86,7 +86,8 @@ private:
 };
 
 
-class MapCanvas : public TemplateCanvas, public CatClassifStateObserver, public MapLayerStateObserver, public AssociateLayerInt
+class MapCanvas : public TemplateCanvas, public CatClassifStateObserver,
+                  public MapLayerStateObserver, public AssociateLayerInt
 {
 	DECLARE_CLASS(MapCanvas)
 public:
@@ -149,6 +150,8 @@ public:
     virtual void ResetShapes();
 	virtual void ZoomShapes(bool is_zoomin = true);
 	virtual void PanShapes();
+    virtual void ExtentMap();
+    virtual bool IsExtentChanged();
     virtual void ResizeSelectableShps(int virtual_scrn_w = 0,
                                       int virtual_scrn_h = 0);
 	virtual void PopulateCanvas();
@@ -180,7 +183,7 @@ public:
     void AddMapLayer(wxString name, BackgroundMapLayer* map_layer,
                      bool is_hide = false);
     void CleanBasemapCache();
-    bool DrawBasemap(bool flag, BasemapItem& bm_item);
+    bool DrawBasemap(bool flag, Gda::BasemapItem& bm_item);
     void SetNoBasemap();
     void OnIdle(wxIdleEvent& event);
     void TranslucentLayer0(wxMemoryDC& dc);
@@ -213,6 +216,8 @@ public:
     virtual bool IsAssociatedWith(AssociateLayerInt* layer);
     virtual GdaShape* GetShape(int idx);
     virtual int GetHighlightRecords();
+    virtual void GetExtent(double &minx, double &miny, double &maxx,
+                           double &maxy);
     void UpdateMapTree();
     
     Shapefile::Main& GetGeometryData();
@@ -253,7 +258,7 @@ public:
     static int GetEmptyNumber();
     static void ResetEmptyFlag();
     
-    BasemapItem basemap_item;
+    Gda::BasemapItem basemap_item;
     
 protected:
     vector<BackgroundMapLayer*> bg_maps;
@@ -297,7 +302,7 @@ protected:
     map<wxString, wxColour> lbl_color_dict;
     
 	wxBitmap* basemap_bm;
-	GDA::Basemap* basemap;
+	Gda::Basemap* basemap;
     
     void show_empty_shps_msgbox();
     void SaveThumbnail();
@@ -382,7 +387,7 @@ public:
 	virtual void OnSaveVoronoiDupsToTable();
     virtual void OnSelectableOutlineVisible(wxCommandEvent& event);    
     virtual void OnChangeMapTransparency();
-    virtual void OnDrawBasemap(bool flag, BasemapItem& bm_item);
+    virtual void OnDrawBasemap(bool flag, Gda::BasemapItem& bm_item);
     void SetNoBasemap();
     void OnBasemapSelect(wxCommandEvent& event);
     void OnClose(wxCloseEvent& event);

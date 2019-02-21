@@ -2,7 +2,7 @@
  * GeoDa TM, Copyright (C) 2011-2015 by Luc Anselin - all rights reserved
  *
  * This file is part of GeoDa.
- * 
+ *
  * GeoDa is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -78,17 +78,17 @@ SliderDialog::SliderDialog(wxWindow * parent,
                            long style )
 : wxDialog( parent, id, caption, position, size, style)
 {
-    
+
     wxLogMessage("Open SliderDialog");
-    
+
     canvas = _canvas;
-    
+
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
     this->SetSizer(topSizer);
-    
+
     wxBoxSizer* boxSizer = new wxBoxSizer(wxVERTICAL);
     topSizer->Add(boxSizer, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5);
-    
+
     // A text control for the user’s name
     ID_SLIDER = wxID_ANY;
     double trasp = (double)canvas->tran_unhighlighted / 255.0;
@@ -107,7 +107,7 @@ SliderDialog::SliderDialog(wxWindow * parent,
 	boxSizer->Add(subSizer);
     wxString txt_transparency = _("Current Transparency: %.2f");
     txt_transparency = wxString::Format(txt_transparency, 1.0 - trasp);
-    
+
     slider_text = new wxStaticText(this,
                                    wxID_ANY,
                                    txt_transparency,
@@ -116,9 +116,9 @@ SliderDialog::SliderDialog(wxWindow * parent,
     boxSizer->Add(slider_text, 0, wxGROW|wxALL, 5);
     boxSizer->Add(new wxButton(this, wxID_CANCEL, _("Close")), 0,
                   wxALIGN_CENTER|wxALL, 10);
-    
+
     topSizer->Fit(this);
-    
+
     slider->Bind(wxEVT_SLIDER, &SliderDialog::OnSliderChange, this);
 }
 
@@ -162,21 +162,21 @@ MapCanvas::MapCanvas(wxWindow *parent, TemplateFrame* t_frame,
                      int num_categories_s,
                      boost::uuids::uuid weights_id_s,
                      const wxPoint& pos, const wxSize& size)
-: TemplateCanvas(parent, t_frame, project_s, 
+: TemplateCanvas(parent, t_frame, project_s,
                  project_s->GetHighlightState(),
                  pos, size, true, true),
 num_obs(project_s->GetNumRecords()),
 p_datasource(project_s->GetDataSource()),
 num_time_vals(1),
-custom_classif_state(0), 
+custom_classif_state(0),
 data(0),
 s_data(0),
 var_info(0),
 table_int(project_s->GetTableInt()),
 smoothing_type(no_smoothing),
-is_rate_smoother(false), 
+is_rate_smoother(false),
 full_map_redraw_needed(true),
-display_mean_centers(false), 
+display_mean_centers(false),
 display_centroids(false),
 display_weights_graph(false),
 display_map_boundary(false),
@@ -188,7 +188,7 @@ conn_selected_color(GdaConst::conn_select_outline_colour),
 neighbor_fill_color(GdaConst::conn_neighbor_fill_colour),
 weights_graph_thickness(1),
 voronoi_diagram_duplicates_exist(false),
-num_categories(num_categories_s), 
+num_categories(num_categories_s),
 weights_id(weights_id_s),
 basemap(0),
 isDrawBasemap(false),
@@ -233,7 +233,8 @@ maplayer_state(project_s->GetMapLayerState())
 	SetBackgroundStyle(wxBG_STYLE_CUSTOM);  // default style
     isDrawBasemap = GdaConst::use_basemap_by_default;
     if (isDrawBasemap) {
-        basemap_item = GetBasemapSelection(GdaConst::default_basemap_selection);
+        basemap_item = Gda::GetBasemapSelection(GdaConst::default_basemap_selection,
+                                                GdaConst::gda_basemap_sources);
     }
 }
 
@@ -248,10 +249,10 @@ MapCanvas::~MapCanvas()
         BackgroundMapLayer* ml = fg_maps[i];
         delete ml;
     }
-    
+
     BOOST_FOREACH( GdaShape* shp, background_maps ) delete shp;
     BOOST_FOREACH( GdaShape* shp, foreground_maps ) delete shp;
-        
+
 	if (highlight_state)
         highlight_state->removeObserver(this);
 	if (custom_classif_state)
@@ -262,6 +263,11 @@ MapCanvas::~MapCanvas()
         delete basemap;
         basemap = NULL;
     }
+}
+
+void MapCanvas::GetExtent(double &minx, double &miny, double &maxx, double &maxy)
+{
+    project->GetMapExtent(minx, miny, maxx, maxy);
 }
 
 Shapefile::Main& MapCanvas::GetGeometryData()
@@ -305,7 +311,7 @@ void MapCanvas::ResetEmptyFlag()
     empty_dict.clear();
     has_shown_empty_shps_msg = false;
 }
-        
+
 void MapCanvas::SetupColor()
 {
 }
@@ -313,19 +319,19 @@ void MapCanvas::SetupColor()
 void MapCanvas::UpdateSelectionPoints(bool shiftdown, bool pointsel)
 {
     TemplateCanvas::UpdateSelectionPoints(shiftdown, pointsel);
-    
+
     // if multi-layer presents and top layer is not current map
     if ( fg_maps.empty() ) {
         UpdateMapTree();
         return;
     }
-    
+
     BackgroundMapLayer* ml = fg_maps[0];
     int nn = ml->GetNumRecords();
     vector<OGRGeometry*>& geoms = ml->geoms;
     vector<GdaShape*>& shapes = ml->shapes;
     bool selection_changed = false;
-    
+
     if (!shiftdown) {
         ml->ResetHighlight();
     }
@@ -351,13 +357,14 @@ void MapCanvas::UpdateSelectionPoints(bool shiftdown, bool pointsel)
                         ml->SetUnHighlight(i);
                 }
             }
-            
+
         } else if (brushtype == circle) {
             // using quad-tree to do pre-selection
             double radius = GenUtils::distance(sel1, sel2);
             // determine if each center is within radius of sel1
             for (int i=0; i<nn; i++) {
-                bool contains = (GenUtils::distance(sel1, shapes[i]->center) <= radius);
+                double dist = GenUtils::distance(sel1, shapes[i]->center);
+                bool contains = (dist <= radius);
                 if (contains) {
                     ml->SetHighlight(i);
                     selection_changed = true;
@@ -407,7 +414,8 @@ void MapCanvas::UpdateSelectionPoints(bool shiftdown, bool pointsel)
 void MapCanvas::DetermineMouseHoverObjects(wxPoint pointsel)
 {
     TemplateCanvas::DetermineMouseHoverObjects(pointsel);
-    if (layer0_bm && display_neighbors && sel1.x==0 && sel1.y==0 && sel2.x==0 && sel2.y==0) {
+    if (layer0_bm && display_neighbors && sel1.x==0 && sel1.y==0 &&
+        sel2.x==0 && sel2.y==0) {
         vector<bool>& hs = GetSelBitVec();
         if (hover_obs.empty()) {
             //highlight_state->SetTotalHighlighted(0);
@@ -514,7 +522,7 @@ void MapCanvas::AddNeighborsToSelection(GalWeight* gal_weights, wxMemoryDC &dc)
         }
         if (conn_selected_color.Alpha() != 0) {
             pen.SetColour(conn_selected_color);
-        } 
+        }
         for (int i=0; i<gal_weights->num_obs; i++) {
             if (h[i]) {
                 selectable_shps[i]->setPen(pen);
@@ -538,7 +546,7 @@ void MapCanvas::OnSize(wxSizeEvent& event)
             h[ids_wo_nbrs[i]] = true;
         }
     }
-    
+
     ResetBrushing();
     isResize = true;
     event.Skip();
@@ -550,8 +558,47 @@ void MapCanvas::deleteLayerBms()
         delete basemap_bm;
         basemap_bm = 0;
     }
-    
+
     TemplateCanvas::deleteLayerBms();
+}
+
+bool MapCanvas::IsExtentChanged()
+{
+    // indicate if there is any zoom or pan applied on current map
+    bool no_change;
+    if (basemap) {
+        no_change = !basemap->IsExtentChanged();
+    } else {
+        no_change = (last_scale_trans.data_x_min == last_scale_trans.orig_data_x_min &&
+                     last_scale_trans.data_x_max == last_scale_trans.orig_data_x_max &&
+                     last_scale_trans.data_y_min == last_scale_trans.orig_data_y_min &&
+                     last_scale_trans.data_y_max == last_scale_trans.orig_data_y_max);
+    }
+
+    return !no_change;
+}
+
+void MapCanvas::ExtentMap()
+{
+    double minx, miny, maxx, maxy;
+    if (fg_maps.empty()) {
+        this->GetExtent(minx, miny, maxx, maxy);
+    } else {
+        // if multi layers are loaded, use top layer to extent map
+        BackgroundMapLayer* top_layer = fg_maps[0];
+        top_layer->GetExtent(minx, miny, maxx, maxy);
+    }
+    if (basemap) {
+        OGRCoordinateTransformation *poCT = NULL;
+        if (project->sourceSR != NULL) {
+            OGRSpatialReference destSR;
+            destSR.importFromEPSG(4326);
+            poCT = OGRCreateCoordinateTransformation(project->sourceSR,
+                                                     &destSR);
+        }
+        basemap->Extent(maxy, minx, miny, maxx, poCT);
+    }
+    last_scale_trans.SetData(minx, miny, maxx, maxy);
 }
 
 void MapCanvas::ResetShapes()
@@ -560,10 +607,11 @@ void MapCanvas::ResetShapes()
         delete faded_layer_bm;
         faded_layer_bm = NULL;
     }
-    if (basemap) {
-        basemap->Reset();
-    }
-    last_scale_trans.Reset();
+
+    // extent map
+    ExtentMap();
+
+    // other rest
     is_pan_zoom = false;
     ResetBrushing();
     SetMouseMode(select);
@@ -579,7 +627,7 @@ void MapCanvas::ZoomShapes(bool is_zoomin)
         delete faded_layer_bm;
         faded_layer_bm = NULL;
     }
-    
+
     if (isDrawBasemap) {
         if (basemap) {
             bool zoom_ok = basemap->Zoom(is_zoomin, sel2.x, sel2.y, sel1.x, sel1.y);
@@ -601,7 +649,7 @@ void MapCanvas::PanShapes()
         delete faded_layer_bm;
         faded_layer_bm = NULL;
     }
-    
+
     if (isDrawBasemap) {
         int delta_x = sel2.x - sel1.x;
         int delta_y = sel2.y - sel1.y;
@@ -611,7 +659,7 @@ void MapCanvas::PanShapes()
         }
         return;
     }
-    
+
     TemplateCanvas::PanShapes();
 }
 
@@ -624,14 +672,14 @@ void MapCanvas::OnIdle(wxIdleEvent& event)
         last_scale_trans.SetView(cs_w, cs_h);
         resizeLayerBms(cs_w, cs_h);
         if (isDrawBasemap) {
-            if (basemap == NULL)
-                InitBasemap();
-            if (basemap)
+            if (basemap == NULL) InitBasemap();
+            if (basemap) { // it is not sure InitBasemap will success
                 basemap->ResizeScreen(cs_w, cs_h);
+            }
         }
         ResizeSelectableShps();
         event.RequestMore(); // render continuously, not only once on idle
-    } 
+    }
     if (!layer2_valid || !layer1_valid || !layer0_valid ||
         (isDrawBasemap && !layerbase_valid) )
     {
@@ -714,7 +762,7 @@ void MapCanvas::ResizeSelectableShps(int virtual_scrn_w,
         }
         // view: extent, margins, width, height
         last_scale_trans.SetView(virtual_scrn_w, virtual_scrn_h);
-        
+
         if (last_scale_trans.IsValid()) {
             BOOST_FOREACH( GdaShape* ms, background_shps ) {
                 if (ms) ms->applyScaleTrans(last_scale_trans);
@@ -744,16 +792,23 @@ bool MapCanvas::InitBasemap()
         int screenW = sz.GetWidth();
         int screenH = sz.GetHeight();
         OGRCoordinateTransformation *poCT = NULL;
-        
         if (project->sourceSR != NULL) {
-            int nGCS = project->sourceSR->GetEPSGGeogCS();
             OGRSpatialReference destSR;
             destSR.importFromEPSG(4326);
             poCT = OGRCreateCoordinateTransformation(project->sourceSR,&destSR);
         }
-        GDA::Screen* screen = new GDA::Screen(screenW, screenH);
-        GDA::MapLayer* current_map = new GDA::MapLayer(last_scale_trans.data_y_max, last_scale_trans.data_x_min, last_scale_trans.data_y_min, last_scale_trans.data_x_max, poCT);
-        GDA::MapLayer* orig_map = new GDA::MapLayer(last_scale_trans.orig_data_y_max, last_scale_trans.orig_data_x_min, last_scale_trans.orig_data_y_min, last_scale_trans.orig_data_x_max, poCT);
+        Gda::Screen* screen = new Gda::Screen(screenW, screenH);
+        Gda::MapLayer *current_map, *orig_map;
+        current_map = new Gda::MapLayer(last_scale_trans.data_y_max,
+                                        last_scale_trans.data_x_min,
+                                        last_scale_trans.data_y_min,
+                                        last_scale_trans.data_x_max,
+                                        poCT);
+        orig_map = new Gda::MapLayer(last_scale_trans.orig_data_y_max,
+                                     last_scale_trans.orig_data_x_min,
+                                     last_scale_trans.orig_data_y_min,
+                                     last_scale_trans.orig_data_x_max,
+                                     poCT);
         if (poCT == NULL && !orig_map->IsWGS84Valid()) {
             isDrawBasemap = false;
             wxStatusBar* sb = 0;
@@ -764,9 +819,13 @@ bool MapCanvas::InitBasemap()
                     sb->SetStatusText(s);
                 }
             }
+            delete current_map;
+            delete orig_map;
             return false;
         } else {
-            basemap = new GDA::Basemap(basemap_item, screen, current_map, orig_map, GenUtils::GetBasemapCacheDir(), poCT, scale_factor);
+            basemap = new Gda::Basemap(basemap_item, screen, current_map,
+                                       orig_map, GenUtils::GetBasemapCacheDir(),
+                                       poCT, scale_factor);
         }
     }
     return true;
@@ -792,7 +851,7 @@ void MapCanvas::SetNoBasemap()
     ReDraw();
 }
 
-bool MapCanvas::DrawBasemap(bool flag, BasemapItem& _basemap_item)
+bool MapCanvas::DrawBasemap(bool flag, Gda::BasemapItem& _basemap_item)
 {
     ResetBrushing();
     isDrawBasemap = flag;
@@ -875,7 +934,6 @@ void MapCanvas::DrawLayerBase()
         if (basemap != 0) {
             layerbase_valid = basemap->Draw(basemap_bm);
             // trigger to draw again, since it's drawing on ONE bitmap,
-            // not multilayer with transparency support
             layer0_valid = false;
         }
     }
@@ -885,7 +943,7 @@ void MapCanvas::DrawLayer0()
 {
     // draw basemap, background, and all other maps
     wxMemoryDC dc;
-    
+
 	if (isDrawBasemap) {
         // use a special color for mask transparency: 244, 243, 242c
         wxColour maskColor(MASK_R, MASK_G, MASK_B);
@@ -985,7 +1043,7 @@ void MapCanvas::TranslucentLayer0(wxMemoryDC& dc)
             unsigned char *alpha=image.GetAlpha();
             unsigned char* pixel_data = image.GetData();
             int n_pixel = image.GetWidth() * image.GetHeight();
-            
+
             int pos = 0;
             for (int i=0; i< n_pixel; i++) {
                 // check rgb
@@ -1062,9 +1120,9 @@ void MapCanvas::TranslucentLayer0(wxMemoryDC& dc)
 void MapCanvas::SetWeightsId(boost::uuids::uuid id)
 {
     weights_id = id;
-    
+
     bool show_graph = display_weights_graph && boost::uuids::nil_uuid() != weights_id && !w_graph.empty();
-    
+
     if (show_graph || display_neighbors) {
         full_map_redraw_needed = true;
         PopulateCanvas();
@@ -1083,7 +1141,7 @@ void MapCanvas::DrawHighlightedShapes(wxMemoryDC &dc, bool revert)
     } else {
         DrawHighlight(dc, this);
         //DrawHighlighted(dc, revert);
-    }    
+    }
 }
 
 void MapCanvas::SetHighlight(int idx)
@@ -1115,7 +1173,7 @@ void MapCanvas::DrawHighlighted(wxMemoryDC &dc, bool revert)
         bool highlight_only = true;
         DrawSelectableShapes_dc(dc, highlight_only, revert,
                                 GdaConst::use_cross_hatching);
-        
+
     } else {
         for (int i=0, iend=selectable_shps.size(); i<iend; i++) {
             if (hs[i] == !revert && _IsShpValid(i)) {
@@ -1155,13 +1213,13 @@ void MapCanvas::SaveThumbnail()
 {
     if (MapCanvas::has_thumbnail_saved == false) {
         RecentDatasource recent_ds;
-        
+
         if (layer_name == recent_ds.GetLastLayerName() &&
             !ds_name.EndsWith("samples.sqlite") &&
             !ds_name.Contains("geodacenter.github.io")) {
-        
+
             wxImage image = layer2_bm->ConvertToImage();
-            
+
             long current_time_sec = wxGetUTCTime();
             wxString file_name;
             file_name << current_time_sec << ".png";
@@ -1211,7 +1269,7 @@ void MapCanvas::DisplayRightClickMenu(const wxPoint& pos)
 	wxActivateEvent ae(wxEVT_NULL, true, 0, wxActivateEvent::Reason_Mouse);
     MapFrame* f = dynamic_cast<MapFrame*>(template_frame);
     f->OnActivate(ae);
-	
+
 	wxMenu* optMenu = wxXmlResource::Get()->LoadMenu("ID_MAP_NEW_VIEW_MENU_OPTIONS");
 	AddTimeVariantOptionsToMenu(optMenu);
 	f->AppendCustomCategories(optMenu, project->GetCatClassifManager());
@@ -1251,13 +1309,13 @@ void MapCanvas::RenderToDC(wxDC &dc, int w, int h)
     double basemap_scale = (double) w / screen_w;
     double old_scale =  scale_factor;
     scale_factor = 1.0;
-    
+
     double old_point_radius = point_radius;
     if (GetShapeType() == points) {
         point_radius = basemap_scale * point_radius;
     }
     deleteLayerBms();
-    
+
     layer0_bm = new wxBitmap(w, h, 32);
     layer1_bm = new wxBitmap(w, h, 32);
     layer2_bm = new wxBitmap(w, h, 32);
@@ -1265,7 +1323,7 @@ void MapCanvas::RenderToDC(wxDC &dc, int w, int h)
     layer0_valid = false;
     layer1_valid = false;
     layer2_valid = false;
-    
+
     if (isDrawBasemap) {
         if (print_detailed_basemap) {
             basemap_bm = new wxBitmap(w, h, 32);
@@ -1286,7 +1344,7 @@ void MapCanvas::RenderToDC(wxDC &dc, int w, int h)
         double shps_orig_xmin = last_scale_trans.orig_data_x_min;
         double shps_orig_ymin = last_scale_trans.orig_data_y_min;
         double shps_orig_xmax = last_scale_trans.orig_data_x_max;
-        GDA::MapLayer maplayer(shps_orig_ymax, shps_orig_xmin, shps_orig_ymin,
+        Gda::MapLayer maplayer(shps_orig_ymax, shps_orig_xmin, shps_orig_ymin,
                                shps_orig_xmax, poCT);
         if (poCT && maplayer.IsWGS84Valid()) {
             if (print_detailed_basemap) {
@@ -1325,7 +1383,7 @@ void MapCanvas::RenderToDC(wxDC &dc, int w, int h)
         last_scale_trans.bottom_margin *= basemap_scale;
         ResizeSelectableShps(w, h);
     }
-    
+
     wxMemoryDC layer0_dc(*layer0_bm);
     layer0_dc.Clear();
     if (isDrawBasemap || (highlight_state->GetTotalHighlighted()>0 &&
@@ -1347,15 +1405,15 @@ void MapCanvas::RenderToDC(wxDC &dc, int w, int h)
     BOOST_FOREACH( GdaShape* map, background_maps ) {
         map->paintSelf(layer0_dc);
     }
-    
+
     vector<bool>& hs = highlight_state->GetHighlight();
     helper_DrawSelectableShapes_dc(layer0_dc, hs, false, false, false, true);
-    
+
     BOOST_FOREACH( GdaShape* map, foreground_maps ) {
         map->paintSelf(layer0_dc);
     }
     layer0_dc.SelectObject(wxNullBitmap);
-    
+
     wxMemoryDC layer1_dc(*layer1_bm);
     layer1_dc.Clear();
     if (isDrawBasemap) {
@@ -1366,15 +1424,15 @@ void MapCanvas::RenderToDC(wxDC &dc, int w, int h)
         layer1_dc.DrawBitmap(im, 0, 0);
     }
     //layer1_dc.SetUserScale(1.0,1.0);
-    
+
     TranslucentLayer0(layer1_dc);
     layer1_dc.SelectObject(wxNullBitmap);
-    
+
     layer1_valid = true;
     layer2_valid = false;
-    
+
     DrawLayer2();
-    
+
     dc.DrawBitmap(*layer2_bm, 0, 0);
     // reset
     point_radius = old_point_radius;
@@ -1395,10 +1453,10 @@ void MapCanvas::RenderToSVG(wxDC& dc, int w, int h, int map_w, int map_h, int of
     BOOST_FOREACH( GdaShape* shp, background_maps ) {
         shp->paintSelf(dc);
     }
-    
+
     vector<bool>& hs = highlight_state->GetHighlight();
     helper_DrawSelectableShapes_dc(dc, hs, false, false);
-    
+
     BOOST_FOREACH( GdaShape* shp, foreground_maps ) {
         shp->paintSelf(dc);
     }
@@ -1449,23 +1507,23 @@ void MapCanvas::SetCheckMarks(wxMenu* menu)
     for (size_t j=0; j<titles.size(); j++) {
         GeneralWxUtils::EnableMenuItem(menu, GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_A0 +j, !IS_VAR_STRING);
     }
-   
+
     for (int i=1; i<=10; i++) {
         wxString str_xrcid;
         bool flag;
         str_xrcid = wxString::Format("ID_QUANTILE_%d", i);
         flag = GetCcType()==CatClassification::quantile && GetNumCats()==i;
         GeneralWxUtils::CheckMenuItem(menu, XRCID(str_xrcid), flag);
-        
+
         str_xrcid = wxString::Format("ID_EQUAL_INTERVALS_%d", i);
         flag = GetCcType()==CatClassification::equal_intervals && GetNumCats()==i;
         GeneralWxUtils::CheckMenuItem(menu, XRCID(str_xrcid), flag);
-        
+
         str_xrcid = wxString::Format("ID_NATURAL_BREAKS_%d", i);
         flag = GetCcType()==CatClassification::natural_breaks && GetNumCats()==i;
         GeneralWxUtils::CheckMenuItem(menu, XRCID(str_xrcid), flag);
     }
-    
+
     GeneralWxUtils::CheckMenuItem(menu,
 					XRCID("ID_MAPANALYSIS_CHOROPLETH_PERCENTILE"),
 					GetCcType() == CatClassification::percentile);
@@ -1480,7 +1538,7 @@ void MapCanvas::SetCheckMarks(wxMenu* menu)
 					GetCcType() == CatClassification::unique_values);
     GeneralWxUtils::CheckMenuItem(menu, XRCID("ID_MAPANALYSIS_COLOCATION"),
 					GetCcType() == CatClassification::colocation);
-	
+
     GeneralWxUtils::CheckMenuItem(menu, XRCID("ID_RATES_SMOOTH_RAWRATE"),
 								  smoothing_type == raw_rate);
     GeneralWxUtils::CheckMenuItem(menu, XRCID("ID_RATES_SMOOTH_EXCESSRISK"),
@@ -1533,7 +1591,7 @@ void MapCanvas::SetCheckMarks(wxMenu* menu)
                                    display_neighbors || display_weights_graph);
     GeneralWxUtils::EnableMenuItem(menu, XRCID("ID_CONN_NEIGHBOR_FILL_COLOR"),
                                    display_neighbors);
-    
+
     GeneralWxUtils::EnableMenuItem(menu, XRCID("ID_MAP_SHOW_MAP_CONTOUR"),
                                   !selectable_outline_visible);
     GeneralWxUtils::CheckMenuItem(menu, XRCID("ID_MAP_SHOW_MAP_CONTOUR"),
@@ -1561,7 +1619,7 @@ wxString MapCanvas::GetCanvasTitle()
 		}
 		v << GetNameWithTime(0) << " over " << GetNameWithTime(1);
 	}
-	
+
 	wxString s;
 	if (GetCcType() == CatClassification::excess_risk_theme) {
 		// Excess Risk smoothing map is a special case in that it is a
@@ -1577,7 +1635,7 @@ wxString MapCanvas::GetCanvasTitle()
 		s << CatClassification::CatClassifTypeToString(GetCcType());
 		s << ": " << v;
 	}
-	
+
 	return s;
 }
 
@@ -1602,7 +1660,7 @@ wxString MapCanvas::GetNameWithTime(int var)
 		s << " (" << project->GetTableInt()->GetTimeString(var_info[var].time);
 		s << ")";
 	}
-	return s;	
+	return s;
 }
 
 void MapCanvas::OnSaveCategories()
@@ -1614,7 +1672,7 @@ void MapCanvas::OnSaveCategories()
 	} else {
 		t_name = CatClassification::CatClassifTypeToString(GetCcType());
 	}
-    
+
 	if (data_undef.size()>0) {
 		wxString label;
 		label << t_name << _(" Categories");
@@ -1635,35 +1693,35 @@ void MapCanvas::NewCustomCatClassif()
     wxLogMessage("MapCanvas::NewCustomCatClassif()");
 	// Begin by asking for a variable if none yet chosen
     vector<vector<bool> > var_undefs;
-    
+
 	if (var_info.size() == 0) {
 		VariableSettingsDlg dlg(project, VariableSettingsDlg::univariate);
 		if (dlg.ShowModal() != wxID_OK)
             return;
-        
+
 		var_info.resize(1);
 		data.resize(1);
 		data_undef.resize(1);
 		var_info[0] = dlg.var_info[0];
-        
+
 		table_int->GetColData(dlg.col_ids[0], data[0]);
 		table_int->GetColUndefined(dlg.col_ids[0], data_undef[0]);
     }
-	
+
     VarInfoAttributeChange();
-    
+
     var_undefs.resize(num_time_vals);
-    
+
     for (int t=0; t<num_time_vals; t++) {
         var_undefs[t].resize(num_obs);
     }
-    
+
     cat_var_sorted.resize(num_time_vals);
     if (IS_VAR_STRING) cat_str_var_sorted.resize(num_time_vals);
-    
+
     for (int t=0; t<num_time_vals; t++) {
         cat_var_sorted[t].resize(num_obs);
-        
+
         for (int i=0; i<num_obs; i++) {
             int ts = t+var_info[0].time_min;
             cat_var_sorted[t][i].first = data[0][ts][i];
@@ -1675,7 +1733,7 @@ void MapCanvas::NewCustomCatClassif()
     }
 
     if (var_info.empty()) return;
-    
+
 	// Fully update cat_classif_def fields according to current
 	// categorization state
 	if (cat_classif_def.cat_classif_type != CatClassification::custom )
@@ -1700,21 +1758,21 @@ void MapCanvas::NewCustomCatClassif()
 
     GdaFrame* gda_frame = GdaFrame::GetGdaFrame();
 	CatClassifFrame* ccf = gda_frame->GetCatClassifFrame(this->useScientificNotation);
-    
+
 	if (!ccf) return;
-    
+
 	CatClassifState* ccs = ccf->PromptNew(cat_classif_def, "",
                                           var_info[0].name,
                                           var_info[0].time);
 	if (!ccs) return;
-    
+
 	if (custom_classif_state)
         custom_classif_state->removeObserver(this);
-    
+
 	cat_classif_def = ccs->GetCatClassif();
 	custom_classif_state = ccs;
 	custom_classif_state->registerObserver(this);
-    
+
 	CreateAndUpdateCategories();
 	PopulateCanvas();
 	if (template_frame) {
@@ -1745,18 +1803,18 @@ MapCanvas::ChangeMapType(CatClassification::CatClassifType new_map_theme,
     if (!weights_id_s.is_nil()) {
         weights_id = weights_id_s;
     }
-	
+
 	if (new_map_theme == CatClassification::custom) {
 		new_map_smoothing = no_smoothing;
 	}
-	
+
 	if (smoothing_type != no_smoothing && new_map_smoothing == no_smoothing) {
 		wxString msg = _("The new theme chosen will no longer include rates smoothing. Please use the Rates submenu to choose a theme with rates again.");
 		wxMessageDialog dlg (this, msg, _("Information"), wxOK | wxICON_INFORMATION);
 		dlg.ShowModal();
         return false;
 	}
-	
+
 	if (new_map_theme == CatClassification::custom) {
 		CatClassifManager* ccm = project->GetCatClassifManager();
 		if (!ccm)
@@ -1773,22 +1831,22 @@ MapCanvas::ChangeMapType(CatClassification::CatClassifType new_map_theme,
 		if (custom_classif_state) custom_classif_state->removeObserver(this);
 		custom_classif_state = 0;
 	}
-	
+
 	if (new_map_smoothing == excess_risk) {
 		new_map_theme = CatClassification::excess_risk_theme;
 	}
-	
+
 	int new_num_vars = 1;
 	if (new_map_smoothing != no_smoothing) new_num_vars = 2;
 	else if (new_map_theme == CatClassification::no_theme) new_num_vars = 0;
-	
+
 	int num_vars = GetNumVars();
-	
+
 	if (new_num_vars == 0) {
 		var_info.clear();
 		if (template_frame)
             template_frame->ClearAllGroupDependencies();
-        
+
 	} else if (new_num_vars == 1) {
 		if (num_vars == 0) {
 			if (!use_new_var_info_and_col_ids) return false;
@@ -1797,17 +1855,17 @@ MapCanvas::ChangeMapType(CatClassification::CatClassifType new_map_theme,
             s_data.resize(1);
 			data_undef.resize(1);
 			var_info[0] = new_var_info[0];
-            
+
 			if (template_frame) {
 				template_frame->AddGroupDependancy(var_info[0].name);
 			}
             GdaConst::FieldType f_type = table_int->GetColType(new_col_ids[0]);
             IS_VAR_STRING = f_type == GdaConst::string_type;
-            
+
             if (IS_VAR_STRING) table_int->GetColData(new_col_ids[0], s_data[0]);
 			else table_int->GetColData(new_col_ids[0], data[0]);
             table_int->GetColUndefined(new_col_ids[0], data_undef[0]);
-            
+
 		} else if (num_vars == 1) {
 			if (use_new_var_info_and_col_ids) {
 				var_info[0] = new_var_info[0];
@@ -1816,13 +1874,13 @@ MapCanvas::ChangeMapType(CatClassification::CatClassifType new_map_theme,
 				}
                 GdaConst::FieldType f_type = table_int->GetColType(new_col_ids[0]);
                 IS_VAR_STRING = f_type == GdaConst::string_type;
-                
+
                 if (IS_VAR_STRING) table_int->GetColData(new_col_ids[0], s_data[0]);
                 else table_int->GetColData(new_col_ids[0], data[0]);
-                
+
                 table_int->GetColUndefined(new_col_ids[0], data_undef[0]);
 			} // else reuse current variable settings and values
-            
+
 		} else { // num_vars == 2
 			if (!use_new_var_info_and_col_ids)
                 return false;
@@ -1852,7 +1910,7 @@ MapCanvas::ChangeMapType(CatClassification::CatClassifType new_map_theme,
 		var_info.resize(2);
 		data.resize(2);
 		data_undef.resize(2);
-        
+
 		if (template_frame) {
 			template_frame->ClearAllGroupDependencies();
 		}
@@ -1868,28 +1926,28 @@ MapCanvas::ChangeMapType(CatClassification::CatClassifType new_map_theme,
 			new_map_theme = CatClassification::excess_risk_theme;
 		}
 	}
-	
+
 	if (new_map_theme != CatClassification::custom && custom_classif_state) {
 		custom_classif_state->removeObserver(this);
 		custom_classif_state = 0;
 	}
 	cat_classif_def.cat_classif_type = new_map_theme;
 	smoothing_type = new_map_smoothing;
-	VarInfoAttributeChange();	
+	VarInfoAttributeChange();
 	CreateAndUpdateCategories();
-    
+
     if (display_weights_graph && !w_graph.empty()) {
         full_map_redraw_needed = true;
     }
 	PopulateCanvas();
-    
+
     TemplateLegend* legend = template_frame->GetTemplateLegend();
     if (legend != NULL ) {
         legend->isDragDropAllowed = new_map_theme == CatClassification::unique_values;
     }
-   
+
     CallAfter(&MapCanvas::show_empty_shps_msgbox);
-    
+
     return true;
 }
 
@@ -1904,7 +1962,7 @@ void MapCanvas::show_empty_shps_msgbox()
         }
         wxString msg = _("These are the row numbers of the records without location information.");
         wxString empty_shps_msg = _("row:\n");
-    
+
         for (int i=0; i<empty_shps_ids.size(); i++) {
             empty_shps_msg << empty_shps_ids[i] + 1 << "\n";
         }
@@ -1946,7 +2004,7 @@ void MapCanvas::update(MapLayerState* o)
 {
     wxLogMessage("In MapCanvas::update(MapLayerState*)");
     vector<wxString> local_names = GetLayerNames();
-    
+
     // if name not in project, remove
     for (int i=0; i<local_names.size(); i++) {
         wxString name = local_names[i];
@@ -1981,7 +2039,7 @@ void MapCanvas::update(MapLayerState* o)
             PopulateCanvas();
         }
     }
-    
+
     // if project name not in local_names, add
     vector<wxString> proj_names = project->GetLayerNames();
     for (int i=0; i<proj_names.size(); i++) {
@@ -2009,7 +2067,7 @@ void MapCanvas::update(MapLayerState* o)
             bg_maps.push_back(project->GetMapLayer(name)->Clone());
         }
     }
-        
+
     //DisplayMapLayers();
     if (template_frame) {
         MapFrame* m = dynamic_cast<MapFrame*>(template_frame);
@@ -2020,7 +2078,7 @@ void MapCanvas::update(MapLayerState* o)
 void MapCanvas::RemoveLayer(wxString name)
 {
     //project->RemoveLayer(name);
-    
+
     int del_idx = -1;
     BackgroundMapLayer* ml = NULL;
     for (int i=0; i<bg_maps.size(); i++) {
@@ -2046,7 +2104,7 @@ void MapCanvas::RemoveLayer(wxString name)
             fg_maps.erase(fg_maps.begin() + del_idx);
         }
     }
-    
+
     maplayer_state->notifyObservers(this);
 }
 
@@ -2097,7 +2155,7 @@ void MapCanvas::ResetHighlight()
 void MapCanvas::DrawHighlight(wxMemoryDC& dc, MapCanvas* map_canvas)
 {
     vector<bool>& hs = highlight_state->GetHighlight();
-    
+
     // draw any connected layers
     map<AssociateLayerInt*, Association>::iterator it;
     for (it=associated_layers.begin(); it!=associated_layers.end();it++) {
@@ -2105,7 +2163,7 @@ void MapCanvas::DrawHighlight(wxMemoryDC& dc, MapCanvas* map_canvas)
         Association& al = it->second;
         wxString primary_key = al.first;
         wxString associated_key = al.second;
-        
+
         vector<wxString> pid(num_obs);  // e.g. 1 2 3 4 5
         if (primary_key.IsEmpty() == false) {
             GetKeyColumnData(primary_key, pid);
@@ -2117,12 +2175,12 @@ void MapCanvas::DrawHighlight(wxMemoryDC& dc, MapCanvas* map_canvas)
         vector<wxString> fid; // e.g. 2 2 1 1 3 5 4 4
         associated_layer->GetKeyColumnData(associated_key, fid);
         associated_layer->ResetHighlight();
-        
+
         map<wxString, vector<wxInt64> > aid_idx;
         for (int i=0; i<fid.size(); i++) {
             aid_idx[fid[i]].push_back(i);
         }
-        
+
         for (int i=0; i<hs.size(); i++) {
             if (!hs[i]) {
                 continue;
@@ -2202,7 +2260,7 @@ void MapCanvas::PopulateCanvas()
 	background_shps.clear();
 	int canvas_ts = cat_data.GetCurrentCanvasTmStep();
 	if (!map_valid[canvas_ts]) full_map_redraw_needed = true;
-	
+
 	// Note: only need to delete selectable shapes if the map needs
 	// to be resized.  Otherwise, just reuse.
 	if (full_map_redraw_needed) {
@@ -2226,12 +2284,12 @@ void MapCanvas::PopulateCanvas()
             foreground_maps.push_back(fg_map);
         }
 	}
-	
+
 	BOOST_FOREACH( GdaShape* shp, foreground_shps ) { delete shp; }
 	foreground_shps.clear();
-    
+
     w_graph.clear();
-    
+
     if ( display_map_boundary ) {
         GdaPolygon* bg = project->GetMapBoundary();
         if (bg) {
@@ -2242,11 +2300,11 @@ void MapCanvas::PopulateCanvas()
         }
     }
 
-	if ( map_valid[canvas_ts] ) {		
+	if ( map_valid[canvas_ts] ) {
 		if (full_map_redraw_needed) {
 			empty_shps_ids = CreateSelShpsFromProj(selectable_shps, project);
 			full_map_redraw_needed = false;
-			
+
 			if (selectable_shps_type == polygons &&
                 (display_mean_centers || display_centroids || display_weights_graph))
             {
@@ -2272,7 +2330,7 @@ void MapCanvas::PopulateCanvas()
 					}
 				}
 			}
-            
+
 			if (selectable_shps_type == points && display_voronoi_diagram) {
 				GdaPolygon* p;
 				const vector<GdaShape*>& polys = project->GetVoronoiPolygons();
@@ -2325,12 +2383,12 @@ void MapCanvas::TimeChange()
 {
     wxLogMessage("MapCanvas::TimeChange()");
 	if (!is_any_sync_with_global_time) return;
-	
+
 	int cts = project->GetTimeState()->GetCurrTime();
     int ref_time = var_info[ref_var_index].time;
     int ref_time_min = var_info[ref_var_index].time_min;
     int ref_time_max = var_info[ref_var_index].time_max;
-	
+
     if ((cts == ref_time) ||
         (cts > ref_time_max && ref_time == ref_time_max) ||
         (cts < ref_time_min && ref_time == ref_time_min)) return;
@@ -2356,7 +2414,7 @@ void MapCanvas::VarInfoAttributeChange()
 {
     wxLogMessage("MapCanvas::VarInfoAttributeChange()");
 	GdaVarTools::UpdateVarInfoSecondaryAttribs(var_info);
-	
+
 	is_any_time_variant = false;
 	is_any_sync_with_global_time = false;
 	for (size_t i=0; i<var_info.size(); i++) {
@@ -2394,13 +2452,13 @@ void MapCanvas::CreateAndUpdateCategories()
     for (int t=0; t<num_time_vals; t++) {
         map_valid[t] = true;
     }
-    
+
 	map_error_message.resize(num_time_vals);
-    
+
     for (int t=0; t<num_time_vals; t++) {
         map_error_message[t] = wxEmptyString;
     }
-    
+
     empty_dict.clear();
     for (int i=0; i<empty_shps_ids.size(); i++) {
         empty_dict[empty_shps_ids[i]] = true;
@@ -2417,7 +2475,7 @@ void MapCanvas::CreateAndUpdateCategories()
 			cat_data.SetCategoryLabel(t, 0, "");
             int num_valid_obs = num_obs - GetEmptyNumber();
 			cat_data.SetCategoryCount(t, 0, num_valid_obs);
-           
+
             if (empty_shps_ids.empty()) {
     			for (int i=0; i<num_obs; i++)
                     cat_data.AppendIdToCategory(t, 0, i);
@@ -2428,7 +2486,7 @@ void MapCanvas::CreateAndUpdateCategories()
                 }
             }
 		}
-		
+
 		if (ref_var_index != -1) {
             int step = var_info[ref_var_index].time - var_info[ref_var_index].time_min;
 			cat_data.SetCurrentCanvasTmStep(step);
@@ -2436,30 +2494,30 @@ void MapCanvas::CreateAndUpdateCategories()
         if (IS_VAR_STRING) IS_VAR_STRING = false;
 		return;
 	}
-	
+
 	// Everything below assumes that GetCcType() != no_theme
 	// We assume data has been initialized to correct data
 	// for all time periods.
-	
+
 	double* P = 0;
 	double* E = 0;
 	double* smoothed_results = 0;
-    
+
 	if (smoothing_type != no_smoothing) {
 		P = new double[num_obs];
 		E = new double[num_obs];
 		smoothed_results = new double[num_obs];
 	}
-	
+
 	cat_var_sorted.resize(num_time_vals);
     if (IS_VAR_STRING) cat_str_var_sorted.resize(num_time_vals);
-    
+
     vector<vector<bool> > cat_var_undef;
-    
+
 	for (int t=0; t<num_time_vals; t++) {
 		cat_var_sorted[t].clear();
         if (IS_VAR_STRING) cat_str_var_sorted[t].clear();
-        
+
         vector<bool> undef_res(num_obs, false);
         for (int i=0; i<num_obs; i++) {
             for (int j=0; j< data_undef.size(); j++) {
@@ -2468,12 +2526,12 @@ void MapCanvas::CreateAndUpdateCategories()
                 }
             }
         }
-		
+
 		if (smoothing_type != no_smoothing) {
             for (int i=0; i<num_obs; i++) {
                 E[i] = data[0][var_info[0].time][i];
             }
-            
+
 			if (var_info[0].sync_with_global_time) {
 				for (int i=0; i<num_obs; i++) {
 					E[i] = data[0][t+var_info[0].time_min][i];
@@ -2483,7 +2541,7 @@ void MapCanvas::CreateAndUpdateCategories()
 					E[i] = data[0][var_info[0].time][i];
 				}
 			}
-			
+
 			if (var_info[1].sync_with_global_time) {
 				for (int i=0; i<num_obs; i++) {
 					P[i] = data[1][t+var_info[1].time_min][i];
@@ -2493,15 +2551,15 @@ void MapCanvas::CreateAndUpdateCategories()
 					P[i] = data[1][var_info[1].time][i];
 				}
 			}
-			
+
             bool hasZeroBaseVal = false;
             vector<bool>& hs = highlight_state->GetHighlight();
             vector<bool> hs_backup = hs;
-            
+
 			for (int i=0; i<num_obs; i++) {
                 if (undef_res[i])
                     continue;
-                
+
                 if (P[i] == 0) {
                     undef_res[i] = true;
                     hasZeroBaseVal = true;
@@ -2516,8 +2574,8 @@ void MapCanvas::CreateAndUpdateCategories()
 				}
 			}
             hs = hs_backup;
-            
-			
+
+
 			if (smoothing_type == raw_rate) {
                 GdaAlgs::RateSmoother_RawRate(num_obs, P, E,
                                               smoothed_results,
@@ -2539,11 +2597,11 @@ void MapCanvas::CreateAndUpdateCategories()
                                            weights_id, P, E,
                                            smoothed_results, undef_res);
 			}
-		
+
 			for (int i=0; i<num_obs; i++) {
                 cat_var_sorted[t].push_back(std::make_pair(smoothed_results[i],i));
 			}
-            
+
 		} else {
             if (IS_VAR_STRING) {
                 for (int i=0; i<num_obs; i++) {
@@ -2557,10 +2615,10 @@ void MapCanvas::CreateAndUpdateCategories()
                 }
             }
 		}
-        
+
         cat_var_undef.push_back(undef_res);
 	}
-	
+
 	if (smoothing_type != no_smoothing) {
 		if (P) delete [] P;
 		if (E) delete [] E;
@@ -2577,15 +2635,15 @@ void MapCanvas::CreateAndUpdateCategories()
                           Gda::dbl_int_pair_cmp_less);
 		}
 	}
-	
+
 	if (cat_classif_def.cat_classif_type != CatClassification::custom) {
 		CatClassification::ChangeNumCats(GetNumCats(), cat_classif_def);
         cat_classif_def.color_scheme =
             CatClassification::GetColSchmForType(
                                             cat_classif_def.cat_classif_type);
 	}
-    
-    
+
+
     if (IS_VAR_STRING)
         CatClassification::PopulateCatClassifData(cat_classif_def,
                                                   cat_str_var_sorted,
@@ -2616,7 +2674,7 @@ void MapCanvas::TimeSyncVariableToggle(int var_index)
     wxLogMessage("MapCanvas::TimeSyncVariableToggle()");
 	var_info[var_index].sync_with_global_time =
 		!var_info[var_index].sync_with_global_time;
-	
+
 	VarInfoAttributeChange();
 	// Strictly speaking, should not have to repopulate map canvas
 	// when time sync changes since scale of objects never changes. To keep
@@ -2655,7 +2713,7 @@ void MapCanvas::DisplayWeightsGraph()
     display_weights_graph = !display_weights_graph;
     if (display_weights_graph) {
         display_neighbors = false;
-        
+
     } else {
         display_map_with_graph = true;
     }
@@ -2687,13 +2745,13 @@ void MapCanvas::DisplayMapWithGraph()
 void MapCanvas::DisplayMapBoundray(bool flag)
 {
     wxLogMessage("MapCanvas::DisplayMapBoundray()");
-    
+
     display_map_boundary = flag;
     if (selectable_outline_visible) display_map_boundary = false;
     full_map_redraw_needed = true;
-    
+
     PopulateCanvas();
-    
+
 }
 
 void MapCanvas::ChangeGraphThickness(int val)
@@ -2756,7 +2814,7 @@ CatClassification::CatClassifType MapCanvas::GetCcType()
 	return cat_classif_def.cat_classif_type;
 }
 
-/** Save Rates option should only be available when 
+/** Save Rates option should only be available when
  smoothing_type != no_smoothing */
 void MapCanvas::SaveRates()
 {
@@ -2769,23 +2827,23 @@ void MapCanvas::SaveRates()
 		dlg.ShowModal();
 		return;
 	}
-	
+
 	vector<SaveToTableEntry> data(1);
-	
+
     vector<bool> undefs(num_obs);
 	vector<double> dt(num_obs);
-    
+
 	int t = cat_data.GetCurrentCanvasTmStep();
     for (int i=0; i<num_obs; i++) {
 		dt[cat_var_sorted[t][i].second] = cat_var_sorted[t][i].first;
         undefs[i] = data_undef[0][t][i];
 	}
-    
+
 	data[0].type = GdaConst::double_type;
 	data[0].d_val = &dt;
 	data[0].label = "Rate";
     data[0].undefined = &undefs;
-	
+
 	if (smoothing_type == raw_rate) {
 		data[0].field_default = "R_RAW_RT";
 	} else if (smoothing_type == excess_risk) {
@@ -2802,7 +2860,7 @@ void MapCanvas::SaveRates()
 
 	wxString title = _("Save Rates - %s over %s");
     title = wxString::Format(title, GetNameWithTime(0), GetNameWithTime(1));
-	
+
     SaveToTableDlg dlg(project, this, data, title,
 					   wxDefaultPosition, wxSize(400,400));
     dlg.ShowModal();
@@ -2812,13 +2870,13 @@ void MapCanvas::update(HLStateInt* o)
 {
     if (layer2_bm) {
         ResetBrushing();
-        
+
         if (draw_sel_shps_by_z_val) {
             // force a full redraw
             layer0_valid = false;
             return;
         }
-        
+
         HLStateInt::EventType type = o->GetEventType();
         if (type == HLStateInt::transparency) {
             tran_unhighlighted = GdaConst::transparency_unhighlighted;
@@ -2828,7 +2886,7 @@ void MapCanvas::update(HLStateInt* o)
         // re-paint highlight layer (layer1_bm)
         layer1_valid = false;
         DrawLayers();
-        
+
         UpdateStatusBar();
     }
 }
@@ -2839,20 +2897,20 @@ void MapCanvas::UpdateStatusBar()
 	if (template_frame) {
 		sb = template_frame->GetStatusBar();
 	}
-	if (!sb) 
+	if (!sb)
         return;
-    
+
     std::vector<bool>& hl = highlight_state->GetHighlight();
 	wxString s;
-    
+
     int selected_cnt = 0;
     int selected_idx = 0;
-    
+
     if (GetCcType() == CatClassification::no_theme)
         s << _("#obs=") << project->GetNumRecordsNoneEmpty() <<" ";
     else
         s << _("#obs=") << project->GetNumRecords() <<" ";
-    
+
     if ( highlight_state->GetTotalHighlighted() > 0) {
         // for highlight from other windows
         if (GetCcType() == CatClassification::no_theme) {
@@ -2866,25 +2924,25 @@ void MapCanvas::UpdateStatusBar()
         } else {
             s << _("#selected=") << highlight_state->GetTotalHighlighted()<< "  ";
         }
-        
+
     }
     if ((display_neighbors || display_weights_graph) &&
         boost::uuids::nil_uuid() != weights_id )
     {
         WeightsManInterface* w_man_int = project->GetWManInt();
         GalWeight* gal_weights = w_man_int->GetGal(weights_id);
-       
+
         long cid = -1;
-        
+
         if (hover_obs.size() == 1)
             cid = hover_obs[0];
         else if (selected_cnt == 1) {
             cid = selected_idx;
         }
-        
+
         if (cid >= 0) {
             GalElement& e = gal_weights->gal[cid];
-            
+
             s << _("obs ") << w_man_int->RecNumToId(GetWeightsId(), cid);
             s << " has " << e.Size() << " neighbor";
             if (e.Size() != 1) s << "s";
@@ -2942,7 +3000,7 @@ void MapNewLegend::OnCategoryColor(wxCommandEvent& event)
     int c_ts = template_canvas->cat_data.GetCurrentCanvasTmStep();
     int num_cats = template_canvas->cat_data.GetNumCategories(c_ts);
     if (opt_menu_cat < 0 || opt_menu_cat >= num_cats) return;
-    
+
     wxColour col = template_canvas->cat_data.GetCategoryColor(c_ts, opt_menu_cat);
     wxColourData data;
     data.SetColour(col);
@@ -2952,7 +3010,7 @@ void MapNewLegend::OnCategoryColor(wxCommandEvent& event)
         wxColour colour(ki * 16, ki * 16, ki * 16);
         data.SetCustomColour(ki, colour);
     }
-    
+
     wxColourDialog dialog(this, &data);
     dialog.SetTitle(_("Choose Cateogry Color"));
     if (dialog.ShowModal() == wxID_OK) {
@@ -3001,19 +3059,19 @@ no_update_weights(false)
     template_legend = NULL;
     template_canvas = NULL;
     map_tree = NULL;
-  
+
     if (weights_id.is_nil()) {
         WeightsManInterface* w_man_int = project->GetWManInt();
         weights_id = w_man_int->GetDefault();
     }
-    
+
 	int width, height;
 	GetClientSize(&width, &height);
-    
+
 	wxSplitterWindow* splitter_win = 0;
 	splitter_win = new wxSplitterWindow(this,wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_3D |wxSP_LIVE_UPDATE|wxCLIP_CHILDREN);
 	splitter_win->SetMinimumPaneSize(10);
-	
+
 	wxPanel* rpanel = new wxPanel(splitter_win);
     template_canvas = new MapCanvas(rpanel, this, project,
                                     var_info, col_ids,
@@ -3025,37 +3083,37 @@ no_update_weights(false)
 	template_canvas->SetScrollRate(1,1);
     rbox = new wxBoxSizer(wxHORIZONTAL);
     rbox->Add(template_canvas, 1, wxEXPAND);
-    
+
     rpanel->SetSizerAndFit(rbox);
 
     wxPanel* lpanel = new wxPanel(splitter_win);
     template_legend = new MapNewLegend(lpanel, template_canvas, wxPoint(0,0), wxSize(0,0));
-    
+
     if (theme_type == CatClassification::unique_values) {
         template_legend->isDragDropAllowed = true;
     }
-    
+
     wxBoxSizer* lbox = new wxBoxSizer(wxVERTICAL);
     template_legend->GetContainingSizer()->Detach(template_legend);
     lbox->Add(template_legend, 1, wxEXPAND | wxALL);
     lpanel->SetSizerAndFit(lbox);
-    
+
 	splitter_win->SplitVertically(lpanel, rpanel, GdaConst::map_default_legend_width);
-    
+
     wxPanel* toolbar_panel = new wxPanel(this,wxID_ANY, wxDefaultPosition);
 	wxBoxSizer* toolbar_sizer= new wxBoxSizer(wxVERTICAL);
     toolbar = wxXmlResource::Get()->LoadToolBar(toolbar_panel, "ToolBar_MAP");
     SetupToolbar();
 	toolbar_sizer->Add(toolbar, 0, wxEXPAND|wxALL);
 	toolbar_panel->SetSizerAndFit(toolbar_sizer);
-    
+
 	wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-	sizer->Add(toolbar_panel, 0, wxEXPAND|wxALL); 
-	sizer->Add(splitter_win, 1, wxEXPAND|wxALL); 
+	sizer->Add(toolbar_panel, 0, wxEXPAND|wxALL);
+	sizer->Add(splitter_win, 1, wxEXPAND|wxALL);
 	SetSizer(sizer);
     SetAutoLayout(true);
     DisplayStatusBar(true);
-	
+
 	w_man_state->registerObserver(this);
 
 	Show(true);
@@ -3079,7 +3137,7 @@ MapFrame::~MapFrame()
 	}
 	if (HasCapture()) ReleaseMouse();
 	DeregisterAsActive();
-    
+
     if (export_dlg) {
         export_dlg->Destroy();
         delete export_dlg;
@@ -3131,17 +3189,17 @@ void MapFrame::UpdateMapLayer()
     }
 }
 
-void MapFrame::OnDrawBasemap(bool flag, BasemapItem& bm_item)
+void MapFrame::OnDrawBasemap(bool flag, Gda::BasemapItem& bm_item)
 {
 	if (!template_canvas) return;
 
     MapCanvas* map_canvas = (MapCanvas*)template_canvas;
     bool drawSuccess = map_canvas->DrawBasemap(flag, bm_item);
-    
+
     if (flag == false) {
         map_canvas->tran_unhighlighted = GdaConst::transparency_unhighlighted;
     }
-    
+
     if (drawSuccess==false) {
         wxMessageBox(_("GeoDa cannot find proper projection or geographic coordinate system information to add a basemap. Please update this information (e.g. in .prj file)."));
     }
@@ -3211,8 +3269,9 @@ void MapFrame::OnMapAddLayer(wxCommandEvent& e)
     IDataSource* datasource = connect_dlg.GetDataSource();
     wxString datasource_name = datasource->GetOGRConnectStr();
     GdaConst::DataSourceType ds_type = datasource->GetType();
-    
-    BackgroundMapLayer* map_layer = project->AddMapLayer(datasource_name, ds_type, layer_name);
+
+    BackgroundMapLayer* map_layer = project->AddMapLayer(datasource_name,
+                                                         ds_type, layer_name);
     if (map_layer == NULL) {
         wxMessageDialog dlg (this, _("GeoDa could not load this layer. Please check if the datasource is valid and not table only."), _("Load Layer Failed."), wxOK | wxICON_ERROR);
         dlg.ShowModal();
@@ -3261,19 +3320,22 @@ void MapFrame::SetNoBasemap()
 void MapFrame::OnBasemapSelect(wxCommandEvent& event)
 {
     int menu_id = event.GetId();
-    
+
     wxString basemap_sources = GdaConst::gda_basemap_sources;
-    std::vector<wxString> items = OGRDataAdapter::GetInstance().GetHistory("gda_basemap_sources");
+    OGRDataAdapter& ogr_instance = OGRDataAdapter::GetInstance();
+    std::vector<wxString> items = ogr_instance.GetHistory("gda_basemap_sources");
     if (items.size()>0) {
         basemap_sources = items[0];
     }
-    vector<BasemapGroup> basemap_groups = ExtractBasemapResources(basemap_sources);
-    
+    vector<Gda::BasemapGroup> basemap_groups;
+    basemap_groups = Gda::ExtractBasemapResources(basemap_sources);
+
     for (int i=0; i<basemap_groups.size(); i++) {
-        BasemapGroup& grp = basemap_groups[i];
-        vector<BasemapItem>& items = grp.items;
+        Gda::BasemapGroup& grp = basemap_groups[i];
+        vector<Gda::BasemapItem>& items = grp.items;
         for (int j=0; j<items.size(); j++) {
-            wxString xid = wxString::Format("ID_BASEMAP_%s_%s", grp.name, items[j].name);
+            wxString xid = wxString::Format("ID_BASEMAP_%s_%s", grp.name,
+                                            items[j].name);
             if (menu_id == XRCID(xid)) {
                 OnDrawBasemap(true, items[j]);
                 break;
@@ -3286,18 +3348,20 @@ void MapFrame::OnMapBasemap(wxCommandEvent& e)
 {
     wxLogMessage("In MapFrame::OnMapBasemap()");
 	wxMenu* popupMenu = wxXmlResource::Get()->LoadMenu("ID_BASEMAP_MENU");
-    
+
     // add basemap options
     wxString basemap_sources = GdaConst::gda_basemap_sources;
-    std::vector<wxString> items = OGRDataAdapter::GetInstance().GetHistory("gda_basemap_sources");
+    OGRDataAdapter& ogr_instance = OGRDataAdapter::GetInstance();
+    std::vector<wxString> items = ogr_instance.GetHistory("gda_basemap_sources");
     if (items.size()>0) {
         basemap_sources = items[0];
     }
-    vector<BasemapGroup> basemap_groups = ExtractBasemapResources(basemap_sources);
+    vector<Gda::BasemapGroup> basemap_groups;
+    basemap_groups = Gda::ExtractBasemapResources(basemap_sources);
     for (int i=0; i<basemap_groups.size(); i++) {
-        BasemapGroup& grp = basemap_groups[i];
+        Gda::BasemapGroup& grp = basemap_groups[i];
         wxMenu* imp = new wxMenu;
-        vector<BasemapItem>& items = grp.items;
+        vector<Gda::BasemapItem>& items = grp.items;
         for (int j=0; j<items.size(); j++) {
             wxString xid = wxString::Format("ID_BASEMAP_%s_%s", grp.name,
                                             items[j].name);
@@ -3309,11 +3373,11 @@ void MapFrame::OnMapBasemap(wxCommandEvent& e)
     }
     if (popupMenu) {
         // set checkmarks
-        BasemapItem current_item = ((MapCanvas*) template_canvas)->basemap_item;
+        Gda::BasemapItem current_item = ((MapCanvas*) template_canvas)->basemap_item;
         bool no_basemap = true;
         for (int i=0; i<basemap_groups.size(); i++) {
-            BasemapGroup& grp = basemap_groups[i];
-            vector<BasemapItem>& items = grp.items;
+            Gda::BasemapGroup& grp = basemap_groups[i];
+            vector<Gda::BasemapItem>& items = grp.items;
             for (int j=0; j<items.size(); j++) {
                 wxString xid = wxString::Format("ID_BASEMAP_%s_%s", grp.name,
                                                 items[j].name);
@@ -3351,8 +3415,8 @@ void MapFrame::MapMenus()
 	((MapCanvas*) template_canvas)->AddTimeVariantOptionsToMenu(optMenu);
 	AppendCustomCategories(optMenu, project->GetCatClassifManager());
 	((MapCanvas*) template_canvas)->SetCheckMarks(optMenu);
-    
-	GeneralWxUtils::ReplaceMenu(mb, _("Options"), optMenu);	
+
+	GeneralWxUtils::ReplaceMenu(mb, _("Options"), optMenu);
 	UpdateOptionMenuItems();
 }
 
@@ -3372,7 +3436,7 @@ void MapFrame::AppendCustomCategories(wxMenu* menu, CatClassifManager* ccm)
     base_id[0] = GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_A0;
     base_id[1] = GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_B0;
     base_id[2] = GdaConst::ID_CUSTOM_CAT_CLASSIF_CHOICE_C0;
-    
+
     for (int i=0; i<num_sub_menus; i++) {
         wxMenuItem* smii = menu->FindItem(sub_menu_id[i]);
         if (!smii) continue;
@@ -3381,18 +3445,18 @@ void MapFrame::AppendCustomCategories(wxMenu* menu, CatClassifManager* ccm)
         int m_id = smi->FindItem(_("Custom Breaks"));
         wxMenuItem* mi = smi->FindItem(m_id);
         if (!mi) continue;
-        
+
         wxMenu* sm = mi->GetSubMenu();
         // clean
         wxMenuItemList items = sm->GetMenuItems();
         for (int i=0; i<items.size(); i++) {
             sm->Delete(items[i]);
         }
-        
+
         sm->Append(menu_id[i], _("Create New Custom"),
                    _("Create new custom categories classification."));
         sm->AppendSeparator();
-        
+
         vector<wxString> titles;
         ccm->GetTitles(titles);
         for (size_t j=0; j<titles.size(); j++) {
@@ -3438,7 +3502,7 @@ void MapFrame::UpdateContextMenuItems(wxMenu* menu)
 	// following menu items if they were specified for this particular
 	// view in the xrc file.  Items that cannot be enable/disabled,
 	// or are not checkable do not appear.
-	
+
 	TemplateFrame::UpdateContextMenuItems(menu); // set common items
 }
 
@@ -3502,10 +3566,10 @@ GalWeight* MapFrame::checkWeights()
         wxMessageDialog dlg (this, _("GeoDa could not find the required weights file. \nPlease specify weights in Tools > Weights Manager."), _("No Weights Found"), wxOK | wxICON_ERROR);
         dlg.ShowModal();
         return NULL;
-        
+
     }
     boost::uuids::uuid w_id = w_man_int->GetDefault();
-    
+
     GalWeight* gal_weights = w_man_int->GetGal(w_id);
     if (gal_weights== NULL) {
         wxString msg = _("Invalid Weights Information:\n\n The selected weights file is not valid.\n Please choose another weights file, or use Tools > Weights > Weights Manager to define a valid weights file.");
@@ -3521,10 +3585,10 @@ void MapFrame::OnDisplayWeightsGraph(wxCommandEvent& event)
     GalWeight* gal_weights = checkWeights();
     if (gal_weights == NULL)
         return;
-  
+
     if (event.GetString() == _("Connectivity"))
         no_update_weights = true;
-    
+
     ((MapCanvas*) template_canvas)->DisplayWeightsGraph();
     UpdateOptionMenuItems();
 }
@@ -3534,10 +3598,10 @@ void MapFrame::OnAddNeighborToSelection(wxCommandEvent& event)
     GalWeight* gal_weights = checkWeights();
     if (gal_weights == NULL)
         return;
-    
+
     if (event.GetString() == _("Connectivity"))
         no_update_weights = true;
-    
+
     ((MapCanvas*) template_canvas)->DisplayNeighbors();
     UpdateOptionMenuItems();
 }
@@ -3547,7 +3611,7 @@ void MapFrame::OnDisplayMapWithGraph(wxCommandEvent& event)
     GalWeight* gal_weights = checkWeights();
     if (gal_weights == NULL)
         return;
-   
+
     ((MapCanvas*) template_canvas)->DisplayMapWithGraph();
     UpdateOptionMenuItems();
 }
@@ -3563,7 +3627,7 @@ void MapFrame::OnChangeGraphThickness(wxCommandEvent& event)
         ((MapCanvas*) template_canvas)->ChangeGraphThickness(1);
     else if (event.GetId() == XRCID("ID_WEIGHTS_GRAPH_THICKNESS_STRONG"))
         ((MapCanvas*) template_canvas)->ChangeGraphThickness(2);
-    
+
     UpdateOptionMenuItems();
 }
 
@@ -3728,7 +3792,7 @@ void MapFrame::OnUniqueValues()
 					  6, boost::uuids::nil_uuid(),
 					  false, vector<GdaVarTools::VarInfo>(0),
 					  vector<int>(0));
-	}	
+	}
 }
 
 void MapFrame::OnNaturalBreaks(int num_cats)
@@ -3812,7 +3876,7 @@ void MapFrame::OnEmpiricalBayes()
 
 void MapFrame::OnSpatialRate()
 {
-    
+
 	VariableSettingsDlg dlg(project, VariableSettingsDlg::rate_smoothed,
                             true, false,
 							_("Spatial Rate Smoothed Variable Settings"),
@@ -3961,7 +4025,7 @@ void MapFrame::OnExportMeanCntrs()
         delete export_dlg;
     }
     export_dlg = new ExportDataDlg(this, project->mean_centers, Shapefile::NULL_SHAPE, "COORD", project);
-    
+
     export_dlg->ShowModal();
 }
 
@@ -3973,7 +4037,7 @@ void MapFrame::OnExportCentroids()
         delete export_dlg;
     }
     export_dlg = new ExportDataDlg(this, project->centroids, Shapefile::NULL_SHAPE, "COORD", project);
-    
+
     export_dlg->ShowModal();
 }
 
@@ -3985,7 +4049,7 @@ void MapFrame::OnSaveVoronoiDupsToTable()
 void MapFrame::OnChangeMapTransparency()
 {
 	if (!template_canvas) return;
-    
+
     //show slider dialog
     MapCanvas* map_canvs_ref = (MapCanvas*) template_canvas;
     if (map_canvs_ref->isDrawBasemap) {
@@ -4010,4 +4074,3 @@ void MapFrame::GetVizInfo(wxString& shape_type, wxString& field_name, vector<wxS
         }
 	}
 }
-

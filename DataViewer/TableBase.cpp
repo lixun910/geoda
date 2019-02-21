@@ -466,15 +466,7 @@ wxString TableBase::GetColLabelValue(int col)
 	}
 	
 	if (col == sorting_col) {
-		// MMM: problem with unicode character encoding on Mac/Unix with
-		// wxWidgets 3, so defaulting everything to Windows for now.
-		//if (GeneralWxUtils::isMac()) {
-		//	label << (sorting_ascending ? " \u02C4" : " \u02C5");
-		//} else if (GeneralWxUtils::isUnix()) {
-		//	label << (sorting_ascending ? " \u25B5" : " \u25BF");
-		//} else {
-			label << (sorting_ascending ? " >" : " <");
-		//}
+        label << (sorting_ascending ? " >" : " <");
 	}
 	return label;
 }
@@ -501,7 +493,9 @@ void TableBase::update(TableState* o)
 				GetView()->ProcessTableMessage(msg);
 			} else {
 				if (e.pos_at_op == sorting_col) { 
-					sorting_col = -1; sorting_ascending = true; }
+					sorting_col = -1;
+                    sorting_ascending = true;
+                }
 				if (e.pos_at_op < sorting_col) sorting_col--;
 				
 				wxGridTableMessage msg(this, wxGRIDTABLE_NOTIFY_COLS_DELETED,
@@ -512,7 +506,7 @@ void TableBase::update(TableState* o)
 		BOOST_FOREACH(const TableDeltaEntry& e, o->GetTableDeltaListRef()) {
 			if (e.insert) {
 				if (e.type == GdaConst::long64_type) {
-					GetView()->SetColFormatNumber(e.pos_final);
+                    // leave as a string: for more than 10 digts 64-bit number
 				} else if (e.type == GdaConst::double_type) {
 					int dd = e.displayed_decimals;
 					if (dd == -1) dd = e.decimals;

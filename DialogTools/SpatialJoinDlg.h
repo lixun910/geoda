@@ -91,7 +91,6 @@ public:
     SpatialJoinDlg(wxWindow* parent, Project* project);
     
     void OnOK(wxCommandEvent& e);
-    void OnAddMapLayer(wxCommandEvent& e);
     void OnLayerSelect(wxCommandEvent& e);
     
     void InitMapList();

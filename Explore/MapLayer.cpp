@@ -57,6 +57,12 @@ BackgroundMapLayer::~BackgroundMapLayer()
     }
 }
 
+void BackgroundMapLayer::GetExtent(double &minx, double &miny, double &maxx,
+                                   double &maxy)
+{
+    layer_proxy->GetExtent(minx, miny, maxx, maxy);
+}
+
 void BackgroundMapLayer::CleanMemory()
 {
     // shapes and geoms will be not deleted until the map destroyed 
@@ -459,8 +465,10 @@ void GdaShapeLayer::Offset(int dx, int dy)
 
 void GdaShapeLayer::applyScaleTrans(const GdaScaleTrans &A)
 {
-    if (ml->map_boundary) {
-        ml->map_boundary->applyScaleTrans(A);
+    if (ml->IsShowBoundary()) {
+        if (ml->map_boundary) {
+            ml->map_boundary->applyScaleTrans(A);
+        }
     } else {
         for (int i=0; i<ml->shapes.size(); i++) {
             ml->shapes[i]->applyScaleTrans(A);
@@ -468,10 +476,12 @@ void GdaShapeLayer::applyScaleTrans(const GdaScaleTrans &A)
     }
 }
 
-void GdaShapeLayer::projectToBasemap(GDA::Basemap *basemap, double scale_factor)
+void GdaShapeLayer::projectToBasemap(Gda::Basemap *basemap, double scale_factor)
 {
-    if (ml->map_boundary) {
-        ml->map_boundary->projectToBasemap(basemap, scale_factor);
+    if (ml->IsShowBoundary()) {
+        if (ml->map_boundary) {
+            ml->map_boundary->projectToBasemap(basemap, scale_factor);
+        }
     } else {
         for (int i=0; i<ml->shapes.size(); i++) {
             ml->shapes[i]->projectToBasemap(basemap, scale_factor);
