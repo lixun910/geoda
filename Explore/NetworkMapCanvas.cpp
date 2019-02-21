@@ -21,6 +21,7 @@
 #include <boost/foreach.hpp>
 
 #include "CatClassifManager.h"
+#include "../Explore/Basemap.h"
 #include "../Algorithms/DataClassify.h"
 #include "../DialogTools/ExportDataDlg.h"
 #include "../DataViewer/OGRTable.h"
@@ -128,7 +129,8 @@ default_speed(_default_speed), penalty(_penalty)
      */
     tran_unhighlighted = (1-0.4) * 255; // change default transparency
     isDrawBasemap = true;
-    basemap_item = GetBasemapSelection(1); // carto
+    // use carto
+    basemap_item = Gda::GetBasemapSelection(1, GdaConst::gda_basemap_sources);
     DrawBasemap(true, basemap_item);
     
     PopulateCanvas();

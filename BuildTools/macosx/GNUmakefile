@@ -12,10 +12,10 @@ default:	compile-geoda
 app:  build-geoda-mac
 
 compile-geoda:	weights-target ogl-target io-target algorithms-target \
-                osm-target ogrtool-target dataviewer-target dialogtools-target \
-		knn-target explore-target libgdiam-target regression-target \
-		shapeoperations-target resource-target varcalc-target \
-		geoda-target
+	osm-target ogrtool-target dataviewer-target dialogtools-target \
+	knn-target explore-target libgdiam-target regression-target \
+	shapeoperations-target resource-target varcalc-target \
+	geoda-target
 
 test:
 	echo $(WX_HEADER)
@@ -117,10 +117,10 @@ build-geoda-mac:
 	#cp libraries/lib/libmysqlclient.18.dylib build/GeoDa.app/Contents/Resources/plugins/
 	cp plugins/ogr_OCI.so build/GeoDa.app/Contents/Resources/plugins/ogr_OCI.so
 	cp plugins/ogr_FileGDB.so build/GeoDa.app/Contents/Resources/plugins/ogr_FileGDB.so
-        cp libraries/lib/libhdf5_hl_cpp.100.1.2.dylib build/GeoDa.app/Contents/Resources/plugins/libhdf5_hl_cpp.100.dylib
-        cp libraries/lib/libhdf5_cpp.103.0.0.dylib build/GeoDa.app/Contents/Resources/plugins/libhdf5_cpp.103.dylib
-        cp libraries/lib/libhdf5_hl.100.1.1.dylib build/GeoDa.app/Contents/Resources/plugins/libhdf5_hl.100.dylib
-        cp libraries/lib/libhdf5.103.0.0.dylib build/GeoDa.app/Contents/Resources/plugins/libhdf5.103.dylib
+	cp libraries/lib/libhdf5_hl_cpp.100.1.2.dylib build/GeoDa.app/Contents/Resources/plugins/libhdf5_hl_cpp.100.dylib
+	cp libraries/lib/libhdf5_cpp.103.0.0.dylib build/GeoDa.app/Contents/Resources/plugins/libhdf5_cpp.103.dylib
+	cp libraries/lib/libhdf5_hl.100.1.1.dylib build/GeoDa.app/Contents/Resources/plugins/libhdf5_hl.100.dylib
+	cp libraries/lib/libhdf5.103.0.0.dylib build/GeoDa.app/Contents/Resources/plugins/libhdf5.103.dylib
 	install_name_tool -change "$(GEODA_HOME)/libraries/lib/libgdal.20.dylib" "@executable_path/../Resources/plugins/libgdal.20.dylib" build/GeoDa.app/Contents/MacOS/GeoDa
 	install_name_tool -change "$(GEODA_HOME)/libraries/lib/libcurl.4.dylib" "@executable_path/../Resources/plugins/libcurl.4.dylib" build/GeoDa.app/Contents/MacOS/GeoDa
 	install_name_tool -change "$(GEODA_HOME)/libraries/lib/libgdal.20.dylib" "@executable_path/../Resources/plugins/libgdal.20.dylib" build/GeoDa.app/Contents/Resources/plugins/libgdal.20.dylib 

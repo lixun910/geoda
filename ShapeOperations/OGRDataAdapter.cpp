@@ -360,7 +360,6 @@ OGRDataAdapter::MakeOGRGeometries(vector<GdaShape*>& geometries,
                         for ( size_t j = startIndexes[num_part];
                              j < startIndexes[num_part+1]; j++ )
                         {
-                            
                             x = poly->pc->points[j].x;
                             y = poly->pc->points[j].y;
                             line->addPoint(x,y);
