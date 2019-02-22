@@ -69,6 +69,7 @@ namespace OSMTools {
         wxString GetExeDir();
         
     protected:
+        const double eps = 0.00000001; // error bound
         double** xy;
         ANNkd_tree* kd_tree;
 
@@ -174,10 +175,11 @@ namespace OSMTools {
                           int n_query, int* results,
                           const std::vector<wxString>& query_ids);
 
-    bool SaveMatrixToHDF5(const char* file_path,
-                          int n, int* data,
-                          const std::vector<wxString>& query_ids);
-    void ReadHDF5ToMatrix(const char* file_path);
+        bool SaveMatrixToHDF5(const char* file_path,
+                              int n, int* data,
+                              const std::vector<wxString>& query_ids);
+
+        void ReadHDF5ToMatrix(const char* file_path);
     
         void ComputeDistMatrix(int* results);
 
@@ -197,21 +199,38 @@ namespace OSMTools {
         void SaveGraphToShapefile(const char* shp_file_name);
     };
 
+    class TravelWithCPUGraph : public TravelBass
+    {
+    protected:
+        CPUGraph* cpu_graph;
+        // [node idx, node idx] : way id
+        boost::unordered_map<std::pair<int, int>, int> edge_to_way;
+
+    public:
+        TravelWithCPUGraph(std::vector<OGRFeature*> roads,
+                           double default_speed,
+                           double penalty,
+                           std::map<wxString, double> speed_limit_dict,
+                           const wxString& highway_type_field,
+                           const wxString& max_speed_field,
+                           const wxString& one_way_field,
+                           const wxString& _one_way_flag = "yes");
+
+       virtual ~TravelWithCPUGraph();
+
+        bool IsOpenStreeMap();
+
+    protected:
+        void BuildCPUGraph();
+    };
 
     ////////////////////////////////////////////////////////////////////////////////
     //
     // Class TravelHeatMap
     //
     ////////////////////////////////////////////////////////////////////////////////
-    class TravelHeatMap : public TravelBass
+    class TravelHeatMap : public TravelWithCPUGraph
     {
-    protected:
-        CPUGraph* cpu_graph;
-
-        // [node idx, node idx] : way id
-        boost::unordered_map<std::pair<int, int>, int> edge_to_way;
-
-
     public:
         TravelHeatMap(std::vector<OGRFeature*> roads,
                       double default_speed,
@@ -224,7 +243,6 @@ namespace OSMTools {
 
         virtual ~TravelHeatMap();
 
-        bool IsOpenStreeMap();
 
         int Query(OGRPoint& from_pt, OGRPoint& to_pt,
                   std::vector<OGRLineString>& ogr_line,
@@ -234,9 +252,27 @@ namespace OSMTools {
                          double hexagon_radius,
                          std::vector<std::vector<OGRPolygon> >& hexagons,
                          std::vector<std::vector<int> >& costs,
+                         std::vector<OGRGeometry*>& hex_queries,
                          bool create_hexagons = true);
-    protected:
-        void BuildCPUGraph();
+    };
+
+    class TravelCatchmentMap : public TravelWithCPUGraph
+    {
+    public:
+        TravelCatchmentMap(std::vector<OGRFeature*> roads,
+                           double default_speed,
+                           double penalty,
+                           std::map<wxString, double> speed_limit_dict,
+                           const wxString& highway_type_field,
+                           const wxString& max_speed_field,
+                           const wxString& one_way_field,
+                           const wxString& _one_way_flag = "yes");
+
+        virtual ~TravelCatchmentMap();
+
+    bool CreateCatchmentPolygons(std::vector<OGRFeature*> points,
+                                 double max_cost,
+                                 std::vector<OGRGeometry*>& catchments);
     };
 }
 

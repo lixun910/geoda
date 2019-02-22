@@ -13,9 +13,9 @@ public:
                                                 int layer_idx,
                                                 OGRSpatialReference* dest_sr = NULL);
 
-    static bool SaveFeatures(std::vector<OGRFeature*> features,
+    static bool SaveFeaturesToShapefile(std::vector<OGRGeometry*> geoms,
                              const char* ds_path,
-                             const char* layer_name);
+                             const char* layer_name, OGRwkbGeometryType geom_type);
 };
 
 

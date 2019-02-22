@@ -323,7 +323,7 @@ void TravelDistanceMatrix::GetDistanceMatrix(std::vector<OGRFeature *> query_poi
     boost::unordered_map<int, bool> anchor_points;
 
     // using query points to find anchor points from roads
-    double eps = 0.00000001; // error bound
+
 #ifdef __GEODA__
     ANN_DIST_TYPE = 2;
 #endif
@@ -1160,38 +1160,32 @@ void TravelDistanceMatrix::SaveGraphToShapefile(const char* shp_file_name)
     GDALClose( poDS );
 }
 
-
-
-TravelHeatMap::TravelHeatMap(std::vector<OGRFeature*> roads,
-                             double default_speed,
-                             double penalty,
-                             std::map<wxString, double> speed_limit_dict,
-                             const wxString& _highway_type_field,
-                             const wxString& _max_speed_field,
-                             const wxString& _one_way_field,
-                             const wxString& _one_way_flag)
+TravelWithCPUGraph::TravelWithCPUGraph(std::vector<OGRFeature*> roads,
+                                       double default_speed,
+                                       double penalty,
+                                       std::map<wxString, double> speed_limit_dict,
+                                       const wxString& _highway_type_field,
+                                       const wxString& _max_speed_field,
+                                       const wxString& _one_way_field,
+                                       const wxString& _one_way_flag)
 :  TravelBass(roads, default_speed, penalty, speed_limit_dict,
               _highway_type_field, _max_speed_field, _one_way_field,
               _one_way_flag),
-   cpu_graph(0)
+cpu_graph(0)
 {
     BuildCPUGraph();
 }
 
-TravelHeatMap::~TravelHeatMap()
+TravelWithCPUGraph::~TravelWithCPUGraph()
 {
-   if (cpu_graph) delete cpu_graph;
+    if (cpu_graph) delete cpu_graph;
 }
 
-bool TravelHeatMap::IsOpenStreeMap()
-{
-    return is_osm;
-}
 /**
  * This function is for query travel path only
  *
  */
-void TravelHeatMap::BuildCPUGraph()
+void TravelWithCPUGraph::BuildCPUGraph()
 {
     num_nodes = nodes_dict.size();
     // adjacent dijkstra on CPU
@@ -1257,6 +1251,30 @@ void TravelHeatMap::BuildCPUGraph()
     }
 }
 
+bool TravelWithCPUGraph::IsOpenStreeMap()
+{
+    return is_osm;
+}
+
+
+TravelHeatMap::TravelHeatMap(std::vector<OGRFeature*> roads,
+                             double default_speed,
+                             double penalty,
+                             std::map<wxString, double> speed_limit_dict,
+                             const wxString& _highway_type_field,
+                             const wxString& _max_speed_field,
+                             const wxString& _one_way_field,
+                             const wxString& _one_way_flag)
+:  TravelWithCPUGraph(roads, default_speed, penalty, speed_limit_dict,
+              _highway_type_field, _max_speed_field, _one_way_field,
+              _one_way_flag)
+{
+}
+
+TravelHeatMap::~TravelHeatMap()
+{
+}
+
 int TravelHeatMap::Query(OGRPoint& from_pt, OGRPoint& to_pt,
                       std::vector<OGRLineString>& ogr_line,
                       std::vector<int>& way_ids)
@@ -1264,7 +1282,6 @@ int TravelHeatMap::Query(OGRPoint& from_pt, OGRPoint& to_pt,
     if (cpu_graph == 0) return -1;
 
     // get points on edges close to from_pt and to_pt
-    double eps = 0.00000001; // error bound
 #ifdef __GEODA__
     ANN_DIST_TYPE = 2;
 #endif
@@ -1345,6 +1362,7 @@ void TravelHeatMap::QueryHexMap(OGRPoint& start_pt, OGREnvelope& extent,
                              double hexagon_radius,
                              std::vector<std::vector<OGRPolygon> >& hexagons,
                              std::vector<std::vector<int> >& costs,
+                             std::vector<OGRGeometry*>& hex_queries,
                              bool create_hexagons)
 {
 #ifdef __GEODA__
@@ -1367,8 +1385,6 @@ void TravelHeatMap::QueryHexMap(OGRPoint& start_pt, OGREnvelope& extent,
     int *results = new int[cpu_graph->V];
     dijkstra(cpu_graph, from_node_idx, results, query_to_node,
              node_to_query, 0);
-
-    double eps = 0.00000001; // error bound
 
     if (hexagons.empty()) create_hexagons = true;
     if (create_hexagons) hexagons.clear();
@@ -1405,8 +1421,8 @@ void TravelHeatMap::QueryHexMap(OGRPoint& start_pt, OGREnvelope& extent,
         for (size_t j=0; j<cell_size_h; ++j) {
             // (x,y) left-top corner of hex
             x = start_x + j * hex_rect_width + ((i%2)*hexagon_radius);
+            OGRPolygon poly;
             if (create_hexagons) {
-                OGRPolygon poly;
                 OGRLinearRing ring;
                 OGRPoint p1(x+hexagon_radius, y);
                 OGRPoint p2(x+hex_rect_width, y - hex_height);
@@ -1420,31 +1436,44 @@ void TravelHeatMap::QueryHexMap(OGRPoint& start_pt, OGREnvelope& extent,
                 ring.addPoint(&p4);
                 ring.addPoint(&p5);
                 ring.addPoint(&p6);
+                ring.closeRings();
                 poly.addRing(&ring);
 
                 hex_row.push_back(poly);
             }
             cx = x + hexagon_radius;
-            cy = y;// + hex_height + (side_length / 2);
+            cy = y - hex_height - (side_length / 2);
 
             double q_pt[2];
             q_pt[0] = cx;
             q_pt[1] = cy;
-
-            kd_tree->annkSearch(q_pt, 2, nnIdx, dists, eps);
-
-            int node_idx = nnIdx[0];
-            if (sqrt(dists[0]) > hexagon_radius) {
-                cost_row.push_back(INT_MAX); // not valid distance
-            } else if (results[node_idx] == INT_MAX) {
-                node_idx = nnIdx[1]; // try second anchor point
-                if (results[node_idx] == INT_MAX) {
-                    cost_row.push_back(INT_MAX); // not valid distance
-                } else {
-                    cost_row.push_back(results[node_idx]);
-                }
+            OGRPoint *ogr_pt = new OGRPoint(cx, cy);
+            hex_queries.push_back((OGRGeometry*)ogr_pt);
+            double query_radius = hex_height + (side_length / 2);
+            int k = kd_tree->annkFRSearch(q_pt, ANN_POW(query_radius), 0, NULL, NULL);
+            if (k == 0) {
+                cost_row.push_back(INT_MAX); // no valid distance
             } else {
-                cost_row.push_back(results[node_idx]);
+                // find first valid distance
+                int min_k = k;
+                ANNidxArray _nnIdx = new ANNidx[min_k];
+                ANNdistArray _dists = new ANNdist[min_k];
+                kd_tree->annkSearch(q_pt, min_k, _nnIdx, _dists, eps);
+                bool has_valid = false;
+                for (size_t m=0; m<min_k; ++m) {
+                    int node_idx = _nnIdx[m];
+                    if (results[node_idx] != INT_MAX) {
+                        OGRPoint &pt = nodes[node_idx];
+                        if (poly.Contains(&pt)) {
+                            cost_row.push_back(results[node_idx]);
+                            has_valid = true;
+                            break;
+                        }
+                    }
+                }
+                if (!has_valid) cost_row.push_back(INT_MAX); // no valid distance
+                delete[] _nnIdx;
+                delete[] _dists;
             }
 
         }
@@ -1455,3 +1484,69 @@ void TravelHeatMap::QueryHexMap(OGRPoint& start_pt, OGREnvelope& extent,
     delete[] dists;
     delete[] results;
 }
+
+TravelCatchmentMap::TravelCatchmentMap(std::vector<OGRFeature*> roads,
+                                       double default_speed,
+                                       double penalty,
+                                       std::map<wxString, double> speed_limit_dict,
+                                       const wxString& highway_type_field,
+                                       const wxString& max_speed_field,
+                                       const wxString& one_way_field,
+                                       const wxString& _one_way_flag)
+:  TravelWithCPUGraph(roads, default_speed, penalty, speed_limit_dict,
+                      highway_type_field, max_speed_field, one_way_field,
+                      _one_way_flag)
+{
+
+}
+
+TravelCatchmentMap::~TravelCatchmentMap()
+{
+
+}
+
+bool TravelCatchmentMap::CreateCatchmentPolygons(std::vector<OGRFeature*> points,
+                                                 double max_cost,
+                                                 std::vector<OGRGeometry*>& catchments)
+{
+    // node_to_query & query_to_node are not needed here
+    boost::unordered_map<int, std::vector<int> > node_to_query;
+    std::vector<std::pair<int, int> > query_to_node;
+
+    ANNidxArray nnIdx = new ANNidx[2];
+    ANNdistArray dists = new ANNdist[2];
+
+    for (size_t i=0; i<points.size(); ++i) {
+        OGRFeature* feat = points[i];
+        OGRGeometry* geom = feat->GetGeometryRef();
+        OGRPoint* q_point = (OGRPoint*)geom;
+
+        // get nearest vertex
+        double* q_pt = new double[2];
+        q_pt[0] = q_point->getX();
+        q_pt[1] = q_point->getY();
+        kd_tree->annkSearch(q_pt, 1, nnIdx, dists, eps);
+        int node_idx = nnIdx[0];
+        
+        // get furthest vertices that within travel range <= max_cost
+        int *results = new int[cpu_graph->V];
+        dijkstra(cpu_graph, node_idx, results, query_to_node,
+                 node_to_query, 0);
+        OGRGeometryCollection geom_col;
+        for (size_t j=0; j<cpu_graph->V; ++j) {
+            double offset = max_cost - results[j];
+            if (offset > 0 && offset < 60) { // one minute buffer area
+                OGRPoint &pt = nodes[j];
+                geom_col.addGeometry(&pt);
+            }
+        }
+
+        // create a convexhull using the collection of vertices
+        OGRGeometry* hull = geom_col.ConvexHull();
+        catchments.push_back(hull);
+    }
+    delete[] nnIdx;
+    delete[] dists;
+    return false;
+}
+

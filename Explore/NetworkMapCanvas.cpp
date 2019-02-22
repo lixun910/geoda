@@ -19,12 +19,13 @@
 #include <wx/splitter.h>
 #include <wx/xrc/xmlres.h>
 #include <boost/foreach.hpp>
-
+#include <ogrsf_frmts.h>
 #include "CatClassifManager.h"
 #include "../Explore/Basemap.h"
 #include "../Algorithms/DataClassify.h"
 #include "../DialogTools/ExportDataDlg.h"
 #include "../DataViewer/OGRTable.h"
+#include "../OGRTools/OGRDataUtils.h"
 #include "../logger.h"
 #include "../Project.h"
 
@@ -345,8 +346,13 @@ void NetworkMapCanvas::CreateHexMap()
     bool create_hexagons = true;
 
     travel->QueryHexMap(from_pt, extent, hexagon_radius, hexagons, costs,
-                        create_hexagons);
+                        hex_queries, create_hexagons);
 
+    if (!wxFileExists("/Users/xun/Desktop/test/hex_q.shp")) {
+    OGRDataUtils::SaveFeaturesToShapefile(hex_queries,
+                                          "/Users/xun/Desktop/test/hex_q.shp",
+                                          "query", wkbPoint);
+    }
     // Get selectable objects and its costs
     selectable_costs.clear();
     for (size_t i=0; i<hexagons.size(); ++i) {

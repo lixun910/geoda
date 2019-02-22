@@ -21,7 +21,7 @@ class RoadDistancesDlg : public wxDialog
 {
 public:
     RoadDistancesDlg(wxWindow* parent, Project* project,
-                   const wxString& title = _("Road Distances Dialog"));
+                   const wxString& title = _("Travel Time Dialog"));
     
     void OnOK(wxCommandEvent& e);
 
@@ -36,8 +36,6 @@ public:
     void InitDataSetup();
 
     std::map<wxString, double> GetSpeedLimitDict();
-
-    double GetRadius();
 
     double GetDefaultSpeed();
 

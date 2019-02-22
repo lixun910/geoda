@@ -81,6 +81,9 @@
           <object class="wxMenuItem" name="ID_OSM_SNAP_POINTS">
               <label>Snap Points to Roads</label>
           </object>
+          <object class="wxMenuItem" name="ID_OSM_CATCHMENT">
+              <label>Create Catchment Area</label>
+          </object>
       </object>
       <object class="wxMenuItem" name="ID_TABLE_SPATIAL_JOIN">
           <label>Spatial Join</label>

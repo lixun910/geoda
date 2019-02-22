@@ -65,13 +65,50 @@ std::vector<OGRFeature*> OGRDataUtils:: GetFeatures(const char* ds_path,
     return results;
 }
 
-bool OGRDataUtils::SaveFeatures(std::vector<OGRFeature *> features,
+bool OGRDataUtils::SaveFeaturesToShapefile(std::vector<OGRGeometry *> geoms,
                                 const char *ds_path,
-                                const char *layer_name)
+                                const char *layer_name,
+                                           OGRwkbGeometryType geom_type)
 {
-    OGRFeature* feat = features[0];
-    OGRField* field = feat->GetRawFieldRef(0);
-    feat->GetFieldDefnRef(0);
-    return false;
-
+    const char *pszDriverName = "ESRI Shapefile";
+    GDALDriver *poDriver;
+    GDALAllRegister();
+    poDriver = GetGDALDriverManager()->GetDriverByName(pszDriverName );
+    if( poDriver == NULL ) {
+        printf( "%s driver not available.\n", pszDriverName );
+        return false;
+    }
+    GDALDataset *poDS;
+    poDS = poDriver->Create(ds_path, 0, 0, 0, GDT_Unknown, NULL );
+    if( poDS == NULL ) {
+        printf( "Creation of output file failed.\n" );
+        return false;
+    }
+    OGRLayer *poLayer;
+    poLayer = poDS->CreateLayer(layer_name, NULL, geom_type, NULL );
+    if( poLayer == NULL ) {
+        printf( "Layer creation failed.\n" );
+        GDALClose( poDS );
+        return false;
+    }
+    OGRFieldDefn oField("id", OFTInteger );
+    oField.SetWidth(32);
+    if( poLayer->CreateField( &oField ) != OGRERR_NONE ) {
+        printf( "Creating Name field failed.\n" );
+        GDALClose( poDS );
+        return false;
+    }
+    for (size_t i=0; i<geoms.size(); ++i) {
+        OGRFeature *poFeature = OGRFeature::CreateFeature( poLayer->GetLayerDefn());
+        poFeature->SetField(0, (int)i);
+        poFeature->SetGeometry(geoms[i]);
+        if( poLayer->CreateFeature( poFeature ) != OGRERR_NONE ) {
+            printf( "Failed to create feature in shapefile.\n" );
+            GDALClose( poDS );
+            return false;
+        }
+        OGRFeature::DestroyFeature( poFeature );
+    }
+    GDALClose( poDS );
+    return true;
 }

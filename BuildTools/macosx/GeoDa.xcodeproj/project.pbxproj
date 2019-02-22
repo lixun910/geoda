@@ -46,6 +46,7 @@
 		A186F0A11C16508A00AEBA13 /* GdaCartoDB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A186F09F1C16508A00AEBA13 /* GdaCartoDB.cpp */; };
 		A188EA2B21D58F5600D5EFE7 /* RoadDistancesDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A188EA2921D58F5500D5EFE7 /* RoadDistancesDlg.cpp */; };
 		A1894C3F213F29DC00718FFC /* SpatialJoinDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A1894C3D213F29DC00718FFC /* SpatialJoinDlg.cpp */; };
+		A18AEA7B221FAE1600C6B206 /* CatchmentDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A18AEA79221FAE1500C6B206 /* CatchmentDlg.cpp */; };
 		A19483932118BAAA009A87A2 /* composit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A194837A2118BAA7009A87A2 /* composit.cpp */; };
 		A19483942118BAAA009A87A2 /* divided.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A194837E2118BAA7009A87A2 /* divided.cpp */; };
 		A19483952118BAAA009A87A2 /* constrnt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A194837F2118BAA7009A87A2 /* constrnt.cpp */; };
@@ -398,6 +399,8 @@
 		A1894C3D213F29DC00718FFC /* SpatialJoinDlg.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SpatialJoinDlg.cpp; sourceTree = "<group>"; };
 		A1894C3E213F29DC00718FFC /* SpatialJoinDlg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SpatialJoinDlg.h; sourceTree = "<group>"; };
 		A1894C41213F806700718FFC /* MapLayerStateObserver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MapLayerStateObserver.h; sourceTree = "<group>"; };
+		A18AEA79221FAE1500C6B206 /* CatchmentDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CatchmentDlg.cpp; sourceTree = "<group>"; };
+		A18AEA7A221FAE1500C6B206 /* CatchmentDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CatchmentDlg.h; sourceTree = "<group>"; };
 		A19483782118BAA7009A87A2 /* ogldiag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ogldiag.h; sourceTree = "<group>"; };
 		A19483792118BAA7009A87A2 /* composit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = composit.h; sourceTree = "<group>"; };
 		A194837A2118BAA7009A87A2 /* composit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = composit.cpp; sourceTree = "<group>"; };
@@ -1308,6 +1311,8 @@
 		DD7974FE0F1D296F00496A84 /* DialogTools */ = {
 			isa = PBXGroup;
 			children = (
+				A18AEA79221FAE1500C6B206 /* CatchmentDlg.cpp */,
+				A18AEA7A221FAE1500C6B206 /* CatchmentDlg.h */,
 				A1F4EBE521E6F728002E0578 /* TravelMapDlg.cpp */,
 				A1F4EBE421E6F728002E0578 /* TravelMapDlg.h */,
 				A188EA2921D58F5500D5EFE7 /* RoadDistancesDlg.cpp */,
@@ -1846,6 +1851,7 @@
 				DD7975830F1D296F00496A84 /* PermutationCounterDlg.cpp in Sources */,
 				DD7975850F1D296F00496A84 /* RandomizationDlg.cpp in Sources */,
 				DD7975890F1D296F00496A84 /* RegressionDlg.cpp in Sources */,
+				A18AEA7B221FAE1600C6B206 /* CatchmentDlg.cpp in Sources */,
 				A40A6A7E20226B3C003CDD79 /* PreferenceDlg.cpp in Sources */,
 				DD79758B0F1D296F00496A84 /* RegressionReportDlg.cpp in Sources */,
 				A4ED7D442097EC55008685D6 /* ANN.cpp in Sources */,
@@ -2015,7 +2021,6 @@
 				A4ED7D572097F114008685D6 /* kd_util.cpp in Sources */,
 				DD92853D17F5FE2E00B9481A /* VarGroup.cpp in Sources */,
 				A1F4EBE621E6F729002E0578 /* TravelMapDlg.cpp in Sources */,
-				A4E138BB1F71D6B800433256 /* GeocodingDlg.cpp in Sources */,
 				A1FD8C19186908B800C35C41 /* CustomClassifPtree.cpp in Sources */,
 				DD40B083181894F20084173C /* VarGroupingEditorDlg.cpp in Sources */,
 				DD7B2A9D185273FF00727A91 /* SaveButtonManager.cpp in Sources */,

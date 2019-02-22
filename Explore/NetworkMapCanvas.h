@@ -65,6 +65,7 @@ protected:
     std::vector<OGRLineString> path;
     int paint_path_thickness;
     std::vector<std::vector<OGRPolygon> > hexagons;
+    std::vector<OGRGeometry*> hex_queries;
     std::vector<std::vector<int> > costs;
     std::vector<int> selectable_costs;
     wxBitmap marker_img;
