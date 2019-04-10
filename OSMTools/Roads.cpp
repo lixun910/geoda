@@ -465,7 +465,8 @@ void Roads::SaveToShapefile(const char *shp_file_name, OGRGeometry *outline)
     for (size_t i=0; i<ways.size(); ++i) {
         size_t pt_cnt = 0;
         OGRLineString line;
-        bool keep = false;
+        // by default, keep it unless map outline is used;
+        bool keep = outline == 0 ? true : false;
         for (size_t j=0; j<ways[i].size(); ++j) {
             std::string node_id = ways[i][j];
             if (id_map.find(node_id) != id_map.end()) {
@@ -477,7 +478,7 @@ void Roads::SaveToShapefile(const char *shp_file_name, OGRGeometry *outline)
                 // a simplified test if linestring is inside map outline
                 // NOTE: this could return false positive, but it's less likely
                 // to do so using OSM roads
-                if (pt_cnt ==  0 && outline) {
+                if (pt_cnt ==  0 && outline && keep == false) {
                     // if any point is inside of map outline, keep it
                     // otherwise, discard it
                     keep = outline->Contains(&pt);
