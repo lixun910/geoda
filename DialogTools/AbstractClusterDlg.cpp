@@ -150,7 +150,9 @@ bool AbstractClusterDlg::GetDefaultContiguity()
             gal = Gda::VoronoiUtils::NeighborMapToGal(nbr_map);
         } else {
             // assume polygons (no lines)
-            gal = PolysToContigWeights(project->main_data, is_queen);
+            OGRLayerProxy* layer_proxy = project->GetOGRLayerProxy();
+            OGRLayer* ogr_layer = layer_proxy->GetOGRLayer();
+            gal = PolysToContigWeights(ogr_layer, is_queen);
         }
     }
     return gal != NULL;

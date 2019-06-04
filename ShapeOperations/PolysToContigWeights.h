@@ -24,11 +24,12 @@
 #ifndef __GEODA_CENTER_POLYS_TO_CONTIG_WEIGHTS_H__
 #define __GEODA_CENTER_POLYS_TO_CONTIG_WEIGHTS_H__
 
+#include <cmath>
 #include <ogrsf_frmts.h>
 
 #include "GalWeight.h"
-#include "../ShpFile.h"
-#include "../GdaConst.h"
+
+static const int EMPTY = -1;
 
 /**
  BasePartition
@@ -95,7 +96,7 @@ class PartitionP : public BasePartition  {
     }
     void remove(const int del);
     void cleanup(const BasePartition &p, const int cl)  {
-        for (int cnt= p.first(cl); cnt != GdaConst::EMPTY; cnt= p.tail(cnt))
+        for (int cnt= p.first(cl); cnt != -1; cnt= p.tail(cnt))
             remove(cnt);
     }
 };
@@ -106,8 +107,11 @@ class PartitionP : public BasePartition  {
 class PolygonPartition
 {
     protected :
-    Shapefile::PolygonContents     *poly;
     
+    std::vector<OGRPoint*> points;
+    std::vector<int>    parts;
+    OGRGeometry*        geom;
+    OGREnvelope         bbox;
     BasePartition       pX;
     PartitionP          pY;
     int *               nbrPoints;
@@ -117,6 +121,7 @@ class PolygonPartition
         int ix= nbrPoints[pt];
         return (ix >= 0) ? pt-1 : -ix;
     }
+    
     int succ(const int pt) const
     {
         int ix= nbrPoints[pt];
@@ -127,27 +132,118 @@ class PolygonPartition
     int                 NumPoints;
     int                 NumParts;
     
-    PolygonPartition(Shapefile::PolygonContents* _poly)
+    
+    PolygonPartition(OGRGeometry* _geom)
     : pX(), pY(), nbrPoints(NULL) {
-        poly = _poly;
-        NumPoints = poly->num_points;
-        NumParts = poly->num_parts;
+        geom = _geom;
+        
+        NumPoints = 0;
+        NumParts = 0;
+        
+        OGRwkbGeometryType geomType = geom->getGeometryType();
+        
+        if (geomType == wkbPolygon || geomType == wkbPolygon25D ||
+            geomType == wkbCurvePolygon)
+        {
+            OGRPolygon* p = (OGRPolygon*) geom;
+            // interior rings
+            int niRings = p->getNumInteriorRings();
+            // 1 is for exterior ring,
+            NumParts = niRings + 1;
+            for (size_t j=0; j < NumParts; j++ ) {
+                OGRLinearRing* pLinearRing = NULL;
+                if (j==0) pLinearRing = p->getExteriorRing();
+                else pLinearRing = p->getInteriorRing(j-1);
+                
+                parts.push_back(NumPoints);
+                if (pLinearRing) {
+                    NumPoints += pLinearRing->getNumPoints();
+                    for (size_t k=0; k < pLinearRing->getNumPoints(); k++) {
+                        OGRPoint* pt = new OGRPoint();
+                        pLinearRing->getPoint(k, pt);
+                        points.push_back(pt);
+                    }
+                }
+            }
+            
+        } else if (geomType == wkbMultiPolygon ||
+                   geomType == wkbMultiPolygon25D)
+        {
+            OGRMultiPolygon* mpolygon = (OGRMultiPolygon *) geom;
+            int n_geom = mpolygon->getNumGeometries();
+            // if there is more than one polygon, then we need to count
+            // which part is processing accumulatively
+            for (size_t i = 0; i < n_geom; i++ ) {
+                OGRGeometry* ogrGeom = mpolygon->getGeometryRef(i);
+                OGRPolygon* p = static_cast<OGRPolygon*>(ogrGeom);
+                // number of interior rings + 1 exterior ring
+                int ni_rings = p->getNumInteriorRings()+1;
+                NumParts += ni_rings;
+                OGRLinearRing* pLinearRing = NULL;
+                for (size_t j=0; j < ni_rings; j++ ) {
+                    if (j==0) pLinearRing = p->getExteriorRing();
+                    else pLinearRing = p->getInteriorRing(j-1);
+                    
+                    parts.push_back(NumPoints);
+                    if (pLinearRing) {
+                        NumPoints += pLinearRing->getNumPoints();
+                        for (int k=0; k < pLinearRing->getNumPoints(); k++) {
+                            OGRPoint* pt = new OGRPoint();
+                            pLinearRing->getPoint(k, pt);
+                            points.push_back(pt);
+                        }
+                    }
+                }
+            }
+        }
+        
+        geom->getEnvelope(&bbox);
     }
+    
     ~PolygonPartition();
     
-    Shapefile::Point* GetPoint(const int i){ return &poly->points[i];}
-    int GetPart(int i){ return (int)poly->parts[i]; }
-    double GetMinX(){ return (double)poly->box[0]; }
-    double GetMinY(){ return (double)poly->box[1]; }
-    double GetMaxX(){ return (double)poly->box[2]; }
-    double GetMaxY(){ return (double)poly->box[3]; }
+    OGRPoint* GetPoint(const int i) {
+        return points[i];
+    }
+    int GetPart(const int i) {
+        return parts[i];
+    }
+    double GetMinX() {
+        return bbox.MinX;
+    }
+    double GetMinY() {
+        return bbox.MinY;
+    }
+    double GetMaxX() {
+        return bbox.MaxX;
+    }
+    double GetMaxY() {
+        return bbox.MaxY;
+    }
     
-    int  MakePartition(int mX= 0, int mY= 0);
+    bool IsSamePoint(OGRPoint* a, OGRPoint* b,
+                      double precision_threshold=0.0) {
+        return (std::abs(a->getX() - b->getX()) <= precision_threshold &&
+                std::abs(a->getY() - b->getY()) <= precision_threshold);
+        
+    }
+    
+    //Shapefile::Point* GetPoint(const int i){ return &poly->points[i];}
+    //int GetPart(int i){ return (int)poly->parts[i]; }
+    //double GetMinX(){ return (double)poly->box[0]; }
+    //double GetMinY(){ return (double)poly->box[1]; }
+    //double GetMaxX(){ return (double)poly->box[2]; }
+    //double GetMaxY(){ return (double)poly->box[3]; }
+    
+    void MakePartition(int mX= 0, int mY= 0);
+    
     void MakeSmallPartition(const int mX, const double Start,
                             const double Stop);
     void MakeNeighbors();
+    
     bool edge(PolygonPartition &p, const int host, const int guest,
               double precision_threshold);
+    
     int sweep(PolygonPartition & guest, bool is_queen,
               double precision_threshold=0.0);
 };
@@ -187,13 +283,12 @@ class PartitionM  {
     int Sum() const;
 };
 
-GalElement* PolysToContigWeights(Shapefile::Main& main,
-                                 bool is_queen,
-                                 double precision_threshold=0.0);
+//GalElement* PolysToContigWeights(Shapefile::Main& main,
+//                                 bool is_queen,
+//                                 double precision_threshold=0.0);
 
-/*
+
 GalElement* PolysToContigWeights(OGRLayer* layer,
                                  bool is_queen,
                                  double precision_threshold=0.0);
-*/
 #endif

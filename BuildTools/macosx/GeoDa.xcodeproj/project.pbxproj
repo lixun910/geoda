@@ -536,6 +536,7 @@
 		A4D5423C1F45037B00572878 /* redcap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = redcap.h; path = Algorithms/redcap.h; sourceTree = "<group>"; };
 		A4D9A31E1E4D5F3800EF584C /* gdaldata */ = {isa = PBXFileReference; lastKnownFileType = folder; name = gdaldata; path = BuildTools/CommonDistFiles/gdaldata; sourceTree = "<group>"; };
 		A4DB2CBB1EEA3A3E00BD4A54 /* Guerry.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Guerry.png; path = BuildTools/CommonDistFiles/web_plugins/Guerry.png; sourceTree = "<group>"; };
+		A4DF615D22A723F400D7DA85 /* GeoDaSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GeoDaSet.h; sourceTree = "<group>"; };
 		A4E00F0F20FD8ECC0038BA80 /* localjc_kernel.cl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.opencl; name = localjc_kernel.cl; path = Algorithms/localjc_kernel.cl; sourceTree = "<group>"; };
 		A4E5FE171F624D5600D75662 /* AggregateDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AggregateDlg.cpp; sourceTree = "<group>"; };
 		A4E5FE181F624D5600D75662 /* AggregateDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AggregateDlg.h; sourceTree = "<group>"; };
@@ -1178,6 +1179,7 @@
 				A4A6AD79207F198D00D29677 /* ShpFile.h */,
 				DD64925B16DFF63400B3B0AB /* GeoDa.h */,
 				DD64925A16DFF63400B3B0AB /* GeoDa.cpp */,
+				A4DF615D22A723F400D7DA85 /* GeoDaSet.h */,
 				DDD13F040F2F8BE1009F7F13 /* GenGeomAlgs.h */,
 				DDD13F050F2F8BE1009F7F13 /* GenGeomAlgs.cpp */,
 				DD64A7230F2E26AA006B1E6D /* GenUtils.h */,

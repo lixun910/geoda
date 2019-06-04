@@ -31,6 +31,7 @@
 #include "../VarCalc/WeightsManInterface.h"
 #include "../logger.h"
 #include "../Project.h"
+#include "../GeoDaSet.h"
 #include "GetisOrdMapNewView.h"
 #include "GStatCoordinator.h"
 
