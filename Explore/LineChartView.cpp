@@ -1249,7 +1249,10 @@ void LineChartFrame::SaveDataAndResults(bool save_weights, bool save_did,
                         wx_fn.SetExt("gwt");
                     }
                     wxString ofn(wx_fn.GetFullPath());
-                    w->SaveDIDWeights(project, n_obs, newids, id_stack, ofn);
+                    //w->SaveDIDWeights(project, n_obs, newids, id_stack, ofn);
+                    WeightsManInterface* wmi = project->GetWManInt();
+                    if (!wmi || ofn.empty()) return;
+                    w->SaveDIDWeights(n_obs, newids, id_stack, ofn);
                 }
             }
         }

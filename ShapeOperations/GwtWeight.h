@@ -23,10 +23,6 @@
 #include <vector>
 #include "GeodaWeight.h"
 
-class Project;
-class WeightsManInterface;
-class TableInterface;
-
 struct GwtNeighbor {
 	long nbx;
 	double weight;
@@ -75,14 +71,13 @@ public:
 	static bool HasIsolates(GwtElement *gwt, int num_obs);
     
 	virtual bool HasIsolates() { return HasIsolates(gwt, num_obs); }
-    virtual bool SaveDIDWeights(Project* project,
-                        int num_obs,
+    virtual bool SaveDIDWeights(int num_obs,
                         std::vector<wxInt64>& newids,
                         std::vector<wxInt64>& stack_ids,
                         const wxString& ofname);
     virtual bool SaveSpaceTimeWeights(const wxString& ofname,
-                                      WeightsManInterface* wmi,
-                                      TableInterface* table_int);
+                                      const std::vector<wxString>& id_vec,
+                                      const std::vector<wxString>& time_ids);
     virtual bool CheckNeighbor(int obs_idx, int nbr_idx);
     virtual const std::vector<long> GetNeighbors(int obs_idx);
     virtual void Update(const std::vector<bool>& undefs);

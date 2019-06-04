@@ -23,10 +23,6 @@
 #include <vector>
 #include <wx/string.h>
 
-class Project;
-class WeightsManInterface;
-class TableInterface;
-
 class GeoDaWeight {
 public:
 	GeoDaWeight() : symmetry_checked(false), num_obs(0) {}
@@ -35,15 +31,14 @@ public:
 	virtual ~GeoDaWeight() {}
 	
     // following functions implemented in inherited classes: GalWeights and GwtWeights
-    virtual bool SaveDIDWeights(Project* project,
-                                int num_obs,
+    virtual bool SaveDIDWeights(int num_obs,
                                 std::vector<wxInt64>& newids,
                                 std::vector<wxInt64>& stack_ids,
                                 const wxString& ofname)=0;
     
     virtual bool SaveSpaceTimeWeights(const wxString& ofname,
-                                      WeightsManInterface* wmi,
-                                      TableInterface* table_int)=0;
+                                      const std::vector<wxString>& id_vec,
+                                      const std::vector<wxString>& time_ids)=0;
 
     virtual bool CheckNeighbor(int obs_idx, int nbr_idx)=0;
 

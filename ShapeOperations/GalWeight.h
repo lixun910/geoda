@@ -24,10 +24,6 @@
 #include <map>
 #include "GeodaWeight.h"
 
-class Project;
-class WeightsManInterface;
-class TableInterface;
-
 class GalElement {
 public:
 	GalElement();
@@ -76,15 +72,14 @@ public:
     
     virtual void Update(const std::vector<bool>& undefs);
     
-    virtual bool SaveDIDWeights(Project* project,
-                                int num_obs,
+    virtual bool SaveDIDWeights(int num_obs,
                                 std::vector<wxInt64>& newids,
                                 std::vector<wxInt64>& stack_ids,
                                 const wxString& ofname);
     
     virtual bool SaveSpaceTimeWeights(const wxString& ofname,
-                                      WeightsManInterface* wmi,
-                                      TableInterface* table_int);
+                                      const std::vector<wxString>& id_vec,
+                                      const std::vector<wxString>& time_ids);
 
     virtual bool CheckNeighbor(int obs_idx, int nbr_idx);
 

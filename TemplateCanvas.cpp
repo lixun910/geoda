@@ -41,18 +41,16 @@
 #include <boost/geometry/geometry.hpp>
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/geometries/adapted/c_array.hpp>
-//#include <boost/geometry/index/rtree.hpp>
 
 #include "DialogTools/SaveToTableDlg.h"
 #include "Explore/CatClassifManager.h"
-
-
 #include "GdaShape.h"
 #include "ShpFile.h"
 #include "GeoDa.h"
 #include "Project.h"
 #include "GdaConst.h"
 #include "GenUtils.h"
+#include "GeneralWxUtils.h"
 #include "GenGeomAlgs.h"
 #include "TemplateCanvas.h"
 #include "TemplateFrame.h"

@@ -32,6 +32,7 @@
 #include "../DialogTools/NumCategoriesDlg.h"
 #include "../logger.h"
 #include "../GdaConst.h"
+#include "../GeneralWxUtils.h"
 #include "CatClassification.h"
 
 using namespace std;

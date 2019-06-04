@@ -21,11 +21,10 @@
 #include <iomanip>
 #include <wx/filename.h>
 
-#include "../DataViewer/TableInterface.h"
 #include "../GenUtils.h"
-#include "../Project.h"
 #include "GwtWeight.h"
 
+using namespace std;
 
 GwtElement::~GwtElement()
 {
@@ -152,14 +151,8 @@ void GwtWeight::GetNbrStats()
     }
 }
 
-bool GwtWeight::SaveDIDWeights(Project* project, int num_obs, std::vector<wxInt64>& newids, std::vector<wxInt64>& stack_ids, const wxString& ofname)
-{
-    using namespace std;
-    if (!project || ofname.empty()) return false;
-    
-    WeightsManInterface* wmi = project->GetWManInt();
-    if (!wmi) return false;
-    
+bool GwtWeight::SaveDIDWeights(int num_obs, std::vector<wxInt64>& newids, std::vector<wxInt64>& stack_ids, const wxString& ofname)
+{    
     wxString layer_name = GenUtils::GetFileNameNoExt(ofname);
     
     if (!gwt) return false;
@@ -205,24 +198,12 @@ bool GwtWeight::SaveDIDWeights(Project* project, int num_obs, std::vector<wxInt6
     return true;
 }
 
-bool GwtWeight::SaveSpaceTimeWeights(const wxString& ofname, WeightsManInterface* wmi, TableInterface* table_int)
+bool GwtWeight::SaveSpaceTimeWeights(const wxString& ofname,
+                                     const std::vector<wxString>& id_vec,
+                                     const std::vector<wxString>& time_ids)
 {
-    using namespace std;
-    
-    if (ofname.empty() || !wmi || !table_int)
-        return false;
-    
     wxString layer_name = GenUtils::GetFileNameNoExt(ofname);
     if (!gwt) return false;
-    
-    vector<wxString> id_vec;
-    int c_id = table_int->FindColId(this->id_field);
-    if (c_id < 0) return false;
-    
-    table_int->GetColData(c_id, 1, id_vec);
-    
-    std::vector<wxString> time_ids;
-    table_int->GetTimeStrings(time_ids);
     
     size_t num_obs = id_vec.size();
     size_t num_t = time_ids.size();
