@@ -44,6 +44,8 @@ namespace GenUtils {
                            const wxPoint& p2);
     wxString PtToStr(const wxPoint& p);
     wxString PtToStr(const wxRealPoint& p);
+    
+    wxString DetectDateFormat(wxString s, vector<wxString>& date_items);
 }
 
 namespace GdaColorUtils {

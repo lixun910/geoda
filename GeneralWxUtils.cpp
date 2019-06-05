@@ -700,6 +700,58 @@ wxString GenUtils::PtToStr(const wxRealPoint& p)
     return wxString(ss.str().c_str(), wxConvUTF8);
 }
 
+wxString GenUtils::DetectDateFormat(wxString s, vector<wxString>& date_items)
+{
+    // input s could be sth. like: %Y-%m-%d %H:%M:%S
+    // 2015-1-11 13:57:24 %Y-%m-%d %H:%M:%S
+    wxString YY = "([0-9]{4})";
+    wxString yy = "([0-9]{2})";
+    wxString MM = "([0-9]{1,2})";//"(0?[1-9]|1[0-2])";
+    wxString DD = "([0-9]{1,2})";//"(0?[1-9]|[12][0-9]|3[01])";
+    wxString hh = "([0-9]{1,2})";//"(00|[0-9]|1[0-9]|2[0-3])";
+    wxString mm = "([0-9]{1,2})";//"([0-9]|[0-5][0-9])";
+    wxString ss = "([0-9]{1,2})"; //"([0-9]|[0-5][0-9])";
+    wxString pp = "([AP]M)"; //"(AM | PM)";
+    
+    wxString pattern;
+    wxString original_pattern;
+    for (int i=0; i<GdaConst::gda_datetime_formats.size(); i++) {
+        original_pattern = GdaConst::gda_datetime_formats[i];
+        wxString select_pattern = original_pattern;
+        select_pattern.Replace("%Y", YY);
+        select_pattern.Replace("%y", yy);
+        select_pattern.Replace("%m", MM);
+        select_pattern.Replace("%d", DD);
+        select_pattern.Replace("%H", hh);
+        select_pattern.Replace("%M", mm);
+        select_pattern.Replace("%S", ss);
+        select_pattern.Replace("%p", pp);
+        
+        select_pattern = "^" + select_pattern + "$";
+        
+        wxRegEx regex(select_pattern);
+        if (regex.IsValid()) {
+            if (regex.Matches(s)) {
+                if (regex.GetMatchCount()>0) {
+                    pattern = select_pattern;
+                    break;
+                }
+            }
+        }
+    }
+    
+    if (!pattern.IsEmpty()){
+        wxString select_pattern = original_pattern;
+        wxRegEx regex("(%[YymdHMSp])");
+        while (regex.Matches(select_pattern) ) {
+            size_t start, len;
+            regex.GetMatch(&start, &len, 0);
+            date_items.push_back(regex.GetMatch(select_pattern, 1));
+            select_pattern = select_pattern.Mid (start + len);
+        }
+    }
+    return pattern;
+}
 
 void GdaColorUtils::GetUnique20Colors(std::vector<wxColour>& colors)
 {

@@ -29,13 +29,14 @@
 #include <wx/regex.h>
 #include <wx/numformatter.h>
 
+#include "../GeneralWxUtils.h"
 #include "../GenUtils.h"
 #include "../GeoDa.h"
 #include "../logger.h"
 #include "../ShapeOperations/OGRDataAdapter.h"
 #include "../GdaException.h"
-#include "OGRColumn.h"
 #include "VarOrderMapper.h"
+#include "OGRColumn.h"
 
 using namespace std;
 namespace bt = boost::posix_time;
@@ -946,7 +947,7 @@ void OGRColumnString::FillData(vector<unsigned long long>& data)
         wxString test_s = new_data[0];
         test_s.Trim(true).Trim(false);
         vector<wxString> date_items;
-        wxString pattern = Gda::DetectDateFormat(test_s, date_items);
+        wxString pattern = GenUtils::DetectDateFormat(test_s, date_items);
         if (pattern.IsEmpty()) {
             wxString error_msg = wxString::Format("Fill data error: can't convert '%s' to date/time.", test_s);
             throw GdaException(error_msg.mb_str());
@@ -965,7 +966,7 @@ void OGRColumnString::FillData(vector<unsigned long long>& data)
         wxString test_s = ogr_layer->data[0]->GetFieldAsString(col_idx);
         test_s.Trim(true).Trim(false);
         vector<wxString> date_items;
-        wxString pattern = Gda::DetectDateFormat(test_s, date_items);
+        wxString pattern = GenUtils::DetectDateFormat(test_s, date_items);
         
         if (pattern.IsEmpty()) {
             wxString error_msg = wxString::Format("Fill data error: can't convert '%s' to date/time.", test_s);
@@ -1356,7 +1357,7 @@ void OGRColumnDate::SetValueAt(int row_idx, const wxString &value,
     wxString _value = value;
     _value.Trim(true).Trim(false);
     vector<wxString> date_items;
-    wxString pattern = Gda::DetectDateFormat(_value, date_items);
+    wxString pattern = GenUtils::DetectDateFormat(_value, date_items);
     wxRegEx regex;
     regex.Compile(pattern);
     unsigned long long val = Gda::DateToNumber(_value, regex, date_items);
@@ -1434,7 +1435,7 @@ void OGRColumnTime::SetValueAt(int row_idx, const wxString &value,
     wxString _value = value;
     _value.Trim(true).Trim(false);
     vector<wxString> date_items;
-    wxString pattern = Gda::DetectDateFormat(_value, date_items);
+    wxString pattern = GenUtils::DetectDateFormat(_value, date_items);
     wxRegEx regex;
     regex.Compile(pattern);
     unsigned long long val = Gda::DateToNumber(_value, regex, date_items);
@@ -1519,7 +1520,7 @@ void OGRColumnDateTime::SetValueAt(int row_idx, const wxString &value,
     wxString _value = value;
     _value.Trim(true).Trim(false);
     vector<wxString> date_items;
-    wxString pattern = Gda::DetectDateFormat(_value, date_items);
+    wxString pattern = GenUtils::DetectDateFormat(_value, date_items);
     wxRegEx regex;
     regex.Compile(pattern);
     unsigned long long val = Gda::DateToNumber(_value, regex, date_items);

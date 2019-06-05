@@ -25,7 +25,6 @@
 #include <vector>
 #include <map>
 #include <algorithm>
-#include <wx/colour.h>
 #include <wx/filename.h>
 #include <wx/regex.h>
 #include <wx/string.h>
@@ -90,7 +89,7 @@ namespace Gda {
     
     wxString CreateUUID(int nSize);
     
-    wxString DetectDateFormat(wxString s, vector<wxString>& date_items);
+
     
     unsigned long long DateToNumber(wxString s_date, wxRegEx& regex, vector<wxString>& date_items);
     
