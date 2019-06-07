@@ -84,7 +84,9 @@ std::vector<long> GwtElement::GetNbrs()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//
+// GWTWeight
+////////////////////////////////////////////////////////////////////////////////
+
 
 void GwtWeight::Update(const std::vector<bool>& undefs)
 {
@@ -109,6 +111,16 @@ bool GwtWeight::HasIsolates(GwtElement *gwt, int num_obs)
             return true;
     }
 	return false;
+}
+
+int GwtWeight::GetNbrSize(int obs_idx)
+{
+    return gwt[obs_idx].Size();
+}
+
+double GwtWeight::SpatialLag(int obs_idx, const std::vector<double> &data)
+{
+    return gwt[obs_idx].SpatialLag(data);
 }
 
 void GwtWeight::GetNbrStats()
@@ -259,8 +271,24 @@ bool GwtWeight::SaveSpaceTimeWeights(const wxString& ofname,
     
     return true;
 }
+
+bool GwtWeight::SaveToFile(const wxString &ofname, const wxString &layer_name,
+                           const wxString &id_var_name,
+                           const std::vector<wxInt64> &id_vec)
+{
+    return Gda::SaveGwt(gwt, layer_name, ofname, id_var_name, id_vec);
+}
+
+bool GwtWeight::SaveToFile(const wxString &ofname, const wxString &layer_name,
+                           const wxString &id_var_name,
+                           const std::vector<wxString> &id_vec)
+{
+    return Gda::SaveGwt(gwt, layer_name, ofname, id_var_name, id_vec);
+}
 ////////////////////////////////////////////////////////////////////////////////
-//
+// Gda Function
+////////////////////////////////////////////////////////////////////////////////
+
 bool Gda::SaveGwt(const GwtElement* g,
 									const wxString& _layer_name,
 									const wxString& ofname,

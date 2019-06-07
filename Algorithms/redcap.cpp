@@ -35,7 +35,6 @@
 
 #include "../ShapeOperations/GalWeight.h"
 #include "../logger.h"
-#include "../GenUtils.h"
 #include "cluster.h"
 #include "redcap.h"
 
@@ -477,7 +476,7 @@ void AbstractClusterFactory::init()
     for (int i=0; i<rows; i++) {
         orig = nodes[i];
         const vector<long>& nbrs = w[i].GetNbrs();
-        for (int j=0; j<w[i].Size(); j++) {
+        for (int j = w[i].Size() -1; j >= 0; --j) {
             int nbr = nbrs[j];
             dest = nodes[nbr];
             length = dist_matrix[orig->id][dest->id];
@@ -490,7 +489,12 @@ void AbstractClusterFactory::init()
             this->dist_dict[i][nbr] = length;
         }
     }
-    
+
+    for (size_t i=0; i<edges.size(); ++i) {
+        if (edges[i] == NULL) {
+            int a = 0;
+        }
+    }
     Clustering();
     
 }
@@ -664,8 +668,8 @@ FirstOrderSLKRedCap::~FirstOrderSLKRedCap()
 
 void FirstOrderSLKRedCap::Clustering()
 {
-    std::sort(edges.begin(), edges.end(), EdgeLess);
-    
+    std::sort(edges.begin(), edges.end());
+
     int num_nodes = nodes.size();
 
     ordered_edges.resize(num_nodes-1);

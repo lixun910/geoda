@@ -82,6 +82,17 @@ public:
     virtual const std::vector<long> GetNeighbors(int obs_idx);
     virtual void Update(const std::vector<bool>& undefs);
     virtual void GetNbrStats();
+    virtual int GetNbrSize(int obs_idx);
+    virtual double SpatialLag(int obs_idx,
+                              const std::vector<double>& data);
+    virtual bool SaveToFile(const wxString& ofname,
+                            const wxString& layer_name,
+                            const wxString& id_var_name,
+                            const std::vector<wxInt64>& id_vec);
+    virtual bool SaveToFile(const wxString& ofname,
+                            const wxString& layer_name,
+                            const wxString& id_var_name,
+                            const std::vector<wxString>& id_vec);
 
 };
 

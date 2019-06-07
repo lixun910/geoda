@@ -274,6 +274,16 @@ bool GalWeight::HasIsolates(GalElement *gal, int num_obs)
 	return false;
 }
 
+int GalWeight::GetNbrSize(int obs_idx)
+{
+    return gal[obs_idx].Size();
+}
+
+double GalWeight::SpatialLag(int obs_idx, const std::vector<double> &data)
+{
+    return gal[obs_idx].SpatialLag(data);
+}
+
 void GalWeight::GetNbrStats()
 {
     // sparsity
@@ -432,6 +442,20 @@ bool GalWeight::SaveSpaceTimeWeights(const wxString& ofname,
     }
 
     return true;
+}
+
+bool GalWeight::SaveToFile(const wxString &ofname, const wxString &layer_name,
+                           const wxString &id_var_name,
+                           const std::vector<wxInt64> &id_vec)
+{
+    return Gda::SaveGal(gal, layer_name, ofname, id_var_name, id_vec);
+}
+
+bool GalWeight::SaveToFile(const wxString &ofname, const wxString &layer_name,
+                           const wxString &id_var_name,
+                           const std::vector<wxString> &id_vec)
+{
+    return Gda::SaveGal(gal, layer_name, ofname, id_var_name, id_vec);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

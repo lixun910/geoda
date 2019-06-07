@@ -1,6 +1,8 @@
 #ifndef __GEODA_CENTER_GEODASET_H__
 #define __GEODA_CENTER_GEODASET_H__
 
+#include <string.h>
+
 /** Old code used by LISA functions */
 class GeoDaSet {
 private:

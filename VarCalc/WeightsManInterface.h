@@ -25,8 +25,10 @@
 #include <vector>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/nil_generator.hpp>
+
 #include "WeightsMetaInfo.h"
 #include "GdaFlexValue.h"
+
 class GalWeight;
 class GeoDaWeight;
 class ProgressDlg;
