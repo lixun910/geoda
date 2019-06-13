@@ -985,3 +985,52 @@ wxColour GdaColorUtils::ChangeBrightness(const wxColour& input_col,
     wxColour::ChangeLightness(&r, &g, &b, brightness);
     return wxColour(r,g,b,alpha);
 }
+/** convert input rectangle corners s1 and s2 into screen-coordinate corners */
+void GenGeomAlgs::StandardizeRect(const wxPoint& s1, const wxPoint& s2,
+                                  wxPoint& lower_left, wxPoint& upper_right)
+{
+    lower_left = s1;
+    upper_right = s2;
+    if (lower_left.x > upper_right.x) {
+        // swap
+        int t = lower_left.x;
+        lower_left.x = upper_right.x;
+        upper_right.x = t;
+    }
+    if (lower_left.y < upper_right.y) {
+        // swap
+        int t = lower_left.y;
+        lower_left.y = upper_right.y;
+        upper_right.y = t;
+    }
+}
+
+/** assumes input corners are all screen-coordinate correct for
+ lower left and upper right corners */
+bool GenGeomAlgs::RectsIntersect(const wxPoint& r1_lower_left,
+                                 const wxPoint& r1_upper_right,
+                                 const wxPoint& r2_lower_left,
+                                 const wxPoint& r2_upper_right)
+{
+    // return negation of all situations where rectangles
+    // do not intersect.
+    return (!((r1_lower_left.x > r2_upper_right.x) ||
+              (r1_upper_right.x < r2_lower_left.x) ||
+              (r1_lower_left.y < r2_upper_right.y) ||
+              (r1_upper_right.y > r2_lower_left.y)));
+}
+
+bool GenGeomAlgs::CounterClockwise(const wxPoint& p1, const wxPoint& p2,
+                                   const wxPoint& p3)
+{
+    return ((p2.y-p1.y)*(p3.x-p2.x) < (p3.y-p2.y)*(p2.x-p1.x));
+}
+
+bool GenGeomAlgs::LineSegsIntersect(const wxPoint& l1_p1, const wxPoint& l1_p2,
+                                    const wxPoint& l2_p1, const wxPoint& l2_p2)
+{
+    return ((CounterClockwise(l2_p1, l2_p2, l1_p1) !=
+             CounterClockwise(l2_p1, l2_p2, l1_p2)) &&
+            (CounterClockwise(l1_p1, l1_p2, l2_p1) !=
+             CounterClockwise(l1_p1, l1_p2, l2_p2)));
+}

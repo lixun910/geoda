@@ -31,11 +31,13 @@
 #include <boost/polygon/voronoi.hpp>
 #include <boost/polygon/voronoi_builder.hpp>
 #include <boost/polygon/voronoi_diagram.hpp>
-#include <wx/stopwatch.h>
+
 #include "GalWeight.h"
 #include "../GenUtils.h"
 #include "../GenGeomAlgs.h"
+#ifndef __LIBGEODA__
 #include "../GdaShape.h"
+#endif
 #include "../logger.h"
 #include "VoronoiUtils.h"
 
@@ -178,6 +180,7 @@ void Gda::VoronoiUtils::FindPointDuplicates(const std::vector<double>& x,
 	}
 }
 
+#ifndef __LIBGEODA__
 /** If success, returns true. Else, if returns false, then duplicates or
    near duplicates were found and duplicate_ind1 and duplicate_ind2 will
    indicate which two points are near duplicates. */
@@ -189,7 +192,6 @@ bool Gda::VoronoiUtils::MakePolygons(const std::vector<double>& x,
 									   double& voronoi_bb_xmax,
 									   double& voronoi_bb_ymax)
 {
-	LOG_MSG("Entering Gda::VoronoiUtils::MakePolygons");
 	using namespace boost::polygon;
 	typedef std::pair<int,int> int_pair;
 	
@@ -243,7 +245,6 @@ bool Gda::VoronoiUtils::MakePolygons(const std::vector<double>& x,
 	}
 	
 	VD vd;
-	wxStopWatch sw_vd;
 	VB vb;
 	std::vector<int_pair> int_pts(num_obs);
 	for (int i=0; i<num_obs; i++) {
@@ -254,8 +255,6 @@ bool Gda::VoronoiUtils::MakePolygons(const std::vector<double>& x,
 		int index = vb.insert_point(x_int[i], y_int[i]);
 	}
 	vb.construct(&vd);
-	LOG_MSG(wxString::Format("Voronoi diagram construction on %d points "
-							 "took %ld ms", num_obs, sw_vd.Time()));
 	
 	// Add 2% offset to the bounding rectangle
 	const double bb_pad = 0.02;
@@ -270,7 +269,6 @@ bool Gda::VoronoiUtils::MakePolygons(const std::vector<double>& x,
 	voronoi_bb_ymin = (bbox_ymin / p) + y_orig_min;
 	voronoi_bb_ymax = (bbox_ymax / p) + y_orig_min;
 	
-	wxStopWatch sw_vd_processing;
 	int cell_cnt = 0;
 	int max_pts = 1000;
 	wxRealPoint* pts = new wxRealPoint[max_pts];
@@ -429,15 +427,9 @@ bool Gda::VoronoiUtils::MakePolygons(const std::vector<double>& x,
 	}
 			
 	if (pts) delete [] pts;
-	
-	//LOG_MSG(wxString::Format("Voronoi diagram processing on %d points "
-	//						 "took %ld ms", num_obs, sw_vd_processing.Time()));
-	//LOG_MSG(wxString::Format("#obs: %d, #voronoi cells: %d", num_obs,
-	//						 polys.size()));
-	
-	LOG_MSG("Exiting Gda::VoronoiUtils::MakePolygons");
 	return true;
 }
+#endif
 
 std::list<int>* Gda::VoronoiUtils::getCellList(
 				const VD::cell_type& cell,
@@ -604,14 +596,12 @@ bool Gda::VoronoiUtils::PointsToContiguity(const std::vector<double>& x,
 	nbr_map.resize(num_obs);
 	
 	VD vd;
-	wxStopWatch sw_vd;
 	VB vb;
 	for (int i=0; i<num_obs; i++) {
 		int index = vb.insert_point(int_pts[i].first, int_pts[i].second);
 	}
 	vb.construct(&vd);
 		
-	wxStopWatch sw_vd_processing;
 	for (VD::const_cell_iterator it = vd.cells().begin();
 		 it != vd.cells().end(); ++it) {
 		const VD::cell_type &cell = *it;
@@ -695,10 +685,6 @@ bool Gda::VoronoiUtils::PointsToContiguity(const std::vector<double>& x,
 		delete pt_to_id_list_iter->second;
 	}
 	
-	LOG_MSG(wxString::Format("Voronoi diagram processing on %d points "
-							 "took %ld ms", num_obs, sw_vd_processing.Time()));
-	
-	LOG_MSG("Exiting Gda::VoronoiUtils::PointsToContiguity");
 	return true;
 }
 

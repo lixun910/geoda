@@ -30,6 +30,18 @@
 
 #include "DialogTools/VariableSettingsDlg.h"
 
+namespace GenGeomAlgs {
+    void StandardizeRect(const wxPoint& s1, const wxPoint& s2,
+                         wxPoint& lower_left, wxPoint& upper_right);
+    bool RectsIntersect(const wxPoint& r1_lower_left,
+                        const wxPoint& r1_upper_right,
+                        const wxPoint& r2_lower_left,
+                        const wxPoint& r2_upper_right);
+    bool CounterClockwise(const wxPoint& p1, const wxPoint& p2,
+                          const wxPoint& p3);
+    bool LineSegsIntersect(const wxPoint& l1_p1, const wxPoint& l1_p2,
+                           const wxPoint& l2_p1, const wxPoint& l2_p2);
+}
 namespace GenUtils {
     wxString WrapText(wxWindow *win, const wxString& text, int widthMax);
     double distance(const wxRealPoint& p1, const wxRealPoint& p2);

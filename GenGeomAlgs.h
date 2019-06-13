@@ -32,7 +32,6 @@
 #ifndef __GEODA_CENTER_GEN_GEOM_ALGS_H__
 #define __GEODA_CENTER_GEN_GEOM_ALGS_H__
 
-#include <wx/gdicmn.h> // for wxPoint / wxRealPoint
 
 namespace GenGeomAlgs {
 	const double pi = 3.141592653589793238463;
@@ -87,16 +86,7 @@ namespace GenGeomAlgs {
 				  const double& xmin, const double& ymin,
 				  const double& xmax, const double& ymax);
 	
-	void StandardizeRect(const wxPoint& s1, const wxPoint& s2,
-											 wxPoint& lower_left, wxPoint& upper_right);
-	bool RectsIntersect(const wxPoint& r1_lower_left,
-											const wxPoint& r1_upper_right,
-											const wxPoint& r2_lower_left,
-											const wxPoint& r2_upper_right);
-	bool CounterClockwise(const wxPoint& p1, const wxPoint& p2,
-												const wxPoint& p3);
-	bool LineSegsIntersect(const wxPoint& l1_p1, const wxPoint& l1_p2,
-												 const wxPoint& l2_p1, const wxPoint& l2_p2);
+	
 	
 	bool ExtendRayToBB(double x0, double y0, double x1, double y1,
 										 double& x2, double& y2,

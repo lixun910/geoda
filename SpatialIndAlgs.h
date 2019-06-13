@@ -27,11 +27,8 @@
 #include <vector>
 #include "SpatialIndTypes.h"
 
-#include "GdaShape.h"
 #include "ShapeOperations/GwtWeight.h"
 
-class Project;
-class BackgroundMapLayer;
 
 namespace SpatialIndAlgs {
     
@@ -139,8 +136,9 @@ struct LonLatPt {
 	double lat;
 };
 std::ostream& operator<< (std::ostream &out, const LonLatPt& pt);
+#ifndef __LIBGEODA__
 std::ostream& operator<< (std::ostream &out, const wxRealPoint& pt);
-
+#endif
 struct XyzPt {
 	XyzPt() : x(0), y(0), z(0) {}
 	XyzPt(double x_, double y_, double z_) : x(x_), y(y_), z(z_) {}
