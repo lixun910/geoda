@@ -31,6 +31,7 @@
 #include "../GenGeomAlgs.h"
 #include "../PointSetAlgs.h"
 #include "../logger.h"
+#include "../GdaConst.h"
 #include "CorrelogramAlgs.h"
 
 void CorrelogramAlgs::GetSampMeanAndVar(const std::vector<double>& Z_,
