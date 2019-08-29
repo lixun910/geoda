@@ -149,3 +149,80 @@ http://downloads2.esri.com/support/TechArticles/ArcGIS10and101Deprecation_Plan.p
  
 [Added 8/18/2011]
 ArcGIS Server 10.1’s ArcSDE technology component will no longer support 32-bit versions of the SDE command line utilities or 32-bit versions of the C and Java APIs. With the migration of ArcGIS Server to be 64-bit, the SDE command line utilities and the ArcSDE SDK will be 64-bit only.
+
+
+##############################
+# For visual studio 2017 Community
+##############################
+
+1. build geos from source
+
+comment the line that requires "ntwin32.mak" in makefile.vc
+The nmake command will complains "max()" function is not defined: go to the source and add #include <algorithm>
+
+nmake.opt 
+```
+#!INCLUDE <ntwin32.mak>
+```
+
+```
+GEOS_MSVC = 14.0
+GEOS_MSC = 1900
+```
+
+2.  build freexl from source
+
+nmake will complains round() and lround() "definition of dllimport function not allowed": go to source and comment out the two functions.
+
+3. build sqlite from source
+
+open the project using visual studio 2017;
+
+4. build spatialite from source
+
+nmake will complains rint() error: edit source and comment out the function
+
+5. build CLAPACK from source
+
+use visual studio 2017 to open the project
+
+6. build expat from source
+
+use expat 2.2.7 to build; use expat.sln with visual studio 2017
+
+7. build GDAL from source
+
+nmake will complain _vsnprintf() error: edit the source and comment out the function
+
+```
+#define snprintf _snprintf
+//#define snprintf _snprintf
+```
+
+odbc32.lib path should be updated in nmake64.opt
+```
+ODBC_DRV_HOME= "C:\Program Files (x86)\Windows Kits\10\Lib\10.0.17763.0\um\x64"
+```
+Also, since the change of the odbc32.lib, has to add  "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.16.27023\lib\x64\legacy_stdio_definitions.lib" in ODBCLIB
+```
+ODBCLIB = $(ODBC_DRV_HOME)\odbc32.lib $(ODBC_DRV_HOME)\odbccp32.lib $(ODBC_DRV_HOME)\user32.lib  "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.16.27023\lib\x64\legacy_stdio_definitions.lib"
+```
+
+8. build boost from source
+
+only boost 1 64 (Or later) can work with visual studio 2017. Other things remain the same.
+
+9. build json spirit
+
+use visual studio 2017 to reopen the solution
+
+10. wxWidgets 3.1.2
+
+Before build wxWidgets, pause building process and modify two setup.h files: change "wxUSE_POSTSCRIPT 0" to "wxUSE_POSTSCRIPT 1"
+Then, build wxWidgets again
+
+11. Others:
+
+zlib needs to be compiled using vs 2017 as well. 
+
+expat.dll needs to be renamed to libexpat.dll
