@@ -35,7 +35,7 @@
 
 #include "../ShapeOperations/GalWeight.h"
 #include "../logger.h"
-#include "cluster.h"
+//#include "cluster.h"
 #include "redcap.h"
 
 using namespace std;
