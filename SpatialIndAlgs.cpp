@@ -1032,7 +1032,7 @@ bool SpatialIndAlgs::write_gwt(const GwtWeight* W,
     wxFileName gwtfn(ofname);
     wxString gwt_ofn(gwtfn.GetFullPath());
 
-#ifdef __WIN32__
+#ifdef _MSC_VER
 	std:ofstream out(gwt_ofn.wc_str());
 #else
 	std:ofstream out;

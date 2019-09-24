@@ -474,7 +474,7 @@ bool Gda::SaveGal(const GalElement* g,
 	wx_fn.SetExt("gal");
 	wxString final_fon(wx_fn.GetFullPath());
 	
-#ifdef __WIN32__
+#ifdef _MSC_VER
 	ofstream out(final_fon.wc_str());
 #else
 	ofstream out;
@@ -520,7 +520,7 @@ bool Gda::SaveGal(const GalElement* g,
 	wx_fn.SetExt("gal");
 	wxString final_fon(wx_fn.GetFullPath());
 
-#ifdef __WIN32__
+#ifdef _MSC_VER
 	ofstream out(final_fon.wc_str());
 #else
 	ofstream out;
@@ -567,7 +567,7 @@ bool Gda::SaveSpaceTimeGal(const GalElement* g,
 	wxFileName wx_fn(ofname);
 	wx_fn.SetExt("gal");
 	wxString final_fon(wx_fn.GetFullPath());
-#ifdef __WIN32__
+#ifdef _MSC_VER
 	ofstream out(final_fon.wc_str());
 #else
 	ofstream out;

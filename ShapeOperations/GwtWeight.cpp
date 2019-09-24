@@ -171,7 +171,7 @@ bool GwtWeight::SaveDIDWeights(int num_obs, std::vector<wxInt64>& newids, std::v
     
     int n = newids.size();
     
-#ifdef __WIN32__
+#ifdef _MSC_VER
 	ofstream out(ofname.wc_str());
 #else
 	ofstream out;
@@ -233,7 +233,7 @@ bool GwtWeight::SaveSpaceTimeWeights(const wxString& ofname,
         }
     }
     
-#ifdef __WIN32__
+#ifdef _MSC_VER
 	ofstream out(ofname.wc_str());
 #else
 	ofstream out;
@@ -302,7 +302,7 @@ bool Gda::SaveGwt(const GwtElement* g,
 	wxFileName wx_fn(ofname);
 	wxString final_ofn(wx_fn.GetFullPath());
 
-#ifdef __WIN32__
+#ifdef _MSC_VER
 	ofstream out(final_ofn.wc_str());
 #else
 	ofstream out;
@@ -347,7 +347,7 @@ bool Gda::SaveGwt(const GwtElement* g,
 	wxFileName wx_fn(ofname);
 	wxString final_ofn(wx_fn.GetFullPath());
 
-#ifdef __WIN32__
+#ifdef _MSC_VER
 	ofstream out(final_ofn.wc_str());
 #else
 	ofstream out;
