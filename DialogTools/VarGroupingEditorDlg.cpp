@@ -464,7 +464,17 @@ void VarGroupingEditorDlg::OnSaveSpaceTimeTableClick( wxCommandEvent& event )
                     wx_fn.SetExt("gwt");
                 }
                 wxString ofn(wx_fn.GetFullPath());
-                w->SaveSpaceTimeWeights(ofn, wmi, table_int);
+                //w->SaveSpaceTimeWeights(ofn, wmi, table_int);
+                if (ofn.empty() || !wmi || !table_int) return;
+
+                vector<wxString> id_vec;
+                int c_id = table_int->FindColId(w->id_field);
+                if (c_id < 0) return;
+
+                table_int->GetColData(c_id, 1, id_vec);
+                std::vector<wxString> time_ids;
+                table_int->GetTimeStrings(time_ids);
+                w->SaveSpaceTimeWeights(ofn, id_vec, time_ids);
             }
         }
     }
