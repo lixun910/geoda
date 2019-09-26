@@ -16,6 +16,7 @@
           <object class="sizeritem">
             <object class="wxStaticText">
               <label>Create Custom Breaks</label>
+              <size>105,-1d</size>
               <font>
                 <weight>bold</weight>
               </font>
@@ -234,6 +235,7 @@
           <object class="sizeritem">
             <object class="wxStaticText">
               <label>Edit Custom Breaks</label>
+              <size>105,-1d</size>
               <font>
                 <weight>bold</weight>
               </font>
@@ -3472,8 +3474,13 @@
     <title>Weights File Creation</title>
     <centered>1</centered>
     <object class="wxBoxSizer">
+    <orient>wxVERTICAL</orient>
+    <object class="sizeritem">
+    <object class="wxScrolledWindow" name="ID_CREATE_WEIGHT_SCROLL_WIN">
+    <style>wxHSCROLL|wxVSCROLL</style>
+
+    <object class="wxBoxSizer">
       <orient>wxVERTICAL</orient>
-      <label/>
       <object class="sizeritem">
         <object class="wxBoxSizer">
           <object class="sizeritem">
@@ -3629,9 +3636,9 @@
                                                               </object>
                                                               <object class="sizeritem">
                                                                   <object class="wxChoice" name="IDC_XCOORDINATES">
-                                                                      <size>60,-1d</size>
+                                                                      <size>80,-1d</size>
                                                                   </object>
-                                                                  <flag>wxALIGN_CENTER|wxALL</flag>
+                                                                  <flag>wxALIGN_CENTER|wxALL|wxEXPAND</flag>
                                                                   <border>2</border>
                                                               </object>
                                                               <object class="sizeritem">
@@ -3659,9 +3666,9 @@
                                                               </object>
                                                               <object class="sizeritem">
                                                                   <object class="wxChoice" name="IDC_YCOORDINATES">
-                                                                      <size>60,-1d</size>
+                                                                      <size>80,-1d</size>
                                                                   </object>
-                                                                  <flag>wxALIGN_CENTER|wxALL</flag>
+                                                                  <flag>wxALIGN_CENTER|wxALL|wxEXPAND</flag>
                                                                   <border>2</border>
                                                               </object>
                                                               <object class="sizeritem">
@@ -4196,6 +4203,13 @@
         <flag>wxBOTTOM|wxALIGN_CENTRE_HORIZONTAL</flag>
         <border>8</border>
       </object>
+    </object>
+
+    </object>
+    <flag>wxEXPAND|wxALL</flag>
+    <option>1</option>
+    <border>7</border>
+    </object>
     </object>
   </object>
   <object class="wxDialog" name="IDD_ADD_ID_VARIABLE" subclass="AddIdVariable">
@@ -9471,7 +9485,7 @@
                               </object>
                               <object class="sizeritem">
                                   <object class="wxStaticText" name="IDC_STATIC">
-                                      <label>HERE App Key</label>
+                                      <label>HERE App Code</label>
                                   </object>
                               </object>
                               <object class="sizeritem">
@@ -9496,7 +9510,7 @@
                               </object>
                               <object class="sizeritem">
                                   <object class="wxStaticText">
-                                      <label>Get a free Nokia/HERE account: </label>
+                                      <label>Get a free HERE account: </label>
                                   </object>
                               </object>
                               <orient>wxHORIZONTAL</orient>

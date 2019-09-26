@@ -159,8 +159,8 @@ bool CreatingWeightDlg::Create(wxWindow* parent, wxWindowID id, const wxString& 
 	
 	SetParent(parent);
 	CreateControls();
-	GetSizer()->Fit(this);
-	GetSizer()->SetSizeHints(this);
+	//GetSizer()->Fit(this);
+	//GetSizer()->SetSizeHints(this);
 	Centre();
 	
 	return true;
@@ -212,7 +212,15 @@ void CreatingWeightDlg::CreateControls()
     m_spinn_inverse_knn = XRCCTRL(*this, "IDC_SPIN_POWER_KNN", wxSpinButton);
     
     m_btn_ok = XRCCTRL(*this, "wxID_OK", wxButton);
-    
+
+    wxScrolledWindow* win = wxDynamicCast(FindWindow( XRCID("ID_CREATE_WEIGHT_SCROLL_WIN")), wxScrolledWindow);
+
+    win->SetAutoLayout(true);
+    win->FitInside();
+    win->SetScrollRate(5, 5);
+
+    FitInside();
+
     m_X_time->Show(false);
     m_Y_time->Show(false);
     
@@ -750,8 +758,10 @@ void CreatingWeightDlg::UpdateCreateButtonState()
 	// Check that a Weights File ID variable is selected.
 	if (m_id_field->GetSelection() == wxNOT_FOUND) enable = false;
 	// Check that a weight type radio button choice is selected.
-	if (m_X->GetSelection() == wxNOT_FOUND ||
-        m_Y->GetSelection() == wxNOT_FOUND) enable = false;
+	if (!project->IsTableOnlyProject()) {
+	    if (m_X->GetSelection() == wxNOT_FOUND ||
+            m_Y->GetSelection() == wxNOT_FOUND) enable = false;
+	}
 	
 	m_btn_ok->Enable(enable);
     m_nb_weights_type->Enable(enable);

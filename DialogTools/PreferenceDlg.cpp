@@ -73,7 +73,7 @@ PreferenceDlg::PreferenceDlg(wxWindow* parent,
 	const wxString& title,
 	const wxPoint& pos,
 	const wxSize& size)
-	: wxDialog(parent, id, title, pos, size, wxDEFAULT_DIALOG_STYLE)
+	: wxDialog(parent, id, title, pos, size, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
 	highlight_state = NULL;
     table_state = NULL;
@@ -89,7 +89,7 @@ PreferenceDlg::PreferenceDlg(wxWindow* parent,
 	const wxString& title,
 	const wxPoint& pos,
 	const wxSize& size)
-	: wxDialog(parent, id, title, pos, size, wxDEFAULT_DIALOG_STYLE)
+	: wxDialog(parent, id, title, pos, size, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
 	highlight_state = _highlight_state;
     table_state = _table_state;
@@ -102,10 +102,15 @@ void PreferenceDlg::Init()
 {
 	ReadFromCache();
 
+    wxScrolledWindow* scrl = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(880,820), wxHSCROLL|wxVSCROLL );
+    scrl->SetScrollRate( 5, 5 );
+
+    wxPanel *panel = new wxPanel(scrl);
+
     long txt_num_style = wxTE_RIGHT | wxTE_PROCESS_ENTER;
     wxPoint pos = wxDefaultPosition;
 
-	wxNotebook* notebook = new wxNotebook(this, wxID_ANY, pos, wxDefaultSize);
+	wxNotebook* notebook = new wxNotebook(panel, wxID_ANY, pos, wxDefaultSize);
 	//  visualization tab
 	wxNotebookPage* vis_page = new wxNotebookPage(notebook, wxID_ANY,
                                                   pos, wxSize(560, 680));
@@ -396,6 +401,13 @@ void PreferenceDlg::Init()
     grid_sizer2->Add(txt25, 0, wxALIGN_RIGHT);
     txt25->Bind(wxEVT_TEXT, &PreferenceDlg::OnDisplayDecimal, this);
 
+    wxString lbl27 = _("Create CSVT when saving CSV file:");
+    wxStaticText* lbl_txt27 = new wxStaticText(gdal_page, wxID_ANY, lbl27);
+    cbox_csvt = new wxCheckBox(gdal_page, wxID_ANY, "", pos);
+    grid_sizer2->Add(lbl_txt27, 1, wxEXPAND);
+    grid_sizer2->Add(cbox_csvt, 0, wxALIGN_RIGHT);
+    cbox_csvt->Bind(wxEVT_CHECKBOX, &PreferenceDlg::OnCreateCSVT, this);
+
 	grid_sizer2->AddGrowableCol(0, 1);
 
 	wxBoxSizer *nb_box2 = new wxBoxSizer(wxVERTICAL);
@@ -411,8 +423,8 @@ void PreferenceDlg::Init()
 	wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
     wxSize bt_sz = wxSize(70, 30);
-	wxButton *resetButton = new wxButton(this, wxID_ANY, _("Reset"), pos, bt_sz);
-	wxButton *closeButton = new wxButton(this, wxID_OK, _("Close"), pos, bt_sz);
+	wxButton *resetButton = new wxButton(panel, wxID_ANY, _("Reset"), pos, bt_sz);
+	wxButton *closeButton = new wxButton(panel, wxID_OK, _("Close"), pos, bt_sz);
 	resetButton->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &PreferenceDlg::OnReset, this);
 
 	hbox->Add(resetButton, 1);
@@ -421,9 +433,19 @@ void PreferenceDlg::Init()
 	vbox->Add(notebook, 1, wxEXPAND | wxALL, 10);
 	vbox->Add(hbox, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, 10);
 
-	SetSizer(vbox);
-	vbox->Fit(this);
-    
+    panel->SetSizer(vbox);
+
+    wxBoxSizer* panelSizer = new wxBoxSizer(wxVERTICAL);
+    panelSizer->Add(panel, 1, wxEXPAND|wxALL, 0);
+
+    scrl->SetSizer(panelSizer);
+
+    wxBoxSizer* sizerAll = new wxBoxSizer(wxVERTICAL);
+    sizerAll->Add(scrl, 1, wxEXPAND|wxALL, 0);
+    SetSizer(sizerAll);
+    SetAutoLayout(true);
+    sizerAll->Fit(this);
+
 	Centre();
 	ShowModal();
 
@@ -432,6 +454,7 @@ void PreferenceDlg::Init()
 
 void PreferenceDlg::OnReset(wxCommandEvent& ev)
 {
+    GdaConst::gda_create_csvt = false;
     GdaConst::gda_use_gpu = false;
     GdaConst::gda_ui_language = 0;
     GdaConst::gda_eigen_tol = 1.0E-8;
@@ -497,6 +520,7 @@ void PreferenceDlg::OnReset(wxCommandEvent& ev)
     ogr_adapt.AddEntry("gda_use_gpu", "0");
     ogr_adapt.AddEntry("gda_displayed_decimals", "6");
     ogr_adapt.AddEntry("gda_enable_set_transparency_windows", "0");
+    ogr_adapt.AddEntry("gda_create_csvt", "0");
 }
 
 void PreferenceDlg::SetupControls()
@@ -549,6 +573,8 @@ void PreferenceDlg::SetupControls()
     
     cbox_gpu->SetValue(GdaConst::gda_use_gpu);
     cbox26->SetValue(GdaConst::gda_enable_set_transparency_windows);
+
+    cbox_csvt->SetValue(GdaConst::gda_create_csvt);
 }
 
 void PreferenceDlg::ReadFromCache()
@@ -789,6 +815,18 @@ void PreferenceDlg::ReadFromCache()
             GdaConst::gda_use_gpu = true;
             else if (sel_l == 0)
             GdaConst::gda_use_gpu = false;
+        }
+    }
+
+    vector<wxString> gda_create_csvt = ogr_adapt.GetHistory("gda_create_csvt");
+    if (!gda_create_csvt.empty()) {
+        long sel_l = 0;
+        wxString sel = gda_create_csvt[0];
+        if (sel.ToLong(&sel_l)) {
+            if (sel_l == 1)
+                GdaConst::gda_create_csvt = true;
+            else if (sel_l == 0)
+                GdaConst::gda_create_csvt = false;
         }
     }
 
@@ -1156,5 +1194,17 @@ void PreferenceDlg::OnUseGPU(wxCommandEvent& ev)
     else {
         GdaConst::gda_use_gpu = true;
         OGRDataAdapter::GetInstance().AddEntry("gda_use_gpu", "1");
+    }
+}
+void PreferenceDlg::OnCreateCSVT(wxCommandEvent& ev)
+{
+    int sel = ev.GetSelection();
+    if (sel == 0) {
+        GdaConst::gda_create_csvt = false;
+        OGRDataAdapter::GetInstance().AddEntry("gda_create_csvt", "0");
+    }
+    else {
+        GdaConst::gda_create_csvt = true;
+        OGRDataAdapter::GetInstance().AddEntry("gda_create_csvt", "1");
     }
 }
