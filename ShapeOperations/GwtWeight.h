@@ -22,6 +22,7 @@
 
 #include <vector>
 #include "GeodaWeight.h"
+#include "GalWeight.h"
 
 struct GwtNeighbor {
 	long nbx;
@@ -107,6 +108,7 @@ namespace Gda {
 							 const wxString& ofname,
 							 const wxString& id_var_name,
 							 const std::vector<wxString>& id_vec);
+    GalElement* Gwt2Gal(const GwtElement* g, int num_obs);
 }
 
 #endif

@@ -377,3 +377,19 @@ bool Gda::SaveGwt(const GwtElement* g,
 	}
 	return true;
 }
+
+GalElement* Gda::Gwt2Gal(const GwtElement* g, int num_obs)
+{
+    
+    if (g == NULL) return 0;
+    GalElement* gal = new GalElement[num_obs];
+    for (int i=0; i<num_obs; ++i) {
+        gal[i].SetSizeNbrs(g[i].Size());
+        for (long nbr=0; nbr<g[i].Size(); ++nbr) {
+            const GwtNeighbor& current = g[i].elt(nbr);
+            gal[i].SetNbr(nbr, current.nbx);
+
+        }
+    }
+    return gal;
+}
