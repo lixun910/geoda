@@ -302,6 +302,7 @@ struct AxisScale {
 
 namespace GenUtils {
 	// other
+    const std::vector<int> flat_2dclusters(int n, std::vector<std::vector<int> > clusters);
 	wxString BoolToStr(bool b);
 	bool StrToBool(const wxString& s);
 	wxString Pad(const wxString& s, int width, bool pad_left=true);

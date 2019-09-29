@@ -1794,3 +1794,22 @@ wxString GenUtils::GetCachePath()
     return GetExeDir() + "cache.sqlite";
 #endif
 }
+
+const std::vector<int> GenUtils::flat_2dclusters(int n, std::vector<std::vector<int> > clusters) {
+    vector<int> cluster_ids(n, 0);
+    int ncluster = clusters.size();
+    if (ncluster == 0)
+        return cluster_ids;
+
+    // sort result
+    std::sort(clusters.begin(), clusters.end(), GenUtils::less_vectors);
+
+    for (int i=0; i < ncluster; i++) {
+        int c = i + 1;
+        for (int j=0; j<clusters[i].size(); j++) {
+            int idx = clusters[i][j];
+            cluster_ids[idx] = c;
+        }
+    }
+    return cluster_ids;
+}

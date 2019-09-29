@@ -28,6 +28,7 @@
 
 #include "../GenUtils.h"
 #include "GalWeight.h"
+#include "GwtWeight.h"
 
 using namespace std;
 
@@ -651,3 +652,16 @@ void Gda::MakeHigherOrdContiguity(size_t distance, size_t obs,
 	}
 }
 
+GalElement* Gda::GetGalElement(GeoDaWeight* w)
+{
+    GalElement *gal = 0;
+    if (w->weight_type == GeoDaWeight::gal_type) {
+        GalWeight *gal_w = dynamic_cast<GalWeight *>(w);
+        gal = gal_w->gal;
+    } else {
+        GwtWeight *gwt_w = dynamic_cast<GwtWeight *>(w);
+        GwtElement *gwt = gwt_w->gwt;
+        gal = Gda::Gwt2Gal(gwt, gwt_w->num_obs);
+    }
+    return gal;
+}

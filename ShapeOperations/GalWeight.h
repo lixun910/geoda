@@ -125,6 +125,8 @@ namespace Gda {
                           const std::vector<wxString>& id_vec);
     
 	void MakeHigherOrdContiguity(size_t distance, size_t obs, GalElement* W, bool cummulative);
+
+    GalElement* GetGalElement(GeoDaWeight* w);
 }
 
 #endif
