@@ -26,6 +26,7 @@
 #include "logger.h"
 #include "GdaConst.h"
 #include "GenUtils.h"
+#include "GeneralWxUtils.h"
 #include "GdaShape.h"
 
 

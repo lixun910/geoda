@@ -25,6 +25,7 @@
 #include "SmoothingUtils.h"
 #include "../GdaConst.h"
 #include "../GenUtils.h"
+#include "../GeneralWxUtils.h"
 #include "../logger.h"
 
 /** reg_line, slope, infinite_slope and regression_defined are all return

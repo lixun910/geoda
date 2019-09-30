@@ -1546,7 +1546,9 @@ void CreatingWeightDlg::CreateWeights()
                     precision_threshold = 0.0;
                 }
             }
-            Wp->gal = PolysToContigWeights(project->main_data, !is_rook,
+            OGRLayerProxy* layer_proxy = project->GetOGRLayerProxy();
+            OGRLayer* ogr_layer = layer_proxy->GetOGRLayer();
+            Wp->gal = PolysToContigWeights(ogr_layer, !is_rook,
                                            precision_threshold);
         }
         

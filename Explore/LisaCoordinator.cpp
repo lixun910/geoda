@@ -25,9 +25,7 @@
 #include <wx/log.h>
 #include <wx/filename.h>
 #include <wx/stopwatch.h>
-#include <wx/msgdlg.h>
 
-#include "../DataViewer/TableInterface.h"
 #include "../ShapeOperations/RateSmoothing.h"
 #include "../ShapeOperations/Randik.h"
 #include "../ShapeOperations/WeightsManState.h"
@@ -35,9 +33,10 @@
 #include "../VarCalc/WeightsManInterface.h"
 #include "../logger.h"
 #include "../Project.h"
+#include "../Algorithms/gpu_lisa.h"
+
 #include "LisaCoordinator.h"
 
-#include "../Algorithms/gpu_lisa.h"
 
 /** 
  Since the user has the ability to synchronise either variable over time,
@@ -552,8 +551,8 @@ void LisaCoordinator::CalcPseudoP()
             }
 		 }
 		} else {
-			wxMessageDialog dlg(NULL, "GeoDa can't configure GPU device. Default CPU solution will be used instead.", _("Error"), wxOK | wxICON_ERROR);
-			dlg.ShowModal();
+			//wxMessageDialog dlg(NULL, "GeoDa can't configure GPU device. Default CPU solution will be used instead.", _("Error"), wxOK | wxICON_ERROR);
+			//dlg.ShowModal();
 			if (!calc_significances)
 				return;
 			CalcPseudoP_threaded();

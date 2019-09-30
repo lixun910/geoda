@@ -28,7 +28,7 @@
 #include "../ShapeOperations/WeightsManState.h"
 #include "../VarCalc/WeightsManInterface.h"
 #include "../ShapeOperations/WeightUtils.h"
-
+#include "../GeoDaSet.h"
 #include "../logger.h"
 #include "../Project.h"
 #include "LocalGearyCoordinatorObserver.h"

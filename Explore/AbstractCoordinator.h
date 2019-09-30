@@ -25,6 +25,8 @@
 #include <boost/multi_array.hpp>
 #include <wx/string.h>
 #include <wx/thread.h>
+
+#include "../VarCalc/WeightsManInterface.h"
 #include "../VarTools.h"
 #include "../ShapeOperations/GeodaWeight.h"
 #include "../ShapeOperations/GalWeight.h"

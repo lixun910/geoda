@@ -23,10 +23,6 @@
 #include <vector>
 #include <wx/string.h>
 
-class Project;
-class WeightsManInterface;
-class TableInterface;
-
 class GeoDaWeight {
 public:
 	GeoDaWeight() : symmetry_checked(false), num_obs(0) {}
@@ -34,24 +30,40 @@ public:
     
 	virtual ~GeoDaWeight() {}
 	
-    // following functions implemented in inherited classes: GalWeights and GwtWeights
-    virtual bool SaveDIDWeights(Project* project,
-                                int num_obs,
+    // following functions implemented in inherited classes:
+    // GalWeights and GwtWeights
+    virtual bool SaveDIDWeights(int num_obs,
                                 std::vector<wxInt64>& newids,
                                 std::vector<wxInt64>& stack_ids,
-                                const wxString& ofname)=0;
+                                const wxString& ofname) = 0;
     
     virtual bool SaveSpaceTimeWeights(const wxString& ofname,
-                                      WeightsManInterface* wmi,
-                                      TableInterface* table_int)=0;
+                                      const std::vector<wxString>& id_vec,
+                                      const std::vector<wxString>& time_ids) = 0;
 
-    virtual bool CheckNeighbor(int obs_idx, int nbr_idx)=0;
+    virtual bool CheckNeighbor(int obs_idx, int nbr_idx) = 0;
 
-    virtual const std::vector<long> GetNeighbors(int obs_idx)=0;
+    virtual const std::vector<long> GetNeighbors(int obs_idx) = 0;
 
-    virtual void   Update(const std::vector<bool>& undefs)=0;
+    virtual void   Update(const std::vector<bool>& undefs) = 0;
     virtual bool   HasIsolates() = 0;
     virtual void   GetNbrStats() = 0;
+    
+    virtual int    GetNbrSize(int obs_idx) = 0;
+    virtual double SpatialLag(int obs_idx,
+                              const std::vector<double>& data) = 0;
+    
+    virtual bool   SaveToFile(const wxString& ofname,
+                              const wxString& layer_name,
+                              const wxString& id_var_name,
+                              const std::vector<wxInt64>& id_vec) = 0;
+    
+    virtual bool   SaveToFile(const wxString& ofname,
+                              const wxString& layer_name,
+                              const wxString& id_var_name,
+                              const std::vector<wxString>& id_vec) = 0;
+    
+    // functions:
     virtual double GetSparsity() const;
     virtual double GetDensity() const;
     virtual int    GetMinNumNbrs() const;

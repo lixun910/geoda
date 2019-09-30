@@ -21,11 +21,10 @@
 #include <iomanip>
 #include <wx/filename.h>
 
-#include "../DataViewer/TableInterface.h"
 #include "../GenUtils.h"
-#include "../Project.h"
 #include "GwtWeight.h"
 
+using namespace std;
 
 GwtElement::~GwtElement()
 {
@@ -85,7 +84,9 @@ std::vector<long> GwtElement::GetNbrs()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//
+// GWTWeight
+////////////////////////////////////////////////////////////////////////////////
+
 
 void GwtWeight::Update(const std::vector<bool>& undefs)
 {
@@ -110,6 +111,16 @@ bool GwtWeight::HasIsolates(GwtElement *gwt, int num_obs)
             return true;
     }
 	return false;
+}
+
+int GwtWeight::GetNbrSize(int obs_idx)
+{
+    return gwt[obs_idx].Size();
+}
+
+double GwtWeight::SpatialLag(int obs_idx, const std::vector<double> &data)
+{
+    return gwt[obs_idx].SpatialLag(data);
 }
 
 void GwtWeight::GetNbrStats()
@@ -152,21 +163,15 @@ void GwtWeight::GetNbrStats()
     }
 }
 
-bool GwtWeight::SaveDIDWeights(Project* project, int num_obs, std::vector<wxInt64>& newids, std::vector<wxInt64>& stack_ids, const wxString& ofname)
-{
-    using namespace std;
-    if (!project || ofname.empty()) return false;
-    
-    WeightsManInterface* wmi = project->GetWManInt();
-    if (!wmi) return false;
-    
+bool GwtWeight::SaveDIDWeights(int num_obs, std::vector<wxInt64>& newids, std::vector<wxInt64>& stack_ids, const wxString& ofname)
+{    
     wxString layer_name = GenUtils::GetFileNameNoExt(ofname);
     
     if (!gwt) return false;
     
     int n = newids.size();
     
-#ifdef __WIN32__
+#ifdef _MSC_VER
 	ofstream out(ofname.wc_str());
 #else
 	ofstream out;
@@ -205,24 +210,12 @@ bool GwtWeight::SaveDIDWeights(Project* project, int num_obs, std::vector<wxInt6
     return true;
 }
 
-bool GwtWeight::SaveSpaceTimeWeights(const wxString& ofname, WeightsManInterface* wmi, TableInterface* table_int)
+bool GwtWeight::SaveSpaceTimeWeights(const wxString& ofname,
+                                     const std::vector<wxString>& id_vec,
+                                     const std::vector<wxString>& time_ids)
 {
-    using namespace std;
-    
-    if (ofname.empty() || !wmi || !table_int)
-        return false;
-    
     wxString layer_name = GenUtils::GetFileNameNoExt(ofname);
     if (!gwt) return false;
-    
-    vector<wxString> id_vec;
-    int c_id = table_int->FindColId(this->id_field);
-    if (c_id < 0) return false;
-    
-    table_int->GetColData(c_id, 1, id_vec);
-    
-    std::vector<wxString> time_ids;
-    table_int->GetTimeStrings(time_ids);
     
     size_t num_obs = id_vec.size();
     size_t num_t = time_ids.size();
@@ -240,7 +233,7 @@ bool GwtWeight::SaveSpaceTimeWeights(const wxString& ofname, WeightsManInterface
         }
     }
     
-#ifdef __WIN32__
+#ifdef _MSC_VER
 	ofstream out(ofname.wc_str());
 #else
 	ofstream out;
@@ -278,8 +271,24 @@ bool GwtWeight::SaveSpaceTimeWeights(const wxString& ofname, WeightsManInterface
     
     return true;
 }
+
+bool GwtWeight::SaveToFile(const wxString &ofname, const wxString &layer_name,
+                           const wxString &id_var_name,
+                           const std::vector<wxInt64> &id_vec)
+{
+    return Gda::SaveGwt(gwt, layer_name, ofname, id_var_name, id_vec);
+}
+
+bool GwtWeight::SaveToFile(const wxString &ofname, const wxString &layer_name,
+                           const wxString &id_var_name,
+                           const std::vector<wxString> &id_vec)
+{
+    return Gda::SaveGwt(gwt, layer_name, ofname, id_var_name, id_vec);
+}
 ////////////////////////////////////////////////////////////////////////////////
-//
+// Gda Function
+////////////////////////////////////////////////////////////////////////////////
+
 bool Gda::SaveGwt(const GwtElement* g,
 									const wxString& _layer_name,
 									const wxString& ofname,
@@ -293,7 +302,7 @@ bool Gda::SaveGwt(const GwtElement* g,
 	wxFileName wx_fn(ofname);
 	wxString final_ofn(wx_fn.GetFullPath());
 
-#ifdef __WIN32__
+#ifdef _MSC_VER
 	ofstream out(final_ofn.wc_str());
 #else
 	ofstream out;
@@ -338,7 +347,7 @@ bool Gda::SaveGwt(const GwtElement* g,
 	wxFileName wx_fn(ofname);
 	wxString final_ofn(wx_fn.GetFullPath());
 
-#ifdef __WIN32__
+#ifdef _MSC_VER
 	ofstream out(final_ofn.wc_str());
 #else
 	ofstream out;
@@ -367,4 +376,20 @@ bool Gda::SaveGwt(const GwtElement* g,
 		}
 	}
 	return true;
+}
+
+GalElement* Gda::Gwt2Gal(const GwtElement* g, int num_obs)
+{
+    
+    if (g == NULL) return 0;
+    GalElement* gal = new GalElement[num_obs];
+    for (int i=0; i<num_obs; ++i) {
+        gal[i].SetSizeNbrs(g[i].Size());
+        for (long nbr=0; nbr<g[i].Size(); ++nbr) {
+            const GwtNeighbor& current = g[i].elt(nbr);
+            gal[i].SetNbr(nbr, current.nbx);
+
+        }
+    }
+    return gal;
 }

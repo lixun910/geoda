@@ -25,12 +25,10 @@
 #include <vector>
 #include <map>
 #include <algorithm>
-#include <wx/colour.h>
 #include <wx/filename.h>
 #include <wx/regex.h>
 #include <wx/string.h>
-#include <wx/gdicmn.h> // for wxPoint / wxRealPoint
-#include <wx/textwrapper.h>
+
 
 // file name encodings
 // in windows, wxString.fn_str() will return a wchar*, which take care of 
@@ -48,9 +46,6 @@
 
 using namespace std;
 
-class wxDC;
-class TableState;
-
 namespace StringUtils {
     int utf8_strlen(const string& str);
 }
@@ -67,51 +62,6 @@ namespace DbfFileUtils {
     wxString GetMinIntString(int length);
 }
 
-namespace GdaColorUtils {
-	/** Returns colour in 6-hex-digit HTML format.
-	 Eg wxColour(255,0,0) -> "#FF0000" */
-	wxString ToHexColorStr(const wxColour& c);
-	/** change brightness of input_color and leave result in output color
-	 brightness = 75 by default, will slightly darken the input color.
-	 brightness = 0 is black, brightness = 200 is white. */
-	wxColour ChangeBrightness(const wxColour& input_col, int brightness = 75);
-    
-    void GetUnique20Colors(vector<wxColour>& colors);
-    
-    void GetLISAColors(vector<wxColour>& colors);
-    void GetLISAColorLabels(vector<wxString>& labels);
-    
-    void GetLocalGColors(vector<wxColour>& colors);
-    void GetLocalGColorLabels(vector<wxString>& labels);
-    
-    void GetLocalJoinCountColors(vector<wxColour>& colors);
-    void GetLocalJoinCountColorLabels(vector<wxString>& labels);
-    
-    void GetLocalGearyColors(vector<wxColour>& colors);
-    void GetLocalGearyColorLabels(vector<wxString>& labels);
-    
-    void GetMultiLocalGearyColors(vector<wxColour>& colors);
-    void GetMultiLocalGearyColorLabels(vector<wxString>& labels);
-    
-    void GetPercentileColors(vector<wxColour>& colors);
-    void GetPercentileColorLabels(vector<wxString>& labels);
-    
-    void GetBoxmapColors(vector<wxColour>& colors);
-    void GetBoxmapColorLabels(vector<wxString>& labels);
-    
-    void GetStddevColors(vector<wxColour>& colors);
-    void GetStddevColorLabels(vector<wxString>& labels);
-    
-    void GetQuantile2Colors(vector<wxColour>& colors);
-    void GetQuantile3Colors(vector<wxColour>& colors);
-    void GetQuantile4Colors(vector<wxColour>& colors);
-    void GetQuantile5Colors(vector<wxColour>& colors);
-    void GetQuantile6Colors(vector<wxColour>& colors);
-    void GetQuantile7Colors(vector<wxColour>& colors);
-    void GetQuantile8Colors(vector<wxColour>& colors);
-    void GetQuantile9Colors(vector<wxColour>& colors);
-    void GetQuantile10Colors(vector<wxColour>& colors);
-}
 
 namespace Gda {
 	/** Returns a uniformly distributed
@@ -139,7 +89,7 @@ namespace Gda {
     
     wxString CreateUUID(int nSize);
     
-    wxString DetectDateFormat(wxString s, vector<wxString>& date_items);
+
     
     unsigned long long DateToNumber(wxString s_date, wxRegEx& regex, vector<wxString>& date_items);
     
@@ -352,14 +302,14 @@ struct AxisScale {
 
 namespace GenUtils {
 	// other
+    const std::vector<int> flat_2dclusters(int n, std::vector<std::vector<int> > clusters);
 	wxString BoolToStr(bool b);
 	bool StrToBool(const wxString& s);
 	wxString Pad(const wxString& s, int width, bool pad_left=true);
     wxString PadTrim(const wxString& s, int width, bool pad_left=true);
 	wxString DblToStr(double x, int precision = 3, bool fixed_point=false);
     wxString IntToStr(int x, int precision = 0);
-	wxString PtToStr(const wxPoint& p);
-	wxString PtToStr(const wxRealPoint& p);
+	
     void Transformation(int trans_type, vector<vector<double> >& data,
                         vector<vector<bool> >& undef);
     
@@ -393,6 +343,7 @@ namespace GenUtils {
 	 on proj_path path. If path is absolute, return it as is. */
 	wxString RestorePath(const wxString& proj_path, const wxString& path);
 	wxString SimplifyPath(const wxString& proj_path, const wxString& path);
+    
 	/** Input: wd should be the working directory of the project file.  It
 	 is assumed that this directory is valid.
 	 path can be either a dir or file path.  If path is
@@ -413,16 +364,7 @@ namespace GenUtils {
 	long ReverseInt(const int &val);
 	void SkipTillNumber(istream &s);
 	void longToString(const long d, char* Id, const int base);
-	double distance(const wxRealPoint& p1, const wxRealPoint& p2);
-	double distance(const wxRealPoint& p1, const wxPoint& p2);
-	double distance(const wxPoint& p1, const wxRealPoint& p2);
-	double distance(const wxPoint& p1, const wxPoint& p2);
-	double distance_sqrd(const wxRealPoint& p1, const wxRealPoint& p2);
-	double distance_sqrd(const wxRealPoint& p1, const wxPoint& p2);
-	double distance_sqrd(const wxPoint& p1, const wxRealPoint& p2);
-	double distance_sqrd(const wxPoint& p1, const wxPoint& p2);
-	double pointToLineDist(const wxPoint& p0, const wxPoint& p1,
-						   const wxPoint& p2); 
+    
 	void strToInt64(const char *str, wxInt64 *val);
 	void strToInt64(const wxString& str, wxInt64 *val);
 	bool validInt(const char* str);
@@ -433,8 +375,8 @@ namespace GenUtils {
 						 bool* shx_found, bool* dbf_found);
 	wxString FindLongestSubString(const vector<wxString> strings,
 								  bool case_sensitive=false);
-	wxString WrapText(wxWindow *win, const wxString& text, int widthMax);
-	wxString GetExeDir();
+
+    wxString GetExeDir();
 	wxString GetWebPluginsDir();
 	wxString GetResourceDir();
     wxString GetSamplesDir();
@@ -515,45 +457,5 @@ namespace GenUtils {
         }
     }
 }
-
-/** Old code used by LISA functions */
-class GeoDaSet {
-private:
-    int size;
-	int current;
-    int* buffer;
-    char* flags;
-public:
-	GeoDaSet(const int sz) : size(sz), current(0) {
-		buffer = new int [ size ];
-		flags = new char [ size ];
-		memset(flags, '\x0', size);
-	}
-	virtual ~GeoDaSet() {
-		if (buffer) delete [] buffer; buffer = 0;
-		if (flags) delete [] flags; flags = 0;
-		size = current = 0;
-	}
-    bool Belongs( const int elt) const {
-		return flags[elt] != 0; }; // true if the elt belongs to the set
-    void Push(const int elt) {
-		// insert element in the set, if it is not yet inserted
-		if (flags[elt] == 0)  {
-			buffer[ current++ ] = elt;
-			flags[elt] = 'i';  // check elt in
-        }
-    }
-    int Pop() { // remove element from the set
-		if (current == 0) return -1; // formerly GdaConst::EMPTY
-        int rtn= buffer[ --current ];
-        flags[rtn]= '\x0';   // check it out
-        return rtn;
-    }
-    int Size() const { return current; }
-	void Reset() {
-		memset(flags, '\x0', size);
-		current = 0;
-	}
-};
 
 #endif

@@ -26,17 +26,13 @@
 #include <boost/random/uniform_int_distribution.hpp>
 #include <wx/filename.h>
 #include <wx/string.h>
-#include <wx/stopwatch.h>
 
-#include "PointSetAlgs.h"
+#include "GenUtils.h"
 #include "GenGeomAlgs.h"
-#include "SpatialIndAlgs.h"
-#include "VarCalc/NumericTests.h"
-#include "ShapeOperations/OGRLayerProxy.h"
-#include "Explore/MapLayer.hpp"
-#include "Project.h"
 #include "GdaException.h"
 #include "logger.h"
+#include "SpatialIndAlgs.h"
+
 
 using namespace std;
 
@@ -604,7 +600,8 @@ double SpatialIndAlgs::est_median_distance(const std::vector<double>& x,
 			//if (i==j) continue;
 			v[t] = (is_arc ? ComputeArcDistRad(x[i], y[i], x[j], y[j]) :
 					ComputeEucDist(x[i], y[i], x[j], y[j]));
-			if (!Gda::is_finite(v[t]) || Gda::is_nan(v[t])) {
+			//if (!Gda::is_finite(v[t]) || Gda::is_nan(v[t])) {
+			if ( ((v[t] - v[t]) != 0) || (v[t] != v[t])) {
 				stringstream ss;
 				ss << "d(i="<<i<<",j="<<j<<"): "<<v[t];
 			}
@@ -690,8 +687,10 @@ GwtWeight* SpatialIndAlgs::thresh_build(const rtree_pt_2d_t& rtree, double th, d
 				++lcnt;
 			}
 		}
+
+#ifndef __LIBGEODA__
         if (lcnt > 200 && ignore_too_large_compute == false) {
-            
+
             wxString msg = _("You can try to proceed but the current threshold distance value might be too large to compute. If it fails, please input a smaller distance band (which might leave some observations neighborless) or use other weights (e.g. KNN).");
 			wxMessageDialog dlg(NULL, msg, "Do you want to continue?", wxYES_NO | wxYES_DEFAULT);
 			if (dlg.ShowModal() != wxID_YES) {
@@ -704,6 +703,7 @@ GwtWeight* SpatialIndAlgs::thresh_build(const rtree_pt_2d_t& rtree, double th, d
 			}
             
         }
+#endif
 		GwtElement& e = Wp->gwt[obs];
 		e.alloc(lcnt);
 		BOOST_FOREACH(pt_2d_val const& w, l) {
@@ -1032,7 +1032,7 @@ bool SpatialIndAlgs::write_gwt(const GwtWeight* W,
     wxFileName gwtfn(ofname);
     wxString gwt_ofn(gwtfn.GetFullPath());
 
-#ifdef __WIN32__
+#ifdef _MSC_VER
 	std:ofstream out(gwt_ofn.wc_str());
 #else
 	std:ofstream out;
@@ -1097,11 +1097,13 @@ std::ostream& SpatialIndAlgs::operator<< (std::ostream &out,
     return out;
 }
 
+#ifndef __LIBGEODA__
 std::ostream& SpatialIndAlgs::operator<< (std::ostream &out,
 										  const wxRealPoint& pt) {
 	out << "(" << pt.x << "," << pt.y << ")";
     return out;
 }
+#endif
 
 std::ostream& SpatialIndAlgs::operator<< (std::ostream &out, const XyzPt& pt) {
 	out << "(" << pt.x << "," << pt.y << "," << pt.z << ")";

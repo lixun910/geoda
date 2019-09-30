@@ -22,10 +22,7 @@
 
 #include <vector>
 #include "GeodaWeight.h"
-
-class Project;
-class WeightsManInterface;
-class TableInterface;
+#include "GalWeight.h"
 
 struct GwtNeighbor {
 	long nbx;
@@ -75,18 +72,28 @@ public:
 	static bool HasIsolates(GwtElement *gwt, int num_obs);
     
 	virtual bool HasIsolates() { return HasIsolates(gwt, num_obs); }
-    virtual bool SaveDIDWeights(Project* project,
-                        int num_obs,
+    virtual bool SaveDIDWeights(int num_obs,
                         std::vector<wxInt64>& newids,
                         std::vector<wxInt64>& stack_ids,
                         const wxString& ofname);
     virtual bool SaveSpaceTimeWeights(const wxString& ofname,
-                                      WeightsManInterface* wmi,
-                                      TableInterface* table_int);
+                                      const std::vector<wxString>& id_vec,
+                                      const std::vector<wxString>& time_ids);
     virtual bool CheckNeighbor(int obs_idx, int nbr_idx);
     virtual const std::vector<long> GetNeighbors(int obs_idx);
     virtual void Update(const std::vector<bool>& undefs);
     virtual void GetNbrStats();
+    virtual int GetNbrSize(int obs_idx);
+    virtual double SpatialLag(int obs_idx,
+                              const std::vector<double>& data);
+    virtual bool SaveToFile(const wxString& ofname,
+                            const wxString& layer_name,
+                            const wxString& id_var_name,
+                            const std::vector<wxInt64>& id_vec);
+    virtual bool SaveToFile(const wxString& ofname,
+                            const wxString& layer_name,
+                            const wxString& id_var_name,
+                            const std::vector<wxString>& id_vec);
 
 };
 
@@ -101,6 +108,7 @@ namespace Gda {
 							 const wxString& ofname,
 							 const wxString& id_var_name,
 							 const std::vector<wxString>& id_vec);
+    GalElement* Gwt2Gal(const GwtElement* g, int num_obs);
 }
 
 #endif

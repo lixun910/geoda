@@ -16,6 +16,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <float.h>
+#include <math.h>
+#include <sstream>
+#include <iomanip>
 
 #include <wx/tokenzr.h>
 #include <wx/filename.h>
@@ -27,6 +31,7 @@
 #include <wx/colordlg.h>
 #include <wx/txtstrm.h>
 
+#include "GdaConst.h"
 #include "GeneralWxUtils.h"
 
 ////////////////////////////////////////////////////////////////////////
@@ -588,4 +593,444 @@ void TransparentSettingDialog::OnSliderChange( wxCommandEvent & event )
 double TransparentSettingDialog::GetTransparency()
 {
 	return transparency;
+}
+
+// GenUtils
+wxString GenUtils::WrapText(wxWindow *win, const wxString& text, int widthMax) {
+    class HardBreakWrapper : public wxTextWrapper
+    {
+    public:
+        HardBreakWrapper(wxWindow *win, const wxString& text, int widthMax) {
+            Wrap(win, text, widthMax);
+        }
+        wxString const& GetWrapped() const { return m_wrapped; }
+    protected:
+        virtual void OnOutputLine(const wxString& line) {
+            m_wrapped += line;
+        }
+        virtual void OnNewLine() {
+            m_wrapped += '\n';
+        }
+    private:
+        wxString m_wrapped;
+    };
+    HardBreakWrapper wrapper(win, text, widthMax);
+    return wrapper.GetWrapped();
+}
+// Calculates Euclidean distance
+double GenUtils::distance(const wxRealPoint& p1, const wxRealPoint& p2)
+{
+    double dx = p1.x - p2.x;
+    double dy = p1.y - p2.y;
+    return sqrt(dx*dx + dy*dy);
+}
+
+double GenUtils::distance(const wxRealPoint& p1, const wxPoint& p2)
+{
+    double dx = p1.x - p2.x;
+    double dy = p1.y - p2.y;
+    return sqrt(dx*dx + dy*dy);
+}
+
+double GenUtils::distance(const wxPoint& p1, const wxRealPoint& p2)
+{
+    double dx = p1.x - p2.x;
+    double dy = p1.y - p2.y;
+    return sqrt(dx*dx + dy*dy);
+}
+
+double GenUtils::distance(const wxPoint& p1, const wxPoint& p2)
+{
+    double dx = p1.x - p2.x;
+    double dy = p1.y - p2.y;
+    return sqrt(dx*dx + dy*dy);
+}
+
+// Calculates Euclidean distance
+double GenUtils::distance_sqrd(const wxRealPoint& p1, const wxRealPoint& p2)
+{
+    double dx = p1.x - p2.x;
+    double dy = p1.y - p2.y;
+    return dx*dx + dy*dy;
+}
+
+double GenUtils::distance_sqrd(const wxRealPoint& p1, const wxPoint& p2)
+{
+    double dx = p1.x - p2.x;
+    double dy = p1.y - p2.y;
+    return dx*dx + dy*dy;
+}
+
+double GenUtils::distance_sqrd(const wxPoint& p1, const wxRealPoint& p2)
+{
+    double dx = p1.x - p2.x;
+    double dy = p1.y - p2.y;
+    return dx*dx + dy*dy;
+}
+
+double GenUtils::distance_sqrd(const wxPoint& p1, const wxPoint& p2)
+{
+    double dx = p1.x - p2.x;
+    double dy = p1.y - p2.y;
+    return dx*dx + dy*dy;
+}
+
+// calculates distance from point p0 to an infinite line passing through
+// points p1 and p2
+double GenUtils::pointToLineDist(const wxPoint& p0, const wxPoint& p1,
+                                 const wxPoint& p2)
+{
+    double d_p1p2 = distance(p1, p2);
+    if (d_p1p2 <= 16*DBL_MIN) return distance(p0, p1);
+    return abs((p2.x-p1.x)*(p1.y-p0.y)-(p1.x-p0.x)*(p2.y-p1.y))/d_p1p2;
+}
+
+wxString GenUtils::PtToStr(const wxPoint& p)
+{
+    std::stringstream ss;
+    ss << "(" << p.x << "," << p.y << ")";
+    return wxString(ss.str().c_str(), wxConvUTF8);
+}
+
+wxString GenUtils::PtToStr(const wxRealPoint& p)
+{
+    std::stringstream ss;
+    ss << std::setprecision(5);
+    ss << "(" << p.x << "," << p.y << ")";
+    return wxString(ss.str().c_str(), wxConvUTF8);
+}
+
+wxString GenUtils::DetectDateFormat(wxString s, vector<wxString>& date_items)
+{
+    // input s could be sth. like: %Y-%m-%d %H:%M:%S
+    // 2015-1-11 13:57:24 %Y-%m-%d %H:%M:%S
+    wxString YY = "([0-9]{4})";
+    wxString yy = "([0-9]{2})";
+    wxString MM = "([0-9]{1,2})";//"(0?[1-9]|1[0-2])";
+    wxString DD = "([0-9]{1,2})";//"(0?[1-9]|[12][0-9]|3[01])";
+    wxString hh = "([0-9]{1,2})";//"(00|[0-9]|1[0-9]|2[0-3])";
+    wxString mm = "([0-9]{1,2})";//"([0-9]|[0-5][0-9])";
+    wxString ss = "([0-9]{1,2})"; //"([0-9]|[0-5][0-9])";
+    wxString pp = "([AP]M)"; //"(AM | PM)";
+    
+    wxString pattern;
+    wxString original_pattern;
+    for (int i=0; i<GdaConst::gda_datetime_formats.size(); i++) {
+        original_pattern = GdaConst::gda_datetime_formats[i];
+        wxString select_pattern = original_pattern;
+        select_pattern.Replace("%Y", YY);
+        select_pattern.Replace("%y", yy);
+        select_pattern.Replace("%m", MM);
+        select_pattern.Replace("%d", DD);
+        select_pattern.Replace("%H", hh);
+        select_pattern.Replace("%M", mm);
+        select_pattern.Replace("%S", ss);
+        select_pattern.Replace("%p", pp);
+        
+        select_pattern = "^" + select_pattern + "$";
+        
+        wxRegEx regex(select_pattern);
+        if (regex.IsValid()) {
+            if (regex.Matches(s)) {
+                if (regex.GetMatchCount()>0) {
+                    pattern = select_pattern;
+                    break;
+                }
+            }
+        }
+    }
+    
+    if (!pattern.IsEmpty()){
+        wxString select_pattern = original_pattern;
+        wxRegEx regex("(%[YymdHMSp])");
+        while (regex.Matches(select_pattern) ) {
+            size_t start, len;
+            regex.GetMatch(&start, &len, 0);
+            date_items.push_back(regex.GetMatch(select_pattern, 1));
+            select_pattern = select_pattern.Mid (start + len);
+        }
+    }
+    return pattern;
+}
+
+void GdaColorUtils::GetUnique20Colors(std::vector<wxColour>& colors)
+{
+    colors.clear();
+    colors.push_back(wxColour(166,206,227));
+    colors.push_back(wxColour(31,120,180));
+    colors.push_back(wxColour(178,223,138));
+    colors.push_back(wxColour(51,160,44));
+    colors.push_back(wxColour(251,154,153));
+    colors.push_back(wxColour(227,26,28));
+    colors.push_back(wxColour(253,191,111));
+    colors.push_back(wxColour(255,127,0));
+    colors.push_back(wxColour(106,61,154));
+    colors.push_back(wxColour(255,255,153));
+    colors.push_back(wxColour(177,89,40));
+    colors.push_back(wxColour(255,255,179));
+    colors.push_back(wxColour(190,186,218));
+    colors.push_back(wxColour(251,128,114));
+    colors.push_back(wxColour(128,177,211));
+    colors.push_back(wxColour(179,222,105));
+    colors.push_back(wxColour(252,205,229));
+    colors.push_back(wxColour(217,217,217));
+    colors.push_back(wxColour(188,128,189));
+    colors.push_back(wxColour(204,235,197));
+};
+
+void GdaColorUtils::GetLISAColors(std::vector<wxColour>& colors)
+{
+    colors.clear();
+    colors.push_back(wxColour(240, 240, 240));
+    colors.push_back(wxColour(255, 0, 0));
+    colors.push_back(wxColour(0, 0, 255));
+    colors.push_back(wxColour(150, 150, 255));
+    colors.push_back(wxColour(255, 150, 150));
+}
+
+void GdaColorUtils::GetLISAColorLabels(std::vector<wxString>& labels)
+{
+    labels.clear();
+    labels.push_back(GdaConst::gda_lbl_not_sig);
+    labels.push_back(GdaConst::gda_lbl_highhigh);
+    labels.push_back(GdaConst::gda_lbl_lowlow);
+    labels.push_back(GdaConst::gda_lbl_lowhigh);
+    labels.push_back(GdaConst::gda_lbl_highlow);
+}
+
+void GdaColorUtils::GetLocalGColors(std::vector<wxColour>& colors)
+{
+    colors.clear();
+    colors.push_back(wxColour(240, 240, 240));
+    colors.push_back(wxColour(255, 0, 0));
+    colors.push_back(wxColour(0, 0, 255));
+}
+void GdaColorUtils::GetLocalGColorLabels(std::vector<wxString>& labels)
+{
+    labels.clear();
+    labels.push_back(GdaConst::gda_lbl_not_sig);
+    labels.push_back(GdaConst::gda_lbl_highhigh);
+    labels.push_back(GdaConst::gda_lbl_lowlow);
+}
+
+void GdaColorUtils::GetLocalJoinCountColors(std::vector<wxColour>& colors)
+{
+    colors.clear();
+    colors.push_back(wxColour(240, 240, 240));
+    colors.push_back(wxColour(255, 0, 0));
+}
+void GdaColorUtils::GetLocalJoinCountColorLabels(std::vector<wxString>& labels)
+{
+    labels.clear();
+    labels.push_back(GdaConst::gda_lbl_not_sig);
+    labels.push_back(GdaConst::gda_lbl_highhigh);
+}
+
+void GdaColorUtils::GetLocalGearyColors(std::vector<wxColour>& colors)
+{
+    colors.clear();
+    colors.push_back(wxColour(240, 240, 240));
+    colors.push_back(wxColour(178,24,43));
+    colors.push_back(wxColour(239,138,98));
+    colors.push_back(wxColour(253,219,199));
+    colors.push_back(wxColour(103,173,199));
+}
+void GdaColorUtils::GetLocalGearyColorLabels(std::vector<wxString>& labels)
+{
+    labels.clear();
+    labels.push_back(GdaConst::gda_lbl_not_sig);
+    labels.push_back(GdaConst::gda_lbl_highhigh);
+    labels.push_back(GdaConst::gda_lbl_lowlow);
+    labels.push_back(GdaConst::gda_lbl_otherpos);
+    labels.push_back(GdaConst::gda_lbl_negative);
+}
+
+void GdaColorUtils::GetMultiLocalGearyColors(std::vector<wxColour>& colors)
+{
+    colors.clear();
+    colors.push_back(wxColour(240, 240, 240));
+    colors.push_back(wxColour(51,110,161));
+}
+void GdaColorUtils::GetMultiLocalGearyColorLabels(std::vector<wxString>& labels)
+{
+    labels.clear();
+    labels.push_back(GdaConst::gda_lbl_not_sig);
+    labels.push_back(GdaConst::gda_lbl_positive);
+}
+
+void GdaColorUtils::GetPercentileColors(std::vector<wxColour>& colors)
+{
+    colors.clear();
+    CatClassification::PickColorSet(colors, CatClassification::diverging_color_scheme, 6, false);
+    colors.insert(colors.begin(), wxColour(240, 240, 240));
+}
+void GdaColorUtils::GetPercentileColorLabels(std::vector<wxString>& labels)
+{
+    labels.clear();
+    labels.push_back(GdaConst::gda_lbl_1p);
+    labels.push_back(GdaConst::gda_lbl_1p_10p);
+    labels.push_back(GdaConst::gda_lbl_10p_50p);
+    labels.push_back(GdaConst::gda_lbl_50p_90p);
+    labels.push_back(GdaConst::gda_lbl_90p_99p);
+    labels.push_back(GdaConst::gda_lbl_99p);
+}
+
+void GdaColorUtils::GetBoxmapColors(std::vector<wxColour>& colors)
+{
+    colors.clear();
+    CatClassification::PickColorSet(colors, CatClassification::diverging_color_scheme, 6, false);
+    colors.insert(colors.begin(), wxColour(240, 240, 240));
+}
+void GdaColorUtils::GetBoxmapColorLabels(std::vector<wxString>& labels)
+{
+    labels.clear();
+    labels.push_back(GdaConst::gda_lbl_loweroutlier);
+    labels.push_back(GdaConst::gda_lbl_25p);
+    labels.push_back(GdaConst::gda_lbl_25p_50p);
+    labels.push_back(GdaConst::gda_lbl_50p_75p);
+    labels.push_back(GdaConst::gda_lbl_75p);
+    labels.push_back(GdaConst::gda_lbl_upperoutlier);
+}
+
+void GdaColorUtils::GetStddevColors(std::vector<wxColour>& colors)
+{
+    colors.clear();
+    CatClassification::PickColorSet(colors, CatClassification::diverging_color_scheme, 6, false);
+    colors.insert(colors.begin(), wxColour(240, 240, 240));
+}
+void GdaColorUtils::GetStddevColorLabels(std::vector<wxString>& labels)
+{
+    labels.clear();
+    labels.push_back(GdaConst::gda_lbl_n2sigma);
+    labels.push_back(GdaConst::gda_lbl_n2sigma_n1sigma);
+    labels.push_back(GdaConst::gda_lbl_n1sigma);
+    labels.push_back(GdaConst::gda_lbl_1sigma);
+    labels.push_back(GdaConst::gda_lbl_1sigma_2sigma);
+    labels.push_back(GdaConst::gda_lbl_2sigma);
+}
+
+void GdaColorUtils::GetQuantile2Colors(std::vector<wxColour>& colors)
+{
+    colors.clear();
+    CatClassification::PickColorSet(colors, CatClassification::sequential_color_scheme, 2, false);
+    colors.insert(colors.begin(), wxColour(240, 240, 240));
+}
+void GdaColorUtils::GetQuantile3Colors(std::vector<wxColour>& colors)
+{
+    colors.clear();
+    CatClassification::PickColorSet(colors, CatClassification::sequential_color_scheme, 3, false);
+    colors.insert(colors.begin(), wxColour(240, 240, 240));
+    
+}
+void GdaColorUtils::GetQuantile4Colors(std::vector<wxColour>& colors)
+{
+    colors.clear();
+    CatClassification::PickColorSet(colors, CatClassification::sequential_color_scheme, 4, false);
+    colors.insert(colors.begin(), wxColour(240, 240, 240));
+    
+}
+void GdaColorUtils::GetQuantile5Colors(std::vector<wxColour>& colors)
+{
+    colors.clear();
+    CatClassification::PickColorSet(colors, CatClassification::sequential_color_scheme, 5, false);
+    colors.insert(colors.begin(), wxColour(240, 240, 240));
+    
+}
+void GdaColorUtils::GetQuantile6Colors(std::vector<wxColour>& colors)
+{
+    colors.clear();
+    CatClassification::PickColorSet(colors, CatClassification::sequential_color_scheme, 6, false);
+    colors.insert(colors.begin(), wxColour(240, 240, 240));
+    
+}
+void GdaColorUtils::GetQuantile7Colors(std::vector<wxColour>& colors)
+{
+    colors.clear();
+    CatClassification::PickColorSet(colors, CatClassification::sequential_color_scheme, 7, false);
+    colors.insert(colors.begin(), wxColour(240, 240, 240));
+    
+}
+void GdaColorUtils::GetQuantile8Colors(std::vector<wxColour>& colors)
+{
+    colors.clear();
+    CatClassification::PickColorSet(colors, CatClassification::sequential_color_scheme, 8, false);
+    colors.insert(colors.begin(), wxColour(240, 240, 240));
+    
+}
+void GdaColorUtils::GetQuantile9Colors(std::vector<wxColour>& colors)
+{
+    colors.clear();
+    CatClassification::PickColorSet(colors, CatClassification::sequential_color_scheme, 9, false);
+    colors.insert(colors.begin(), wxColour(240, 240, 240));
+}
+void GdaColorUtils::GetQuantile10Colors(std::vector<wxColour>& colors)
+{
+    colors.clear();
+    CatClassification::PickColorSet(colors, CatClassification::sequential_color_scheme, 10, false);
+    colors.insert(colors.begin(), wxColour(240, 240, 240));
+}
+
+wxString GdaColorUtils::ToHexColorStr(const wxColour& c)
+{
+    return c.GetAsString(wxC2S_HTML_SYNTAX);
+}
+
+wxColour GdaColorUtils::ChangeBrightness(const wxColour& input_col,
+                                         int brightness)
+{
+    unsigned char r = input_col.Red();
+    unsigned char g = input_col.Green();
+    unsigned char b = input_col.Blue();
+    unsigned char alpha = input_col.Alpha();
+    wxColour::ChangeLightness(&r, &g, &b, brightness);
+    return wxColour(r,g,b,alpha);
+}
+/** convert input rectangle corners s1 and s2 into screen-coordinate corners */
+void GenGeomAlgs::StandardizeRect(const wxPoint& s1, const wxPoint& s2,
+                                  wxPoint& lower_left, wxPoint& upper_right)
+{
+    lower_left = s1;
+    upper_right = s2;
+    if (lower_left.x > upper_right.x) {
+        // swap
+        int t = lower_left.x;
+        lower_left.x = upper_right.x;
+        upper_right.x = t;
+    }
+    if (lower_left.y < upper_right.y) {
+        // swap
+        int t = lower_left.y;
+        lower_left.y = upper_right.y;
+        upper_right.y = t;
+    }
+}
+
+/** assumes input corners are all screen-coordinate correct for
+ lower left and upper right corners */
+bool GenGeomAlgs::RectsIntersect(const wxPoint& r1_lower_left,
+                                 const wxPoint& r1_upper_right,
+                                 const wxPoint& r2_lower_left,
+                                 const wxPoint& r2_upper_right)
+{
+    // return negation of all situations where rectangles
+    // do not intersect.
+    return (!((r1_lower_left.x > r2_upper_right.x) ||
+              (r1_upper_right.x < r2_lower_left.x) ||
+              (r1_lower_left.y < r2_upper_right.y) ||
+              (r1_upper_right.y > r2_lower_left.y)));
+}
+
+bool GenGeomAlgs::CounterClockwise(const wxPoint& p1, const wxPoint& p2,
+                                   const wxPoint& p3)
+{
+    return ((p2.y-p1.y)*(p3.x-p2.x) < (p3.y-p2.y)*(p2.x-p1.x));
+}
+
+bool GenGeomAlgs::LineSegsIntersect(const wxPoint& l1_p1, const wxPoint& l1_p2,
+                                    const wxPoint& l2_p1, const wxPoint& l2_p2)
+{
+    return ((CounterClockwise(l2_p1, l2_p2, l1_p1) !=
+             CounterClockwise(l2_p1, l2_p2, l1_p2)) &&
+            (CounterClockwise(l1_p1, l1_p2, l2_p1) !=
+             CounterClockwise(l1_p1, l1_p2, l2_p2)));
 }

@@ -25,16 +25,9 @@
 #include <cmath>
 #include <time.h>
 #include <vector>
+#include <set>
 
-#include <wx/wxprec.h>
-#ifndef WX_PRECOMP
-#include <wx/wx.h>
-#endif
-
-
-
-#include "../logger.h"
-#include "../GenUtils.h"
+#include "../GeoDaSet.h"
 #include "PolysToContigWeights.h"
 
 using namespace std;
@@ -51,7 +44,7 @@ void BasePartition::alloc(const int els, const int cls, const double range)
 	cell= new int [ cells ];
 	next= new int [ elements ];
 	if (cell && next)
-		for (int cnt= 0; cnt < cells; ++cnt) cell [ cnt ] = GdaConst::EMPTY;
+		for (int cnt= 0; cnt < cells; ++cnt) cell [ cnt ] = EMPTY;
 	else elements= cells= 0;
 }
 
@@ -117,10 +110,10 @@ void PartitionP::include(const int incl)  {
 	//          cout << "including " << incl << " at " << where << endl;
 	int old= cell [ where ];
 	cell [ where ] = incl;
-	if (old != GdaConst::EMPTY)
+	if (old != EMPTY)
 		previous [ old ] = incl;
 	next [ incl ] = old;    // OLD becomes the 2nd element in the list
-	previous [ incl ] = GdaConst::EMPTY;       // there are no elements prior to incl
+	previous [ incl ] = EMPTY;       // there are no elements prior to incl
 	return;
 }
 
@@ -129,14 +122,13 @@ void PartitionP::include(const int incl)  {
  */
 void PartitionP::remove(const int del)  {
 	int   thePrevious= previous[ del ], theNext= next[ del ];
-	if ( thePrevious == GdaConst::EMPTY )                // this is the 1st element in the list
+	if ( thePrevious == EMPTY )                // this is the 1st element in the list
 		cell [ cellIndex[del] ] = theNext;
     else
 		next[ thePrevious ] = theNext;
-	if ( theNext != GdaConst::EMPTY )                   // this is not the last element in thelist
+	if ( theNext != EMPTY )                   // this is not the last element in thelist
 		previous[ theNext ] = thePrevious;
-	previous[ del ] = next [ del ] = GdaConst::EMPTY;  // probably this is not necessary
-	return;
+	previous[ del ] = next [ del ] = EMPTY;  // probably this is not necessary
 }
 
 
@@ -145,8 +137,10 @@ void PartitionP::remove(const int del)  {
  PolygonPartition:: destructor
  */
 PolygonPartition::~PolygonPartition()   {
-	if (nbrPoints)  {  delete [] nbrPoints;  nbrPoints= NULL;  };
-	return;
+	if (nbrPoints)  {
+        delete [] nbrPoints;
+        nbrPoints= NULL;
+    }
 }
 
 
@@ -156,46 +150,36 @@ PolygonPartition::~PolygonPartition()   {
 bool PolygonPartition::edge(PolygonPartition &p, const int host,
 							const int guest, double precision_threshold)
 {
-	using namespace Shapefile;
-
+    OGRPoint* guestPrev = p.GetPoint(p.prev(guest));
+	OGRPoint* hostPoint = this->GetPoint(succ(host));
 	
-	Point* guestPrev = p.GetPoint(p.prev(guest));
-	Point* hostPoint = this->GetPoint(succ(host));
+    if (IsSamePoint(hostPoint, guestPrev, precision_threshold)) return true;
 	
-	if (hostPoint->equals(guestPrev, precision_threshold)) return true;
-	
-	Point* guestSucc= p.GetPoint(p.succ(guest));
-	if (hostPoint->equals( guestSucc, precision_threshold) ) return true;
+	OGRPoint* guestSucc= p.GetPoint(p.succ(guest));
+    
+    if (IsSamePoint(hostPoint, guestSucc, precision_threshold)) return true;
 	
 	hostPoint= this->GetPoint( prev(host) );
 	
-	if (hostPoint->equals( guestSucc, precision_threshold )) return true;
-	
-	if (hostPoint->equals( guestPrev, precision_threshold )) return true;
-	
+    if (IsSamePoint(hostPoint, guestSucc, precision_threshold)) return true;
+    if (IsSamePoint(hostPoint, guestPrev, precision_threshold)) return true;
+    
 	return false;
 }
 
-/*
- PolygonPartition
- */
-int PolygonPartition::MakePartition(int mX, int mY)  {
+void PolygonPartition::MakePartition(int mX, int mY)  {
 	if (mX == 0) mX = NumPoints/4 + 2;
 	if (mY == 0) mY = (int)(sqrt((long double)NumPoints) + 2);
 	pX.alloc(NumPoints, mX, GetMaxX() - GetMinX());
 	pY.alloc(NumPoints, mY, GetMaxY() - GetMinY());
 	double xStart= GetMinX(), yStart= GetMinY();
 	for (int cnt= 0; cnt < NumPoints; ++cnt)  {
-		pX.include(cnt, GetPoint(cnt)->x - xStart);
-		pY.initIx(cnt, GetPoint(cnt)->y - yStart);
+		pX.include(cnt, GetPoint(cnt)->getX() - xStart);
+		pY.initIx(cnt, GetPoint(cnt)->getY() - yStart);
 	};
 	MakeNeighbors();
-	return 0;	
 }
 
-/*
- PolygonPartition
- */
 void PolygonPartition::MakeNeighbors()  
 {
 	nbrPoints= new int [ NumPoints ];
@@ -212,16 +196,15 @@ void PolygonPartition::MakeNeighbors()
 	}	
 }
 
-/*
- PolygonPartition
- */
 void PolygonPartition::MakeSmallPartition(const int mX, const double Start,
 										  const double Stop)
 {
 	pX.alloc(NumPoints, mX, Stop-Start);
 	for (int cnt= 0; cnt < NumPoints; ++cnt) {
-		Shapefile::Point* pt= GetPoint(cnt);
-		if (pt->x >= Start && pt->x <= Stop) pX.include(cnt, pt->x - Start);
+		OGRPoint* pt= GetPoint(cnt);
+        if (pt->getX() >= Start && pt->getX() <= Stop) {
+            pX.include(cnt, pt->getX() - Start);
+        }
 	}
 	MakeNeighbors();
 }
@@ -236,24 +219,30 @@ void PolygonPartition::MakeSmallPartition(const int mX, const double Start,
 int PolygonPartition::sweep(PolygonPartition & guest, bool is_queen,
                             double precision_threshold)
 {
-	int       host, dot, cly, cell;
-	double    yStart= GetMinY(), yStop= GetMaxY();
-	Shapefile::Point* pt;
+	int host, dot, cly, cell;
+	double yStart= GetMinY(), yStop= GetMaxY();
+	OGRPoint* pt;
 	guest.MakeSmallPartition(pX.Cells(), GetMinX(), GetMaxX());
-	for (cell= 0; cell < pX.Cells(); ++cell) {
-		for (host= pX.first(cell); host != GdaConst::EMPTY; host= pX.tail(host))
+    
+	for (cell = 0; cell < pX.Cells(); ++cell) {
+        for (host= pX.first(cell); host != EMPTY;
+             host= pX.tail(host))
+        {
             pY.include(host);
-		for (dot=guest.pX.first(cell); dot != GdaConst::EMPTY; dot=guest.pX.tail(dot))
+        }
+		for (dot=guest.pX.first(cell); dot != EMPTY;
+             dot=guest.pX.tail(dot))
         {
 			pt= guest.GetPoint(dot);
-			cly= pY.inTheRange(pt->y - yStart);
+			cly= pY.inTheRange(pt->getY() - yStart);
 			if (cly != -1) {
-				for (host= pY.first(cly); host != GdaConst::EMPTY;
+				for (host= pY.first(cly); host != EMPTY;
 					 host= pY.tail(host))
                 {
-					if (pt->equals( GetPoint(host), precision_threshold) )
-                    {
-						if (is_queen || edge(guest, host, dot, precision_threshold)) {
+                    if (IsSamePoint(pt, GetPoint(host), precision_threshold)) {
+						if (is_queen ||
+                            edge(guest, host, dot, precision_threshold))
+                        {
 							pY.cleanup(pX, cell);
 							return 1;  
 						}
@@ -280,7 +269,7 @@ elements(els), cells(cls)  {
 	lastIndex= new int [ elements ];
 	int cnt;
 	for (cnt= 0; cnt < cells; ++cnt)
-		cell [ cnt ] = GdaConst::EMPTY;
+		cell [ cnt ] = EMPTY;
 	Refs= new RefPtr [ elements ];
 	for (cnt= 0; cnt < elements; ++cnt)
 		Refs[cnt]= NULL;
@@ -363,7 +352,7 @@ void PartitionM::include(const int incl)  {
 	for (cnt= lower; cnt <= upper; ++cnt)  {
 		int old= cell [ cnt ];            // first element in the cell
 		cell [ cnt ] = incl;              // new first element in the cell
-		if (old != GdaConst::EMPTY)  {  // the cell was not empty
+		if (old != EMPTY)  {  // the cell was not empty
 			rptr[cnt-lower].next = old; // OLD is the next element after incl in the list
 			Refs[old][cnt-cellIndex[old]].prev= incl;    // incl is preceeding OLD in the list
 		};
@@ -383,7 +372,7 @@ void PartitionM::remove(const int del)  {
 			cell[ cnt ]= cRef.next;
 		else
 			Refs[cRef.prev][ cnt-cellIndex[cRef.prev] ].next= cRef.next;
-		if (cRef.next != GdaConst::EMPTY)  // this is not the last element in the list
+		if (cRef.next != EMPTY)  // this is not the last element in the list
 			Refs[cRef.next][cnt-cellIndex[cRef.next]].prev= cRef.prev;
 	};
 	delete [] Refs[del];
@@ -391,180 +380,11 @@ void PartitionM::remove(const int del)  {
 	return;
 }
 
-GalElement* PolysToContigWeights(Shapefile::Main& main, bool is_queen,
-                                 double precision_threshold)
-{
-	using namespace Shapefile;
-	
-    // # of records in the Shapefile == dimesion of the weights matrix
-    long gRecords= 0;
-    // locations of the polygon records in the shp file
-    long* gOffset= NULL;
-    // bounding box for the entire map
-    // partition constructed on lower(x) and upper(x) for each polygon
-    BasePartition  gMinX, gMaxX;
-    // partition constructed on y for each polygon
-    PartitionM* gY;
-    
-	gRecords = main.records.size();
-	double shp_min_x = (double)main.header.bbox_x_min;
-	double shp_max_x = (double)main.header.bbox_x_max;
-	double shp_min_y = (double)main.header.bbox_y_min;
-	double shp_max_y = (double)main.header.bbox_y_max;
-	double shp_x_len = shp_max_x - shp_min_x;
-	double shp_y_len = shp_max_y - shp_min_y;
-	
-	long gx, gy, cnt, total=0;
-	gx= gRecords / 8 + 2;
-	
-	gMinX.alloc(gRecords, gx, shp_x_len );
-	gMaxX.alloc(gRecords, gx, shp_x_len );
-	
-	for (cnt= 0; cnt < gRecords; ++cnt) {
-        RecordContents* rec = main.records[cnt].contents_p;
-		PolygonContents* ply = dynamic_cast<PolygonContents*>(rec);
-	
-		gMinX.include( cnt, ply->box[0] - shp_min_x );
-		gMaxX.include( cnt, ply->box[2] - shp_min_x );
-	}
-	
-	gy= (int)(sqrt((long double)gRecords) + 2);
-	do {
-		gY= new PartitionM(gRecords, gy, shp_y_len );
-		for (cnt= 0; cnt < gRecords; ++cnt) {
-            RecordContents* rec = main.records[cnt].contents_p;
-			PolygonContents* ply = dynamic_cast<PolygonContents*>(rec);
-            double lwr = ply->box[1] - shp_min_y;
-            double upr = ply->box[3] - shp_min_y;
-			gY->initIx(cnt, lwr, upr);
-		}
-		total= gY->Sum();
-		if (total > gRecords * 8) {
-			delete gY;
-			gy = gy/2 + 1;
-			total= 0;
-		}
-	} while ( total == 0);
-	
-	//GalElement * gl= MakeContiguity(main, is_queen, precision_threshold);
-    int curr;
-    GalElement * gl= new GalElement [ gRecords ];
-    
-    if (!gl) return NULL;
-    GeoDaSet   Neighbors(gRecords), Related(gRecords);
-    //  cout << "total steps= " << gMinX.Cells() << endl;
-    
-    for (int step= 0; step < gMinX.Cells(); ++step) {
-        // include all elements from xmin[step]
-        for (curr= gMinX.first(step); curr != GdaConst::EMPTY;
-             curr= gMinX.tail(curr))
-        {
-            gY->include(curr);
-        }
-        
-        // test each element in xmax[step]
-        for (curr= gMaxX.first(step); curr != GdaConst::EMPTY;
-             curr= gMaxX.tail(curr))
-        {
-            RecordContents* rec = main.records[curr].contents_p;
-            PolygonContents* ply = dynamic_cast<PolygonContents*> (rec);
-            PolygonPartition testPoly(ply);
-            testPoly.MakePartition();
-            
-            // form a list of neighbors
-            for (int cell=gY->lowest(curr); cell <= gY->upmost(curr); ++cell) {
-                int potential = gY->first( cell );
-                while (potential != GdaConst::EMPTY) {
-                    if (potential != curr) Neighbors.Push( potential );
-                    potential = gY->tail(potential, cell);
-                }
-            }
-            
-            // test each potential neighbor
-            for (int nbr = Neighbors.Pop(); nbr != GdaConst::EMPTY;
-                 nbr = Neighbors.Pop()) {
-                RecordContents* nbr_rec = main.records[nbr].contents_p;
-                PolygonContents* nbr_ply = dynamic_cast<PolygonContents*>(nbr_rec);
-                
-                if (ply->intersect(nbr_ply)) {
-                    
-                    PolygonPartition nbrPoly(nbr_ply);
-                    //shp.seekg(gOffset[nbr]+12, ios::beg);
-                    //nbrPoly.ReadShape(shp);
-                    
-                    if (curr == 0 && nbr == 0) {
-                        
-                    }
-                    // run sweep with testPoly as a host and nbrPoly as a guest
-                    int related = testPoly.sweep(nbrPoly, is_queen, precision_threshold);
-                    if (related) Related.Push(nbr);
-                }
-            }
-            
-            
-            if (size_t sz = Related.Size()) {
-                gl[curr].SetSizeNbrs(sz);
-                for (size_t i=0; i<sz; ++i) {
-                    gl[curr].SetNbr(i, Related.Pop());
-                }
-            }
-            
-            gY->remove(curr);       // remove from the partition
-        }
-    }
-    // end MakeContiguity(main, is_queen, precision_threshold);
-	
-	if (gY) delete gY; gY = 0;
-	if (gOffset) delete [] gOffset; gOffset = 0;
-
-	//MakeFull(gl, gRecords);
-    vector<set<long> > G(gRecords);
-    for (size_t i=0; i<gRecords; ++i) {
-        for (size_t j=0, sz=gl[i].Size(); j<sz; ++j) {
-            G[i].insert(gl[i][j]);
-            G[gl[i][j]].insert(i);
-        }
-    }
-    for (size_t i=0; i<gRecords; ++i) {
-        if (gl[i].Size() == G[i].size()) continue;
-        gl[i].SetSizeNbrs(G[i].size());
-        size_t cnt = 0;
-        for (set<long>::iterator it=G[i].begin(); it!=G[i].end(); ++it) {
-            gl[i].SetNbr(cnt++, *it);
-        }
-        gl[i].SortNbrs();
-    }
-    
-	return gl;
-}
-
-/*
 GalElement* PolysToContigWeights(OGRLayer* layer, bool is_queen,
                                  double precision_threshold)
 {
-    // # of records in the Shapefile == dimesion of the weights matrix
-    long gRecords= layer->GetFeatureCount();
-    // partition constructed on lower(x) and upper(x) for each polygon
-    BasePartition gMinX, gMaxX;
-    // partition constructed on y for each polygon
-    PartitionM* gY;
-   
     OGREnvelope pEnvelope;
-    if (layer->GetExtent(&pEnvelope) != OGRERR_NONE)
-        return NULL;
-    
-    double shp_min_x = (double)pEnvelope.MinX;
-    double shp_max_x = (double)pEnvelope.MaxX;
-    double shp_min_y = (double)pEnvelope.MinY;
-    double shp_max_y = (double)pEnvelope.MaxY;
-    double shp_x_len = shp_max_x - shp_min_x;
-    double shp_y_len = shp_max_y - shp_min_y;
-    
-    long gx = gRecords / 8 + 2;
-    
-    gMinX.alloc(gRecords, gx, shp_x_len);
-    gMaxX.alloc(gRecords, gx, shp_x_len);
-    
+    if (layer->GetExtent(&pEnvelope) != OGRERR_NONE) return NULL;
     OGRFeature* feature = NULL;
     vector<OGRFeature*> features;
     layer->ResetReading();
@@ -572,29 +392,48 @@ GalElement* PolysToContigWeights(OGRLayer* layer, bool is_queen,
         features.push_back(feature);
     }
     
-    OGRGeometry* pGeom;
-    long cnt = 0;
+    // # of records in the Shapefile == dimesion of the weights matrix
+    long gRecords= layer->GetFeatureCount();
+    // partition constructed on lower(x) and upper(x) for each polygon
+    BasePartition gMinX, gMaxX;
+    // partition constructed on y for each polygon
+    PartitionM* gY;
+   
+    double shp_min_x = (double)pEnvelope.MinX;
+    double shp_max_x = (double)pEnvelope.MaxX;
+    double shp_min_y = (double)pEnvelope.MinY;
+    double shp_max_y = (double)pEnvelope.MaxY;
+    double shp_x_len = shp_max_x - shp_min_x;
+    double shp_y_len = shp_max_y - shp_min_y;
+    
+    long gx, gy, cnt, total=0;
+    gx = gRecords / 8 + 2;
+    
+    gMinX.alloc(gRecords, gx, shp_x_len);
+    gMaxX.alloc(gRecords, gx, shp_x_len);
+    
     for (cnt= 0; cnt < gRecords; ++cnt) {
         feature = features[cnt];
-        pGeom = feature->GetGeometryRef();
+        OGRGeometry* pGeom = feature->GetGeometryRef();
         if (pGeom) {
-            pGeom->getEnvelope(&pEnvelope);
-            gMinX.include( cnt, pEnvelope.MinX - shp_min_x );
-            gMaxX.include( cnt, pEnvelope.MaxX - shp_min_x );
+            OGREnvelope env;
+            pGeom->getEnvelope(&env);
+            gMinX.include( cnt, env.MinX - shp_min_x );
+            gMaxX.include( cnt, env.MaxX - shp_min_x );
         }
     }
     
-    long total = 0;
-    double lwr, upr;
-    long gy= (int)(sqrt((long double)gRecords) + 2);
+    gy= (int)(sqrt((long double)gRecords) + 2);
     do {
         gY= new PartitionM(gRecords, gy, shp_y_len );
         for (cnt= 0; cnt < gRecords; ++cnt) {
             feature = features[cnt];
-            pGeom = feature->GetGeometryRef();
+            OGRGeometry* pGeom = feature->GetGeometryRef();
             if (pGeom) {
-                lwr = pEnvelope.MinY - shp_min_y;
-                upr = pEnvelope.MaxY - shp_min_y;
+                OGREnvelope env;
+                pGeom->getEnvelope(&env);
+                double lwr = env.MinY - shp_min_y;
+                double upr = env.MaxY - shp_min_y;
                 gY->initIx(cnt, lwr, upr);
             }
         }
@@ -607,51 +446,52 @@ GalElement* PolysToContigWeights(OGRLayer* layer, bool is_queen,
     } while ( total == 0);
     
     //GalElement * gl= MakeContiguity(main, is_queen, precision_threshold);
-    GalElement * gl= new GalElement [ gRecords ];
-    if (!gl)
-        return NULL;
-    
     int curr;
+    GalElement * gl= new GalElement [ gRecords ];
+    
+    if (!gl) return NULL;
     GeoDaSet Neighbors(gRecords), Related(gRecords);
     //  cout << "total steps= " << gMinX.Cells() << endl;
+    
     for (int step= 0; step < gMinX.Cells(); ++step) {
         // include all elements from xmin[step]
-        for (curr= gMinX.first(step); curr != GdaConst::EMPTY;
+        for (curr= gMinX.first(step); curr != EMPTY;
              curr= gMinX.tail(curr))
         {
             gY->include(curr);
         }
         
         // test each element in xmax[step]
-        for (curr= gMaxX.first(step); curr != GdaConst::EMPTY;
+        for (curr= gMaxX.first(step); curr != EMPTY;
              curr= gMaxX.tail(curr))
         {
             feature = features[curr];
-            pGeom = feature->GetGeometryRef();
-            
-            RecordContents* rec = main.records[curr].contents_p;
-            PolygonContents* ply = dynamic_cast<PolygonContents*> (rec);
-            PolygonPartition testPoly(ply);
+            OGRGeometry* pGeom = feature->GetGeometryRef();
+            OGREnvelope env;
+            pGeom->getEnvelope(&env);
+            PolygonPartition testPoly(pGeom);
             testPoly.MakePartition();
             
             // form a list of neighbors
             for (int cell=gY->lowest(curr); cell <= gY->upmost(curr); ++cell) {
                 int potential = gY->first( cell );
-                while (potential != GdaConst::EMPTY) {
+                while (potential != EMPTY) {
                     if (potential != curr) Neighbors.Push( potential );
                     potential = gY->tail(potential, cell);
                 }
             }
             
             // test each potential neighbor
-            for (int nbr = Neighbors.Pop(); nbr != GdaConst::EMPTY;
+            for (int nbr = Neighbors.Pop(); nbr != EMPTY;
                  nbr = Neighbors.Pop()) {
-                RecordContents* nbr_rec = main.records[nbr].contents_p;
-                PolygonContents* nbr_ply = dynamic_cast<PolygonContents*>(nbr_rec);
-                
-                if (ply->intersect(nbr_ply)) {
+                feature = features[nbr];
+                OGRGeometry* pNbrGeom = feature->GetGeometryRef();
+                OGREnvelope envNbr;
+                pNbrGeom->getEnvelope(&envNbr);
+                //if (pGeom->Intersects(pNbrGeom)) {
+                if (env.Intersects(envNbr)) {
                     
-                    PolygonPartition nbrPoly(nbr_ply);
+                    PolygonPartition nbrPoly(pNbrGeom);
 
                     if (curr == 0 && nbr == 0) {
                         
@@ -678,7 +518,7 @@ GalElement* PolysToContigWeights(OGRLayer* layer, bool is_queen,
     if (gY) delete gY; gY = 0;
 
     //MakeFull(gl, gRecords);
-    vector<set<long> > G(gRecords);
+    std::vector<std::set<long> > G(gRecords);
     for (size_t i=0; i<gRecords; ++i) {
         for (size_t j=0, sz=gl[i].Size(); j<sz; ++j) {
             G[i].insert(gl[i][j]);
@@ -697,10 +537,3 @@ GalElement* PolysToContigWeights(OGRLayer* layer, bool is_queen,
     
     return gl;
 }
-*/
-
-
-
-
-
-

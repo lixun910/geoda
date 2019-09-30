@@ -33,6 +33,7 @@
 #include "../VarCalc/WeightsManInterface.h"
 #include "../logger.h"
 #include "../Project.h"
+#include "../GeoDaSet.h"
 #include "AbstractCoordinator.h"
 
 AbstractWorkerThread::AbstractWorkerThread(int obs_start_s,

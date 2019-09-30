@@ -24,8 +24,10 @@
 #include <set>
 #include <vector>
 
-class GdaPolygon;
+#ifndef __LIBGEODA__
 class GdaShape;
+#endif
+
 class GalElement;
 
 namespace Gda {
@@ -34,11 +36,13 @@ namespace Gda {
 		void FindPointDuplicates(const std::vector<double>& x,
 								 const std::vector<double>& y,
 								 std::list<std::list<int> >& duplicates);
+#ifndef __LIBGEODA__
 		bool MakePolygons(const std::vector<double>& x,
 						  const std::vector<double>& y,
 						  std::vector<GdaShape*> &polys,
 						  double& voronoi_bb_xmin, double& voronoi_bb_ymin,
 						  double& voronoi_bb_xmax, double& voronoi_bb_ymax);
+#endif
 		bool PointsToContiguity(const std::vector<double>& x,
 								const std::vector<double>& y,
 								bool queen, // if false, then rook only

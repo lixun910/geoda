@@ -27,11 +27,10 @@
 #include <wx/filename.h>
 
 #include "../GenUtils.h"
-#include "../Project.h"
-#include "../VarCalc/WeightsManInterface.h"
-#include "../DataViewer/TableInterface.h"
 #include "GalWeight.h"
+#include "GwtWeight.h"
 
+using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -276,6 +275,16 @@ bool GalWeight::HasIsolates(GalElement *gal, int num_obs)
 	return false;
 }
 
+int GalWeight::GetNbrSize(int obs_idx)
+{
+    return gal[obs_idx].Size();
+}
+
+double GalWeight::SpatialLag(int obs_idx, const std::vector<double> &data)
+{
+    return gal[obs_idx].SpatialLag(data);
+}
+
 void GalWeight::GetNbrStats()
 {
     // sparsity
@@ -330,17 +339,11 @@ const std::vector<long> GalWeight::GetNeighbors(int obs_idx)
     return gal[obs_idx].GetNbrs();
 }
 
-bool GalWeight::SaveDIDWeights(Project* project, int num_obs,
+bool GalWeight::SaveDIDWeights(int num_obs,
                                std::vector<wxInt64>& newids,
                                std::vector<wxInt64>& stack_ids,
                                const wxString& ofname)
 {
-    using namespace std;
-    if (!project || ofname.empty()) return false;
-    
-    WeightsManInterface* wmi = project->GetWManInt();
-    if (!wmi) return false;
-    
     wxString layer_name = GenUtils::GetFileNameNoExt(ofname);
     
     GalElement* gal = this->gal;
@@ -385,26 +388,12 @@ bool GalWeight::SaveDIDWeights(Project* project, int num_obs,
 }
 
 bool GalWeight::SaveSpaceTimeWeights(const wxString& ofname,
-                                     WeightsManInterface* wmi,
-                                     TableInterface* table_int)
+                                     const std::vector<wxString>& id_vec,
+                                     const std::vector<wxString>& time_ids)
 {
-    using namespace std;
-    
-    if (ofname.empty() || !wmi || !table_int)
-        return false;
-    
     wxString layer_name = GenUtils::GetFileNameNoExt(ofname);
     GalElement* gal = this->gal;
     if (!gal) return false;
-
-    vector<wxString> id_vec;
-    int c_id = table_int->FindColId(this->id_field);
-    if (c_id < 0) return false;
-
-    table_int->GetColData(c_id, 1, id_vec);
-    
-    std::vector<wxString> time_ids;
-    table_int->GetTimeStrings(time_ids);
 
     size_t num_obs = id_vec.size();
     size_t num_t = time_ids.size();
@@ -456,6 +445,20 @@ bool GalWeight::SaveSpaceTimeWeights(const wxString& ofname,
     return true;
 }
 
+bool GalWeight::SaveToFile(const wxString &ofname, const wxString &layer_name,
+                           const wxString &id_var_name,
+                           const std::vector<wxInt64> &id_vec)
+{
+    return Gda::SaveGal(gal, layer_name, ofname, id_var_name, id_vec);
+}
+
+bool GalWeight::SaveToFile(const wxString &ofname, const wxString &layer_name,
+                           const wxString &id_var_name,
+                           const std::vector<wxString> &id_vec)
+{
+    return Gda::SaveGal(gal, layer_name, ofname, id_var_name, id_vec);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // TODO: following old style functions should be moved into GalWeight class
 bool Gda::SaveGal(const GalElement* g,
@@ -472,7 +475,7 @@ bool Gda::SaveGal(const GalElement* g,
 	wx_fn.SetExt("gal");
 	wxString final_fon(wx_fn.GetFullPath());
 	
-#ifdef __WIN32__
+#ifdef _MSC_VER
 	ofstream out(final_fon.wc_str());
 #else
 	ofstream out;
@@ -518,7 +521,7 @@ bool Gda::SaveGal(const GalElement* g,
 	wx_fn.SetExt("gal");
 	wxString final_fon(wx_fn.GetFullPath());
 
-#ifdef __WIN32__
+#ifdef _MSC_VER
 	ofstream out(final_fon.wc_str());
 #else
 	ofstream out;
@@ -565,7 +568,7 @@ bool Gda::SaveSpaceTimeGal(const GalElement* g,
 	wxFileName wx_fn(ofname);
 	wx_fn.SetExt("gal");
 	wxString final_fon(wx_fn.GetFullPath());
-#ifdef __WIN32__
+#ifdef _MSC_VER
 	ofstream out(final_fon.wc_str());
 #else
 	ofstream out;
@@ -649,3 +652,16 @@ void Gda::MakeHigherOrdContiguity(size_t distance, size_t obs,
 	}
 }
 
+GalElement* Gda::GetGalElement(GeoDaWeight* w)
+{
+    GalElement *gal = 0;
+    if (w->weight_type == GeoDaWeight::gal_type) {
+        GalWeight *gal_w = dynamic_cast<GalWeight *>(w);
+        gal = gal_w->gal;
+    } else {
+        GwtWeight *gwt_w = dynamic_cast<GwtWeight *>(w);
+        GwtElement *gwt = gwt_w->gwt;
+        gal = Gda::Gwt2Gal(gwt, gwt_w->num_obs);
+    }
+    return gal;
+}

@@ -25,8 +25,86 @@
 #include <wx/wx.h>
 #include <wx/xrc/xmlres.h>
 #include <wx/colour.h>
+#include <wx/textwrapper.h>
+#include <wx/gdicmn.h> // for wxPoint / wxRealPoint
 
 #include "DialogTools/VariableSettingsDlg.h"
+
+namespace GenGeomAlgs {
+    void StandardizeRect(const wxPoint& s1, const wxPoint& s2,
+                         wxPoint& lower_left, wxPoint& upper_right);
+    bool RectsIntersect(const wxPoint& r1_lower_left,
+                        const wxPoint& r1_upper_right,
+                        const wxPoint& r2_lower_left,
+                        const wxPoint& r2_upper_right);
+    bool CounterClockwise(const wxPoint& p1, const wxPoint& p2,
+                          const wxPoint& p3);
+    bool LineSegsIntersect(const wxPoint& l1_p1, const wxPoint& l1_p2,
+                           const wxPoint& l2_p1, const wxPoint& l2_p2);
+}
+namespace GenUtils {
+    wxString WrapText(wxWindow *win, const wxString& text, int widthMax);
+    double distance(const wxRealPoint& p1, const wxRealPoint& p2);
+    double distance(const wxRealPoint& p1, const wxPoint& p2);
+    double distance(const wxPoint& p1, const wxRealPoint& p2);
+    double distance(const wxPoint& p1, const wxPoint& p2);
+    double distance_sqrd(const wxRealPoint& p1, const wxRealPoint& p2);
+    double distance_sqrd(const wxRealPoint& p1, const wxPoint& p2);
+    double distance_sqrd(const wxPoint& p1, const wxRealPoint& p2);
+    double distance_sqrd(const wxPoint& p1, const wxPoint& p2);
+    double pointToLineDist(const wxPoint& p0, const wxPoint& p1,
+                           const wxPoint& p2);
+    wxString PtToStr(const wxPoint& p);
+    wxString PtToStr(const wxRealPoint& p);
+    
+    wxString DetectDateFormat(wxString s, vector<wxString>& date_items);
+}
+
+namespace GdaColorUtils {
+    /** Returns colour in 6-hex-digit HTML format.
+     Eg wxColour(255,0,0) -> "#FF0000" */
+    wxString ToHexColorStr(const wxColour& c);
+    /** change brightness of input_color and leave result in output color
+     brightness = 75 by default, will slightly darken the input color.
+     brightness = 0 is black, brightness = 200 is white. */
+    wxColour ChangeBrightness(const wxColour& input_col, int brightness = 75);
+    
+    void GetUnique20Colors(vector<wxColour>& colors);
+    
+    void GetLISAColors(vector<wxColour>& colors);
+    void GetLISAColorLabels(vector<wxString>& labels);
+    
+    void GetLocalGColors(vector<wxColour>& colors);
+    void GetLocalGColorLabels(vector<wxString>& labels);
+    
+    void GetLocalJoinCountColors(vector<wxColour>& colors);
+    void GetLocalJoinCountColorLabels(vector<wxString>& labels);
+    
+    void GetLocalGearyColors(vector<wxColour>& colors);
+    void GetLocalGearyColorLabels(vector<wxString>& labels);
+    
+    void GetMultiLocalGearyColors(vector<wxColour>& colors);
+    void GetMultiLocalGearyColorLabels(vector<wxString>& labels);
+    
+    void GetPercentileColors(vector<wxColour>& colors);
+    void GetPercentileColorLabels(vector<wxString>& labels);
+    
+    void GetBoxmapColors(vector<wxColour>& colors);
+    void GetBoxmapColorLabels(vector<wxString>& labels);
+    
+    void GetStddevColors(vector<wxColour>& colors);
+    void GetStddevColorLabels(vector<wxString>& labels);
+    
+    void GetQuantile2Colors(vector<wxColour>& colors);
+    void GetQuantile3Colors(vector<wxColour>& colors);
+    void GetQuantile4Colors(vector<wxColour>& colors);
+    void GetQuantile5Colors(vector<wxColour>& colors);
+    void GetQuantile6Colors(vector<wxColour>& colors);
+    void GetQuantile7Colors(vector<wxColour>& colors);
+    void GetQuantile8Colors(vector<wxColour>& colors);
+    void GetQuantile9Colors(vector<wxColour>& colors);
+    void GetQuantile10Colors(vector<wxColour>& colors);
+}
 
 class GeneralWxUtils	{
 public:

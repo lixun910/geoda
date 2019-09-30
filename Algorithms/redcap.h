@@ -105,7 +105,7 @@ namespace SpanningTreeClustering {
                 n2 = nbr;
                 e2 = e;
             } else {
-                cout << "AddNeighbor() > 2" << endl;
+                //cout << "AddNeighbor() > 2" << endl;
             }
         }
     };
@@ -148,7 +148,25 @@ namespace SpanningTreeClustering {
     public:
         Edge(Node* a, Node* b, double length);
         ~Edge() {}
-        
+
+        bool operator<(const Edge & b) //(1)
+        {
+            if (length < b.length) {
+                return true;
+            } else if (length > b.length ) {
+                return false;
+            } else if (orig->id < b.orig->id) {
+                return true;
+            } else if (orig->id > b.orig->id) {
+                return false;
+            } else if (dest->id < b.dest->id) {
+                return true;
+            } else if (dest->id > b.dest->id) {
+                return false;
+            }
+            return true;
+        }
+
         Node* orig;
         Node* dest;
         double length; // legnth of the edge |a.val - b.val|
