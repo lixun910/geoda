@@ -148,7 +148,7 @@ namespace SpanningTreeClustering {
     public:
         Edge(Node* a, Node* b, double length);
         ~Edge() {}
-
+        
         bool operator<(const Edge & b) //(1)
         {
             if (length < b.length) {

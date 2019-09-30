@@ -36,8 +36,8 @@
 #include "../logger.h"
 #include "../ShapeOperations/OGRDataAdapter.h"
 #include "../GdaException.h"
-#include "VarOrderMapper.h"
 #include "OGRColumn.h"
+#include "VarOrderMapper.h"
 
 using namespace std;
 namespace bt = boost::posix_time;
