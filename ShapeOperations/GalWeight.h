@@ -35,6 +35,7 @@ public:
 	const std::vector<long>& GetNbrs() const;
 	const std::vector<double>& GetNbrWeights() const;
 	void SortNbrs();
+    void ReverseNbrs();
 	long Size() const { return nbr.size(); }
 	long operator[](size_t n) const { return nbr[n]; }
 	double SpatialLag(const std::vector<double>& x) const;

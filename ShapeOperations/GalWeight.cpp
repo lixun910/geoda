@@ -188,6 +188,11 @@ void GalElement::SortNbrs()
 	std::sort(nbr.begin(), nbr.end(), std::greater<long>());
 }
 
+void GalElement::ReverseNbrs()
+{
+    std::reverse(nbr.begin(), nbr.end());
+}
+
 /** Compute spatial lag for a contiguity weights matrix.
  Automatically performs standardization of the result. */
 double GalElement::SpatialLag(const std::vector<double>& x) const
