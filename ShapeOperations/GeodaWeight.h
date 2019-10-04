@@ -52,7 +52,17 @@ public:
     virtual int    GetNbrSize(int obs_idx) = 0;
     virtual double SpatialLag(int obs_idx,
                               const std::vector<double>& data) = 0;
-    
+
+    virtual bool   SaveToFile(const char* ofname,
+                              const char* layer_name,
+                              const char* id_var_name,
+                              const std::vector<int>& id_vec);
+
+    virtual bool   SaveToFile(const char* ofname,
+                              const char* layer_name,
+                              const char* id_var_name,
+                              const std::vector<const char*>& id_vec);
+
     virtual bool   SaveToFile(const wxString& ofname,
                               const wxString& layer_name,
                               const wxString& id_var_name,

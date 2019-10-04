@@ -72,3 +72,33 @@ double GeoDaWeight::GetMedianNumNbrs() const
 {
     return median_nbrs;
 }
+
+bool GeoDaWeight::SaveToFile(const char* ofname,
+                  const char* layer_name,
+                  const char* id_var_name,
+                  const std::vector<int>& id_vec)
+{
+    wxString _ofname(ofname);
+    wxString _layer_name(layer_name);
+    wxString _id_var_name(id_var_name);
+    std::vector<wxInt64> _id_vec(id_vec.size());
+    for (size_t i=0; i<id_vec.size(); ++i)
+        _id_vec[i] = id_vec[i];
+
+    return SaveToFile(_ofname, _layer_name, _id_var_name, _id_vec);
+}
+
+bool GeoDaWeight::SaveToFile(const char* ofname,
+                             const char* layer_name,
+                             const char* id_var_name,
+                             const std::vector<const char*>& id_vec)
+{
+    wxString _ofname(ofname);
+    wxString _layer_name(layer_name);
+    wxString _id_var_name(id_var_name);
+    std::vector<wxString> _id_vec(id_vec.size());
+    for (size_t i=0; i<id_vec.size(); ++i)
+        _id_vec[i] << id_vec[i];
+
+    return SaveToFile(_ofname, _layer_name, _id_var_name, _id_vec);
+}
