@@ -299,6 +299,7 @@
     <None Include="..\..\Algorithms\distmat_kernel.cl" />
     <None Include="..\..\Algorithms\lisa_kernel.cl" />
     <None Include="..\..\Algorithms\localjc_kernel.cl" />
+    <None Include="..\..\OSMTools\dijkstra.cl" />
     <None Include="..\..\rc\GeoDa.ico" />
     <None Include="..\..\rc\dialogs.xrc" />
     <None Include="..\..\rc\GeoDaIcon-16x16.xpm" />
@@ -313,6 +314,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Algorithms\cluster.cpp" />
+    <ClCompile Include="..\..\Algorithms\DataClassify.cpp" />
     <ClCompile Include="..\..\Algorithms\distmatrix.cpp" />
     <ClCompile Include="..\..\Algorithms\fastcluster.cpp" />
     <ClCompile Include="..\..\Algorithms\gpu_lisa.cpp" />
@@ -332,6 +334,7 @@
     <ClCompile Include="..\..\DialogTools\AggregateDlg.cpp" />
     <ClCompile Include="..\..\DialogTools\AutoUpdateDlg.cpp" />
     <ClCompile Include="..\..\DialogTools\BasemapConfDlg.cpp" />
+    <ClCompile Include="..\..\DialogTools\CatchmentDlg.cpp" />
     <ClCompile Include="..\..\DialogTools\CsvFieldConfDlg.cpp" />
     <ClCompile Include="..\..\DialogTools\FieldNewCalcDateTimeDlg.cpp" />
     <ClCompile Include="..\..\DialogTools\HClusterDlg.cpp" />
@@ -345,10 +348,13 @@
     <ClCompile Include="..\..\DialogTools\PublishDlg.cpp" />
     <ClCompile Include="..\..\DialogTools\RedcapDlg.cpp" />
     <ClCompile Include="..\..\DialogTools\ReportBugDlg.cpp" />
+    <ClCompile Include="..\..\DialogTools\RoadDistancesDlg.cpp" />
     <ClCompile Include="..\..\DialogTools\SelectWeightsDlg.cpp" />
     <ClCompile Include="..\..\DialogTools\SkaterDlg.cpp" />
+    <ClCompile Include="..\..\DialogTools\SnapPointsToRoadDlg.cpp" />
     <ClCompile Include="..\..\DialogTools\SpatialJoinDlg.cpp" />
     <ClCompile Include="..\..\DialogTools\SpectralClusteringDlg.cpp" />
+    <ClCompile Include="..\..\DialogTools\TravelMapDlg.cpp" />
     <ClCompile Include="..\..\DialogTools\WebViewHelpWin.cpp" />
     <ClCompile Include="..\..\DialogTools\WeightsManDlg.cpp" />
     <ClCompile Include="..\..\Explore\AbstractClusterMap.cpp" />
@@ -376,6 +382,7 @@
     <ClCompile Include="..\..\Explore\MapLayoutView.cpp" />
     <ClCompile Include="..\..\Explore\MLJCCoordinator.cpp" />
     <ClCompile Include="..\..\Explore\MLJCMapNewView.cpp" />
+    <ClCompile Include="..\..\Explore\NetworkMapCanvas.cpp" />
     <ClCompile Include="..\..\Explore\ScatterPlotMatView.cpp" />
     <ClCompile Include="..\..\Explore\SimpleAxisCanvas.cpp" />
     <ClCompile Include="..\..\Explore\SimpleBinsHistCanvas.cpp" />
@@ -417,6 +424,15 @@
     <ClCompile Include="..\..\ogl\mfutils.cpp" />
     <ClCompile Include="..\..\ogl\ogldiag.cpp" />
     <ClCompile Include="..\..\ogl\oglmisc.cpp" />
+    <ClCompile Include="..\..\OGRTools\OGRDataUtils.cpp" />
+    <ClCompile Include="..\..\OGRTools\OGRShapeUtils.cpp" />
+    <ClCompile Include="..\..\OSMTools\Downloader.cpp" />
+    <ClCompile Include="..\..\OSMTools\oclDijkstraKernel.cpp" />
+    <ClCompile Include="..\..\OSMTools\Roads.cpp" />
+    <ClCompile Include="..\..\OSMTools\RoadUtils.cpp" />
+    <ClCompile Include="..\..\OSMTools\TravelTool.cpp" />
+    <ClCompile Include="..\..\OSMTools\uiRoadDownload.cpp" />
+    <ClCompile Include="..\..\OSMTools\uiTravelDistances.cpp" />
     <ClCompile Include="..\..\PointSetAlgs.cpp" />
     <ClCompile Include="..\..\ShapeOperations\Lowess.cpp" />
     <ClCompile Include="..\..\ShapeOperations\PolysToContigWeights.cpp" />
@@ -433,8 +449,10 @@
     <ClCompile Include="..\..\VarCalc\WeightsMetaInfo.cpp" />
     <ClCompile Include="..\..\VarTools.cpp" />
     <ClCompile Include="..\..\Weights\DistUtils.cpp" />
+    <ClCompile Include="..\..\Weights\RoadWeights.cpp" />
     <ClCompile Include="..\..\wxTranslationHelper.cpp" />
     <ClInclude Include="..\..\Algorithms\cluster.h" />
+    <ClInclude Include="..\..\Algorithms\DataClassify.h" />
     <ClInclude Include="..\..\Algorithms\DataUtils.h" />
     <ClInclude Include="..\..\Algorithms\distmatrix.h" />
     <ClInclude Include="..\..\Algorithms\fastcluster.h" />
@@ -470,6 +488,7 @@
     <ClInclude Include="..\..\DialogTools\AutoUpdateDlg.h" />
     <ClInclude Include="..\..\DialogTools\BasemapConfDlg.h" />
     <ClInclude Include="..\..\DialogTools\CalculatorDlg.h" />
+    <ClInclude Include="..\..\DialogTools\CatchmentDlg.h" />
     <ClInclude Include="..\..\DialogTools\CsvFieldConfDlg.h" />
     <ClInclude Include="..\..\DialogTools\DatasourceDlg.h" />
     <ClInclude Include="..\..\DialogTools\ExportDataDlg.h" />
@@ -489,12 +508,15 @@
     <ClInclude Include="..\..\DialogTools\PublishDlg.h" />
     <ClInclude Include="..\..\DialogTools\RedcapDlg.h" />
     <ClInclude Include="..\..\DialogTools\ReportBugDlg.h" />
+    <ClInclude Include="..\..\DialogTools\RoadDistancesDlg.h" />
     <ClInclude Include="..\..\DialogTools\SaveAsDlg.h" />
     <ClInclude Include="..\..\DialogTools\SelectWeightsDlg.h" />
     <ClInclude Include="..\..\DialogTools\SkaterDlg.h" />
+    <ClInclude Include="..\..\DialogTools\SnapPointsToRoadDlg.h" />
     <ClInclude Include="..\..\DialogTools\SpatialJoinDlg.h" />
     <ClInclude Include="..\..\DialogTools\SpectralClusteringDlg.h" />
     <ClInclude Include="..\..\DialogTools\TimeEditorDlg.h" />
+    <ClInclude Include="..\..\DialogTools\TravelMapDlg.h" />
     <ClInclude Include="..\..\DialogTools\VarGroupingEditorDlg.h" />
     <ClInclude Include="..\..\DialogTools\WebViewHelpWin.h" />
     <ClInclude Include="..\..\DialogTools\WeightsManDlg.h" />
@@ -527,6 +549,7 @@
     <ClInclude Include="..\..\Explore\MLJCCoordinator.h" />
     <ClInclude Include="..\..\Explore\MLJCCoordinatorObserver.h" />
     <ClInclude Include="..\..\Explore\MLJCMapNewView.h" />
+    <ClInclude Include="..\..\Explore\NetworkMapCanvas.h" />
     <ClInclude Include="..\..\Explore\ScatterPlotMatView.h" />
     <ClInclude Include="..\..\Explore\SimpleAxisCanvas.h" />
     <ClInclude Include="..\..\Explore\SimpleBinsHistCanvas.h" />
@@ -578,6 +601,15 @@
     <ClInclude Include="..\..\ogl\misc.h" />
     <ClInclude Include="..\..\ogl\ogl.h" />
     <ClInclude Include="..\..\ogl\ogldiag.h" />
+    <ClInclude Include="..\..\OGRTools\OGRDataUtils.h" />
+    <ClInclude Include="..\..\OGRTools\OGRShapeUtils.h" />
+    <ClInclude Include="..\..\OSMTools\Downloader.h" />
+    <ClInclude Include="..\..\OSMTools\oclDijkstraKernel.h" />
+    <ClInclude Include="..\..\OSMTools\Roads.h" />
+    <ClInclude Include="..\..\OSMTools\RoadUtils.h" />
+    <ClInclude Include="..\..\OSMTools\TravelTool.h" />
+    <ClInclude Include="..\..\OSMTools\uiRoadDownload.h" />
+    <ClInclude Include="..\..\OSMTools\uiTravelDistances.h" />
     <ClInclude Include="..\..\PointSetAlgs.h" />
     <ClInclude Include="..\..\ProjectConf.h" />
     <ClInclude Include="..\..\resource.h" />
@@ -722,6 +754,7 @@
     <ClInclude Include="..\..\VarTools.h" />
     <ClInclude Include="..\..\version.h" />
     <ClInclude Include="..\..\Weights\DistUtils.h" />
+    <ClInclude Include="..\..\Weights\RoadWeights.h" />
     <ClInclude Include="..\..\wxTranslationHelper.h" />
   </ItemGroup>
   <ItemGroup>

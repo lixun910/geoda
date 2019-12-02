@@ -13,6 +13,14 @@
 
 using namespace OSMTools;
 
+const wxString uiRoadDownload::wildcard = "Data Files (*.shp, *.geojson, *.json, *.sqlite, *.gpkg, *.gdb, *.gml, *.kml)|*.shp;*.geojson;*.json;*.sqlite;*.gpkg;*.gdb;*.gml;*.kml";
+
+const wxString uiRoadDownload::overpass_road = "way[\"highway\"][\"highway\"!~\"cycleway|bus_stop|elevator|footway|path|pedestrian|steps|track|proposed|construction|bridleway|abandoned|platform|raceway|service\"][\"motor_vehicle\"!~\"no\"][\"motorcar\"!~\"no\"][\"service\"!~\"parking|parking_aisle|driveway|emergency_access\"]";
+
+const wxString uiRoadDownload::overpass_walk = "way[\"highway\"][\"highway\"!~\"motor|proposed|construction|abandoned|platform|raceway\"][\"foot\"!~\"no\"][\"service\"!~\"private\"]";
+
+const wxString uiRoadDownload::overpass_bike = "way[\"highway\"][\"highway\"!~\"footway|corridor|motor|proposed|construction|abandoned|platform|raceway\"][\"bicycle\"!~\"no\"][\"service\"!~\"private\"]";
+
 uiRoadDownload::uiRoadDownload(const wxString& title)
     : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(500, 440))
 {
@@ -278,7 +286,7 @@ bool uiRoadDownload::download_from_input_ds()
     }
 
     int n_layers = layer_names.size();
-    wxString choices[n_layers];
+    wxString *choices = new wxString[n_layers];
     for (size_t i=0; i<n_layers; i++)  {
         choices[i] = layer_names[i];
         delete layer_names[i];
@@ -286,7 +294,7 @@ bool uiRoadDownload::download_from_input_ds()
     wxString ttl = _("Layer names");
     wxString prompt = _("Please select the layer name to connect:");
     wxSingleChoiceDialog choiceDlg(NULL, prompt, ttl, n_layers,
-                                   (const wxString*)&choices);
+                                   (const wxString*)choices);
     if (choiceDlg.ShowModal() != wxID_OK) {
         return false;
     }

@@ -38,7 +38,7 @@ std::vector<int> RoadUtils::SnapPointsOnRoad(std::vector<OGRFeature*> points)
     int remainder = n_points % nCPUs;
     int tot_threads = (quotient > 0) ? nCPUs : remainder;
 
-    boost::thread* bthread[tot_threads];
+    boost::thread** bthread = new boost::thread*[tot_threads];
     for (unsigned int i=0; i<tot_threads; i++) {
         int a=0;
         int b=0;

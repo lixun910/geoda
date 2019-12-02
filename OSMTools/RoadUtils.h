@@ -13,11 +13,8 @@
 #include <ogrsf_frmts.h>
 #include <stdio.h>
 
-#ifdef __GEODA__
 #include "../kNN/ANN/ANN.h"
-#else
-#include <ANN/ANN.h>
-#endif
+
 
 class RoadUtils
 {

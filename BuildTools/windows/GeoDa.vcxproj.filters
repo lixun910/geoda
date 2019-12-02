@@ -56,6 +56,12 @@
     <Filter Include="kNN\ANN">
       <UniqueIdentifier>{dcde4097-4967-4ebe-98cd-897b7657a5d2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="OSMTools">
+      <UniqueIdentifier>{89fec6cd-7d14-46ca-967a-aed0f2ed5dfd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OGRTools">
+      <UniqueIdentifier>{c5a03d4a-43e2-450a-a264-29fe9f974cc3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\rc\GeoDa.ico">
@@ -84,6 +90,9 @@
     </None>
     <None Include="..\..\Algorithms\localjc_kernel.cl">
       <Filter>Algorithms</Filter>
+    </None>
+    <None Include="..\..\OSMTools\dijkstra.cl">
+      <Filter>OSMTools</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -850,6 +859,54 @@
     <ClInclude Include="..\..\DialogTools\MultiVarSettingsDlg.h">
       <Filter>DialogTools</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\OSMTools\oclDijkstraKernel.h">
+      <Filter>OSMTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\OSMTools\Roads.h">
+      <Filter>OSMTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\OSMTools\RoadUtils.h">
+      <Filter>OSMTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\OSMTools\TravelTool.h">
+      <Filter>OSMTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\OSMTools\uiRoadDownload.h">
+      <Filter>OSMTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\OSMTools\uiTravelDistances.h">
+      <Filter>OSMTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\OSMTools\Downloader.h">
+      <Filter>OSMTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DialogTools\SnapPointsToRoadDlg.h">
+      <Filter>DialogTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DialogTools\TravelMapDlg.h">
+      <Filter>DialogTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\OGRTools\OGRDataUtils.h">
+      <Filter>OGRTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\OGRTools\OGRShapeUtils.h">
+      <Filter>OGRTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Weights\RoadWeights.h">
+      <Filter>Weights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DialogTools\RoadDistancesDlg.h">
+      <Filter>DialogTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Explore\NetworkMapCanvas.h">
+      <Filter>Explore</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Algorithms\DataClassify.h">
+      <Filter>Algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\DialogTools\CatchmentDlg.h">
+      <Filter>DialogTools</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\rc\GdaAppResources.cpp">
@@ -1537,6 +1594,54 @@
       <Filter>Weights</Filter>
     </ClCompile>
     <ClCompile Include="..\..\DialogTools\MultiVarSettingsDlg.cpp">
+      <Filter>DialogTools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\OSMTools\oclDijkstraKernel.cpp">
+      <Filter>OSMTools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\OSMTools\Roads.cpp">
+      <Filter>OSMTools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\OSMTools\RoadUtils.cpp">
+      <Filter>OSMTools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\OSMTools\TravelTool.cpp">
+      <Filter>OSMTools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\OSMTools\uiRoadDownload.cpp">
+      <Filter>OSMTools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\OSMTools\uiTravelDistances.cpp">
+      <Filter>OSMTools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\OSMTools\Downloader.cpp">
+      <Filter>OSMTools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\DialogTools\SnapPointsToRoadDlg.cpp">
+      <Filter>DialogTools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\DialogTools\TravelMapDlg.cpp">
+      <Filter>DialogTools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\OGRTools\OGRDataUtils.cpp">
+      <Filter>OGRTools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\OGRTools\OGRShapeUtils.cpp">
+      <Filter>OGRTools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Weights\RoadWeights.cpp">
+      <Filter>Weights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\DialogTools\RoadDistancesDlg.cpp">
+      <Filter>DialogTools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Explore\NetworkMapCanvas.cpp">
+      <Filter>Explore</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Algorithms\DataClassify.cpp">
+      <Filter>Algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\DialogTools\CatchmentDlg.cpp">
       <Filter>DialogTools</Filter>
     </ClCompile>
   </ItemGroup>

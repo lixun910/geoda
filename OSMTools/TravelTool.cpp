@@ -6,7 +6,7 @@
 #include <boost/thread.hpp>
 #include <wx/stdpaths.h>
 #include <wx/filename.h>
-#include <hdf5.h>
+//#include <hdf5.h>
 #include "TravelTool.h"
 
 
@@ -72,7 +72,8 @@ TravelBass::TravelBass(std::vector<OGRFeature*> in_roads,
                        const wxString& _one_way_flag)
 : default_speed(_default_speed),
 speed_penalty(_penalty), speed_limit_dict(_speed_limit_dict),
-one_way_flag(_one_way_flag)
+one_way_flag(_one_way_flag),
+eps(0.00000001)
 {
     roads = in_roads;
     
@@ -607,8 +608,8 @@ void TravelDistanceMatrix::GetDistanceMatrix(std::vector<OGRFeature *> query_poi
     std::vector<wxString> query_ids;
     SaveQueryResults(out_file.mb_str(wxConvUTF8), query_size, results, query_ids);
     //SaveMatrixToHDF5(out_file.mb_str(wxConvUTF8), query_size, results, query_ids);
-    pt::time_duration timeGPUCPU = pt::microsec_clock::local_time() - startTimeGPUCPU;
-    printf("\nrunHDF5 - CPU Time: %f s\n", (float)timeGPUCPU.total_milliseconds() / 1000.0f);
+    //pt::time_duration timeGPUCPU = pt::microsec_clock::local_time() - startTimeGPUCPU;
+    //printf("\nrunHDF5 - CPU Time: %f s\n", (float)timeGPUCPU.total_milliseconds() / 1000.0f);
 
 
     free(results);
@@ -831,7 +832,7 @@ void TravelDistanceMatrix::ComputeDistMatrixCPU(int* results, int query_size,
     int remainder = query_size % nCPUs;
     int tot_threads = (quotient > 0) ? nCPUs : remainder;
 
-    boost::thread* bthread[tot_threads];
+    boost::thread** bthread = new boost::thread*[tot_threads];
 
     for (unsigned int i=0; i<tot_threads; i++) {
         int a=0;
@@ -913,6 +914,7 @@ bool TravelDistanceMatrix::SaveMatrixToHDF5(const char* file_path,
                                             int n, int* data,
                                             const std::vector<wxString>& query_ids)
 {
+	/*
     if (file_path == 0) return false;
 
     const char *ds_name = "DistanceMatrix";
@@ -929,11 +931,13 @@ bool TravelDistanceMatrix::SaveMatrixToHDF5(const char* file_path,
     H5Tclose(datatype);
     H5Dclose(dataset);
     H5Fclose(file);
+	*/
     return true;
 }
 
 void TravelDistanceMatrix::ReadHDF5ToMatrix(const char* file_path)
 {
+	/*
     pt::ptime startTimeGPUCPU = pt::microsec_clock::local_time();
 
     const char *ds_name = "DistanceMatrix";
@@ -950,10 +954,10 @@ void TravelDistanceMatrix::ReadHDF5ToMatrix(const char* file_path)
     int rank = H5Sget_simple_extent_ndims(dataspace);
     int status_n  = H5Sget_simple_extent_dims(dataspace, dims_out, NULL);
 
-    hsize_t      count[2];              /* size of the hyperslab in the file */
-    hsize_t      offset[2];             /* hyperslab offset in the file */
-    hsize_t      count_out[3];          /* size of the hyperslab in memory */
-    hsize_t      offset_out[3];         /* hyperslab offset in memory */
+    hsize_t      count[2];      // size of the hyperslab in the file
+    hsize_t      offset[2];     //hyperslab offset in the file 
+    hsize_t      count_out[3];  // size of the hyperslab in memory
+    hsize_t      offset_out[3];  //hyperslab offset in memory 
 
     herr_t status;
 
@@ -974,6 +978,7 @@ void TravelDistanceMatrix::ReadHDF5ToMatrix(const char* file_path)
 
     pt::time_duration timeGPUCPU = pt::microsec_clock::local_time() - startTimeGPUCPU;
     printf("\nreadHDF5 - CPU Time: %f s\n", (float)timeGPUCPU.total_milliseconds() / 1000.0f);
+	*/
 
 }
 

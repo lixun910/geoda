@@ -552,7 +552,7 @@ void runDijkstraMultiGPU( const char* dir, cl_context gpuContext,
     }
 
     DevicePlan *devicePlans = (DevicePlan*) malloc(sizeof(DevicePlan) * deviceCount);
-    boost::thread* bthread[deviceCount];
+    boost::thread** bthread = new boost::thread*[deviceCount];
 
     // Divide the workload out per device
     int resultsPerDevice = numResults / deviceCount;

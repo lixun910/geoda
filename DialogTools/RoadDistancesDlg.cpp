@@ -388,8 +388,10 @@ void RoadDistancesDlg::InitGrid()
         10, 10, 10, 10, 25
     };
     int n = 36;
-    gd_speed->SetColumnWidth(0, 150);
-    gd_speed->SetColumnWidth(1, 150);
+    //gd_speed->SetColumnWidth(0, 150);
+    //gd_speed->SetColumnWidth(1, 150);
+	gd_speed->SetColSize(0, 150);
+    gd_speed->SetColSize(1, 150);
     for (size_t i=0; i<n; ++i) {
         gd_speed->SetCellValue(i, 0, way_types[i]);
         gd_speed->SetReadOnly(i, 0 , true);

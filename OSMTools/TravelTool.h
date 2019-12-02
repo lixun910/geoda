@@ -10,11 +10,10 @@
 #include <boost/unordered_map.hpp>
 #include <wx/wx.h>
 
-#ifdef __GEODA__
+
 #include "../kNN/ANN/ANN.h"
-#else
-#include <ANN/ANN.h>
-#endif
+
+
 #include <ogrsf_frmts.h>
 
 #include "oclDijkstraKernel.h"
@@ -69,7 +68,7 @@ namespace OSMTools {
         wxString GetExeDir();
         
     protected:
-        const double eps = 0.00000001; // error bound
+        double eps; // error bound
         double** xy;
         ANNkd_tree* kd_tree;
 
