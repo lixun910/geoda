@@ -47,7 +47,7 @@
 #include "../Algorithms/cluster.h"
 #include "../Algorithms/maxp.h"
 #include "../Algorithms/DataUtils.h"
-
+#include "../Algorithms/azp.h"
 #include "../GeneralWxUtils.h"
 #include "../GenUtils.h"
 #include "SaveToTableDlg.h"
@@ -567,9 +567,11 @@ void SkaterDlg::OnOK(wxCommandEvent& event )
         delete skater;
         skater = NULL;
     }
-    
+
+    std::vector<ZoneControl> controllers;
+
 	// Run Skater
-    skater = new SpanningTreeClustering::Skater(rows, columns, distances, input_data, undefs, gw->gal, bound_vals, min_bound);
+    skater = new SpanningTreeClustering::Skater(rows, columns, distances, input_data, undefs, gw->gal, bound_vals, min_bound, controllers);
     
     if (skater==NULL) {
         delete[] bound_vals;

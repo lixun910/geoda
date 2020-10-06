@@ -65,8 +65,14 @@ public:
     // SUM of population is LESS than value 50,000
     void AddControl(Operation op, Comparator cmp, const double& val);
 
+    bool HasUpperBound();
+    
     // Check if a candidate zone satisfies the restrictions
     bool SatisfyLowerBound(boost::unordered_map<int, bool>& candidates);
+
+    bool CheckLowerBound(const std::vector<int>& candidates);
+
+    bool CheckUpperBound(const std::vector<int>& candidates);
 
     bool CheckBound(boost::unordered_map<int, bool>& candidates);
 
@@ -76,6 +82,8 @@ public:
     bool CheckAdd(int area, boost::unordered_map<int, bool>& candidates);
 
     double getZoneValue(int i, boost::unordered_map<int, bool>& candidates);
+
+    double getZoneValue(int i, const std::vector<int>& candidates);
 
 protected:
     std::vector<double> data;

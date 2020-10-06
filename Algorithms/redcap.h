@@ -26,6 +26,7 @@
 #include <set>
 #include <float.h>
 
+#include "azp.h"
 #include "../ShapeOperations/GalWeight.h"
 
 #include <boost/thread/mutex.hpp>
@@ -173,19 +174,21 @@ namespace SpanningTreeClustering {
     class Tree
     {
     public:
-        Tree(vector<int> ordered_ids,
-                   vector<Edge*> _edges,
-                   AbstractClusterFactory* cluster);
-        
+        Tree(vector<int> ordered_ids, vector<Edge*> _edges, AbstractClusterFactory* cluster);
         ~Tree();
         
         void Partition(int start, int end, vector<int>& ids,
                        vector<pair<int, int> >& od_array,
                        boost::unordered_map<int, vector<int> >& nbr_dict);
+        
         void Split(int orig, int dest,
                    boost::unordered_map<int, vector<int> >& nbr_dict,
                    vector<int>& cand_ids);
-        bool checkControl(vector<int>& cand_ids, vector<int>& ids, int flag);
+
+        bool checkControl(const vector<int>& cand_ids, vector<int>& ids, int flag);
+
+        bool checkBounds();
+
         pair<Tree*, Tree*> GetSubTrees();
         
         double ssd_reduce;
@@ -253,12 +256,15 @@ namespace SpanningTreeClustering {
         vector<boost::unordered_map<int, double> > dist_dict;
         
         vector<vector<int> > cluster_ids;
+
+        std::vector<ZoneControl> zone_controls;
         
         AbstractClusterFactory(int row, int col,
-                       double** distances,
-                       double** data,
-                       const vector<bool>& undefs,
-                       GalElement * w);
+                               double** distances,
+                               double** data,
+                               const vector<bool>& undefs,
+                               GalElement * w,
+                               const std::vector<ZoneControl>& c);
         virtual ~AbstractClusterFactory();
         
         virtual void Clustering()=0;
@@ -294,7 +300,8 @@ namespace SpanningTreeClustering {
                const vector<bool>& undefs,
                GalElement * w,
                double* controls,
-               double control_thres);
+               double control_thres,
+               const std::vector<ZoneControl>& c);
         virtual ~Skater();
         virtual void Clustering();
     };
@@ -313,7 +320,8 @@ namespace SpanningTreeClustering {
                             const vector<bool>& undefs,
                             GalElement * w,
                             double* controls,
-                            double control_thres);
+                            double control_thres,
+                            const std::vector<ZoneControl>& c);
         virtual ~FirstOrderSLKRedCap();
         
         virtual void Clustering();
@@ -334,7 +342,8 @@ namespace SpanningTreeClustering {
                             const vector<bool>& undefs,
                             GalElement * w,
                             double* controls,
-                            double control_thres);
+                            double control_thres,
+                            const std::vector<ZoneControl>& c);
         
         virtual ~FirstOrderALKRedCap();
         
@@ -356,7 +365,8 @@ namespace SpanningTreeClustering {
                             const vector<bool>& undefs,
                             GalElement * w,
                             double* controls,
-                            double control_thres);
+                            double control_thres,
+                            const std::vector<ZoneControl>& c);
         
         virtual ~FirstOrderCLKRedCap();
         
@@ -379,6 +389,7 @@ namespace SpanningTreeClustering {
                            GalElement * w,
                            double* controls,
                            double control_thres,
+                           const std::vector<ZoneControl>& c,
                            bool init=true);
         
         virtual ~FullOrderALKRedCap();
@@ -404,7 +415,8 @@ namespace SpanningTreeClustering {
                            const vector<bool>& undefs,
                            GalElement * w,
                            double* controls,
-                           double control_thres);
+                           double control_thres,
+                           const std::vector<ZoneControl>& c);
         virtual ~FullOrderSLKRedCap();
         
         virtual double UpdateClusterDist(int cur_id, int orig_id, int dest_id, bool is_orig_nbr, bool is_dest_nbr, vector<int>& clst_ids, vector<int>& clst_startpos, vector<int>& clst_nodenum);
@@ -426,7 +438,8 @@ namespace SpanningTreeClustering {
                            const vector<bool>& undefs,
                            GalElement * w,
                            double* controls,
-                           double control_thres);
+                           double control_thres,
+                           const std::vector<ZoneControl>& c);
         
         virtual ~FullOrderCLKRedCap();
         
@@ -448,7 +461,8 @@ namespace SpanningTreeClustering {
                            const vector<bool>& undefs,
                            GalElement * w,
                            double* controls,
-                           double control_thres);
+                           double control_thres,
+                            const std::vector<ZoneControl>& c);
         
         virtual ~FullOrderWardRedCap();
         

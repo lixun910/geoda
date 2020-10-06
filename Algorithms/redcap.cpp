@@ -365,8 +365,46 @@ void Tree::Split(int orig, int dest, boost::unordered_map<int, vector<int> >& nb
     }
 }
 
-bool Tree::checkControl(vector<int>& cand_ids, vector<int>& ids, int flag)
+bool Tree::checkBounds()
 {
+    // check if this tree satisfy both lower and upper bounds
+    bool has_upperbound = false;
+    std::vector<ZoneControl>& zc = cluster->zone_controls;
+    for (int i=0; i<zc.size(); ++i) {
+        has_upperbound = has_upperbound || zc[i].HasUpperBound();
+        if (zc[i].CheckUpperBound(ordered_ids) == false) {
+            return false;
+        } else  if (zc[i].CheckLowerBound(ordered_ids) == false) {
+            return false;
+        }
+    }
+
+    return has_upperbound && true;
+}
+
+bool Tree::checkControl(const vector<int>& cand_ids, vector<int>& ids, int flag)
+{
+    if (cluster->zone_controls.empty()) {
+        return true;
+    }
+    
+    vector<int> selected_ids;
+
+    for (int j=0; j<ids.size(); j++) {
+        if (cand_ids[ ids[j] ] == flag) {
+            selected_ids.push_back( ids[j] );
+        }
+    }
+
+    // check if satisfy low bound
+    std::vector<ZoneControl>& zc = cluster->zone_controls;
+    for (int i=0; i<zc.size(); ++i) {
+        if (zc[i].CheckLowerBound(selected_ids) == false) {
+            return false;
+        }
+    }
+    return true;
+    /*
     if (controls == NULL) {
         return true;
     }
@@ -379,6 +417,7 @@ bool Tree::checkControl(vector<int>& cand_ids, vector<int>& ids, int flag)
     }
     
     return val >= control_thres;
+     */
 }
 
 pair<Tree*, Tree*> Tree::GetSubTrees()
@@ -440,8 +479,8 @@ pair<Tree*, Tree*> Tree::GetSubTrees()
 // AbstractClusterFactory
 //
 ////////////////////////////////////////////////////////////////////////////////
-AbstractClusterFactory::AbstractClusterFactory(int row, int col,  double** _distances, double** _data, const vector<bool>& _undefs, GalElement * _w)
-: rows(row), cols(col), dist_matrix(_distances), raw_data(_data), undefs(_undefs), w(_w)
+AbstractClusterFactory::AbstractClusterFactory(int row, int col,  double** _distances, double** _data, const vector<bool>& _undefs, GalElement * _w, const std::vector<ZoneControl>& c)
+: rows(row), cols(col), dist_matrix(_distances), raw_data(_data), undefs(_undefs), w(_w), zone_controls(c)
 {
 }
 
@@ -452,10 +491,10 @@ AbstractClusterFactory::~AbstractClusterFactory()
     }
 
     for (int i=0; i<edges.size(); i++) {
-        delete edges[i];
+        if (edges[i]) delete edges[i];
     }
     for (int i=0; i<nodes.size(); i++) {
-        delete nodes[i];
+        if (nodes[i]) delete nodes[i];
     }
 }
 
@@ -505,8 +544,6 @@ vector<vector<int> >& AbstractClusterFactory::GetRegions()
 
 void AbstractClusterFactory::Partitioning(int k)
 {
-    wxStopWatch sw;
-    
     vector<Tree*> not_split_trees;
     Tree* current_tree = new Tree(ordered_ids, ordered_edges, this);
     PriorityQueue sub_trees;
@@ -517,13 +554,22 @@ void AbstractClusterFactory::Partitioning(int k)
         Tree* tmp_tree = sub_trees.top();
         //cout << tmp_tree->ssd_reduce << endl;
         sub_trees.pop();
-        
+
         if (tmp_tree->ssd == 0) {
             not_split_trees.push_back(tmp_tree);
             k = k -1;
             continue;
         }
-        
+
+        // if zone controls, using lower and upper bounds to check if
+        // splitting is needed; if no upper bounds, ignore checking
+        if (!zone_controls.empty() && tmp_tree->checkBounds()) {
+            not_split_trees.push_back(tmp_tree);
+            k = k -1;
+            continue;
+        }
+
+        // using lower bounds to split tree
         pair<Tree*, Tree*> children = tmp_tree->GetSubTrees();
        
         Tree* left_tree = children.first;
@@ -534,7 +580,7 @@ void AbstractClusterFactory::Partitioning(int k)
             k = k -1;
             continue;
         }
-        
+
         if (left_tree) {
             sub_trees.push(left_tree);
         }
@@ -563,7 +609,6 @@ void AbstractClusterFactory::Partitioning(int k)
     for (int i = 0; i< not_split_trees.size(); i++) {
         delete not_split_trees[i];
     }
-    wxString time = wxString::Format("The long running function took %ldms to execute", sw.Time());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -571,8 +616,8 @@ void AbstractClusterFactory::Partitioning(int k)
 // Skater
 //
 ////////////////////////////////////////////////////////////////////////////////
-Skater::Skater(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs, GalElement* w, double* _controls, double _control_thres)
-: AbstractClusterFactory(rows, cols, _distances, _data, _undefs, w)
+Skater::Skater(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs, GalElement* w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c)
+: AbstractClusterFactory(rows, cols, _distances, _data, _undefs, w, c)
 {
     controls = _controls;
     control_thres = _control_thres;
@@ -652,8 +697,8 @@ void Skater::Clustering()
 // 1 FirstOrderSLKRedCap
 //
 ////////////////////////////////////////////////////////////////////////////////
-FirstOrderSLKRedCap::FirstOrderSLKRedCap(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs, GalElement* w, double* _controls, double _control_thres)
-: AbstractClusterFactory(rows, cols, _distances, _data, _undefs, w)
+FirstOrderSLKRedCap::FirstOrderSLKRedCap(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs, GalElement* w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c)
+: AbstractClusterFactory(rows, cols, _distances, _data, _undefs, w, c)
 {
     controls = _controls;
     control_thres = _control_thres;
@@ -720,8 +765,8 @@ void FirstOrderSLKRedCap::Clustering()
 // The First-Order-ALK method also starts with the spatially contiguous graph G*. However, after each merge, the distance between the new cluster and every other cluster is recalculated. Therefore, edges that connect the new cluster and every other cluster are updated with new length values. Edges in G* are then re-sorted and re-evaluated from the beginning. The procedure stops when all objects are in one cluster. The algorithm is shown in figure 3. The complexity is O(n2log n) due to the sorting after each merge.
 //
 ////////////////////////////////////////////////////////////////////////////////
-FirstOrderALKRedCap::FirstOrderALKRedCap(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs, GalElement * w, double* _controls, double _control_thres)
-: AbstractClusterFactory(rows, cols, _distances, _data, _undefs, w)
+FirstOrderALKRedCap::FirstOrderALKRedCap(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs, GalElement * w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c)
+: AbstractClusterFactory(rows, cols, _distances, _data, _undefs, w, c)
 {
     controls = _controls;
     control_thres = _control_thres;
@@ -744,8 +789,8 @@ void FirstOrderALKRedCap::Clustering()
 // 3 FirstOrderCLKRedCap
 //
 ////////////////////////////////////////////////////////////////////////////////
-FirstOrderCLKRedCap::FirstOrderCLKRedCap(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs, GalElement * w, double* _controls, double _control_thres)
-: AbstractClusterFactory(rows, cols, _distances, _data, _undefs, w)
+FirstOrderCLKRedCap::FirstOrderCLKRedCap(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs, GalElement * w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c)
+: AbstractClusterFactory(rows, cols, _distances, _data, _undefs, w, c)
 {
     controls = _controls;
     control_thres = _control_thres;
@@ -767,8 +812,8 @@ void FirstOrderCLKRedCap::Clustering()
 // 4 FullOrderSLKRedCap
 //
 ////////////////////////////////////////////////////////////////////////////////
-FullOrderSLKRedCap::FullOrderSLKRedCap(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs, GalElement * w, double* _controls, double _control_thres)
-: FullOrderALKRedCap(rows, cols, _distances, _data, _undefs, w, _controls, _control_thres, false)
+FullOrderSLKRedCap::FullOrderSLKRedCap(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs, GalElement * w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c)
+: FullOrderALKRedCap(rows, cols, _distances, _data, _undefs, w, _controls, _control_thres, c, false)
 {
     init();
 }
@@ -813,8 +858,8 @@ double FullOrderSLKRedCap::UpdateClusterDist(int cur_id, int o_id, int d_id, boo
 // 5 FullOrderALKRedCap
 //
 ////////////////////////////////////////////////////////////////////////////////
-FullOrderALKRedCap::FullOrderALKRedCap(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs,  GalElement * w, double* _controls, double _control_thres, bool init_flag)
-: AbstractClusterFactory(rows, cols, _distances, _data, _undefs, w)
+FullOrderALKRedCap::FullOrderALKRedCap(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs,  GalElement * w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c, bool init_flag)
+: AbstractClusterFactory(rows, cols, _distances, _data, _undefs, w, c)
 {
     controls = _controls;
     control_thres = _control_thres;
@@ -1049,8 +1094,8 @@ Edge* FullOrderALKRedCap::GetShortestEdge(vector<Edge*>& _edges, int start, int 
 // 6 FullOrderCLKRedCap
 //
 ////////////////////////////////////////////////////////////////////////////////
-FullOrderCLKRedCap::FullOrderCLKRedCap(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs, GalElement * w, double* _controls, double _control_thres)
-: FullOrderALKRedCap(rows, cols, _distances, _data, _undefs, w, _controls, _control_thres, false)
+FullOrderCLKRedCap::FullOrderCLKRedCap(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs, GalElement * w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c)
+: FullOrderALKRedCap(rows, cols, _distances, _data, _undefs, w, _controls, _control_thres, c, false)
 {
     init();
 }
@@ -1091,8 +1136,8 @@ double FullOrderCLKRedCap::UpdateClusterDist(int cur_id, int o_id, int d_id, boo
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-FullOrderWardRedCap::FullOrderWardRedCap(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs,  GalElement * w, double* _controls, double _control_thres)
-: AbstractClusterFactory(rows, cols, _distances, _data, _undefs, w)
+FullOrderWardRedCap::FullOrderWardRedCap(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs,  GalElement * w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c)
+: AbstractClusterFactory(rows, cols, _distances, _data, _undefs, w, c)
 {
     controls = _controls;
     control_thres = _control_thres;

@@ -35,6 +35,7 @@
 #include "../Algorithms/cluster.h"
 #include "../GeneralWxUtils.h"
 #include "../GenUtils.h"
+#include "../Algorithms/azp.h"
 #include "SaveToTableDlg.h"
 #include "RedcapDlg.h"
 
@@ -460,17 +461,6 @@ void RedcapDlg::OnOK(wxCommandEvent& event )
             return;
         }
     }
-    bool check_floor = false;
-    if (chk_floor->IsChecked()) {
-        wxString str_floor = txt_floor->GetValue();
-        if (str_floor.IsEmpty() || combo_floor->GetSelection() < 0) {
-            wxString err_msg = _("Please enter minimum bound value");
-            wxMessageDialog dlg(NULL, err_msg, _("Error"), wxOK | wxICON_ERROR);
-            dlg.ShowModal();
-            return;
-        }
-        check_floor = true;
-    }
 
     wxString field_name = m_textbox->GetValue();
     if (field_name.IsEmpty()) {
@@ -494,18 +484,32 @@ void RedcapDlg::OnOK(wxCommandEvent& event )
         return;
     }
 
-    wxString str_max_region = m_max_region->GetValue();
-    if (str_max_region.IsEmpty()) {
-        if (txt_minregions->GetValue().IsEmpty() && check_floor == false) {
-            wxString err_msg = _("Please enter number of regions, or minimum bound value, or minimum region size.");
-            wxMessageDialog dlg(NULL, err_msg, _("Error"), wxOK | wxICON_ERROR);
-            dlg.ShowModal();
-            return;
-        }
+    // zonecontrls
+    std::vector<ZoneControl> controllers;
+
+    // Get Min regions
+    wxString str_min_region = txt_minregions->GetValue();
+    long l_min_region  = 0;
+    if (!str_min_region.IsEmpty() && str_min_region.ToLong(&l_min_region) == false) {
+        wxString err_msg = _("Please enter a valid number for Min Region Size.");
+        wxMessageDialog dlg(NULL, err_msg, _("Error"), wxOK | wxICON_ERROR);
+        dlg.ShowModal();
+        return;
+    }
+    if  (l_min_region  > 0) {
+        std::vector<double> ids(rows, 1);
+        ZoneControl zc(ids);
+        zc.AddControl(ZoneControl::SUM,
+                      ZoneControl::MORE_THAN, l_min_region);
+        zc.AddControl(ZoneControl::SUM,
+                      ZoneControl::LESS_THAN, 20);
+        controllers.push_back(zc);
     }
 
     // Get Bounds
     double min_bound = GetMinBound();
+    double* bound_vals = GetBoundVals();
+
     if (chk_floor->IsChecked()) {
         wxString str_floor = txt_floor->GetValue();
         if (str_floor.IsEmpty()) {
@@ -514,22 +518,13 @@ void RedcapDlg::OnOK(wxCommandEvent& event )
             dlg.ShowModal();
             return;
         }
-        check_floor = true;
+        ZoneControl zc(rows, bound_vals);
+        zc.AddControl(ZoneControl::SUM,
+                      ZoneControl::MORE_THAN, min_bound);
+        controllers.push_back(zc);
+        delete[] bound_vals;
     }
 
-    double* bound_vals = GetBoundVals();
-
-    if (bound_vals == NULL) {
-        wxString str_min_regions = txt_minregions->GetValue();
-        long val_min_regions;
-        if (str_min_regions.ToLong(&val_min_regions)) {
-            min_bound = val_min_regions;
-            check_floor = true;
-        }
-        bound_vals = new double[rows];
-        for (int i=0; i<rows; i++)
-            bound_vals[i] = 1;
-    }
 
 	// Get Distance Selection
     char dist = 'e'; // euclidean
@@ -538,12 +533,21 @@ void RedcapDlg::OnOK(wxCommandEvent& event )
     dist = dist_choices[dist_sel];
 
     // Get number of regions
+    wxString str_max_region = m_max_region->GetValue();
     int n_regions = std::numeric_limits<int>::max();
     long value_n_region;
     if(str_max_region.ToLong(&value_n_region)) {
         n_regions = value_n_region;
     }
-    
+
+    if (str_max_region.IsEmpty() && txt_minregions->GetValue().IsEmpty() &&
+        chk_floor->IsChecked() == false) {
+            wxString err_msg = _("Please enter number of regions, or minimum bound value, or minimum region size.");
+            wxMessageDialog dlg(NULL, err_msg, _("Error"), wxOK | wxICON_ERROR);
+            dlg.ShowModal();
+            return;
+        }
+
     // Get user specified seed
     int rnd_seed = -1;
     if (chk_seed->GetValue()) rnd_seed = GdaConst::gda_user_seed;
@@ -553,7 +557,7 @@ void RedcapDlg::OnOK(wxCommandEvent& event )
     double** distances = DataUtils::fullRaggedMatrix(ragged_distances, rows, rows);
     for (int i = 1; i < rows; i++) free(ragged_distances[i]);
     free(ragged_distances);
-    
+
     // run RedCap
     std::vector<bool> undefs(rows, false);
   
@@ -564,13 +568,13 @@ void RedcapDlg::OnOK(wxCommandEvent& event )
                                
     int method_idx = combo_method->GetSelection();
     if (method_idx == 0) {
-        redcap = new FirstOrderSLKRedCap(rows, columns, distances, input_data, undefs, gw->gal, bound_vals, min_bound);
+        redcap = new FirstOrderSLKRedCap(rows, columns, distances, input_data, undefs, gw->gal, bound_vals, min_bound, controllers);
     } else if (method_idx == 1) {
-        redcap = new FullOrderCLKRedCap(rows, columns, distances, input_data, undefs, gw->gal, bound_vals, min_bound);
+        redcap = new FullOrderCLKRedCap(rows, columns, distances, input_data, undefs, gw->gal, bound_vals, min_bound, controllers);
     } else if (method_idx == 2) {
-        redcap = new FullOrderALKRedCap(rows, columns, distances, input_data, undefs, gw->gal, bound_vals, min_bound);
+        redcap = new FullOrderALKRedCap(rows, columns, distances, input_data, undefs, gw->gal, bound_vals, min_bound, controllers);
     } else if (method_idx == 3) {
-        redcap = new FullOrderSLKRedCap(rows, columns, distances, input_data, undefs, gw->gal, bound_vals, min_bound);
+        redcap = new FullOrderSLKRedCap(rows, columns, distances, input_data, undefs, gw->gal, bound_vals, min_bound, controllers);
     }
 
    
