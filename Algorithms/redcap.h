@@ -62,20 +62,25 @@ namespace SpanningTreeClustering {
     
     class SSDUtils
     {
-        double** raw_data;
+        const double** raw_data;
         int row;
         int col;
         
+        boost::unordered_map<vector<int>, double> cache;
+        
     public:
-        SSDUtils(double** data, int _row, int _col) {
+        SSDUtils(const double** data, int _row, int _col) {
             raw_data = data;
             row = _row;
             col = _col;
         }
-        ~SSDUtils() {}
         
-        double ComputeSSD(vector<int>& visited_ids, int start, int end);
-        void MeasureSplit(double ssd, vector<int>& visited_ids, int split_position, Measure& result);
+
+        virtual ~SSDUtils() {}
+        
+        double ComputeSSD(vector<int> &visited_ids);
+        double ComputeSSD(boost::unordered_map<int, int>& group, int flag);
+        void MeasureSplit(double ssd, boost::unordered_map<int, int>& group, Measure& result);
         
     };
     
@@ -118,7 +123,7 @@ namespace SpanningTreeClustering {
     {
     public:
         Node(int id);
-        ~Node() {}
+        virtual ~Node() {}
         
         
         int id; // mapping to record id
@@ -156,6 +161,24 @@ namespace SpanningTreeClustering {
         Node* orig;
         Node* dest;
         double length; // legnth of the edge |a.val - b.val|
+        
+        bool operator < (const Edge* e) const
+        {
+           if (length < e->length) {
+                return true;
+            } else if (length > e->length ) {
+                return false;
+            } else if (orig->id < e->orig->id) {
+                return true;
+            } else if (orig->id > e->orig->id) {
+                return false;
+            } else if (dest->id < e->dest->id) {
+                return true;
+            } else if (dest->id > e->dest->id) {
+                return false;
+            }
+            return true;
+        }
     };
     
     /////////////////////////////////////////////////////////////////////////
@@ -169,6 +192,7 @@ namespace SpanningTreeClustering {
         vector<int> split_ids;
         double ssd;
         double ssd_reduce;
+        boost::unordered_map<int, int> group;
     };
     
     class Tree
@@ -183,9 +207,9 @@ namespace SpanningTreeClustering {
         
         void Split(int orig, int dest,
                    boost::unordered_map<int, vector<int> >& nbr_dict,
-                   vector<int>& cand_ids);
+                   boost::unordered_map<int, int>& group);
 
-        bool checkControl(const vector<int>& cand_ids, vector<int>& ids, int flag);
+        bool checkControl(boost::unordered_map<int, int>& group, int flag);
 
         bool checkBounds();
 
@@ -197,9 +221,12 @@ namespace SpanningTreeClustering {
         vector<pair<int, int> > od_array;
         AbstractClusterFactory* cluster;
         pair<Tree*, Tree*> subtrees;
+        
         int max_id;
         int split_pos;
         vector<int> split_ids;
+        boost::unordered_map<int, int> group;
+        
         vector<Edge*> edges;
         vector<int> ordered_ids;
         SSDUtils* ssd_utils;
@@ -238,7 +265,7 @@ namespace SpanningTreeClustering {
         int cols;
         GalElement* w;
         double** dist_matrix;
-        double** raw_data;
+        const double** raw_data;
         const vector<bool>& undefs; // undef = any one item is undef in all variables
         double* controls;
         double control_thres;
@@ -261,7 +288,7 @@ namespace SpanningTreeClustering {
         
         AbstractClusterFactory(int row, int col,
                                double** distances,
-                               double** data,
+                               const double** data,
                                const vector<bool>& undefs,
                                GalElement * w,
                                const std::vector<ZoneControl>& c);
@@ -296,7 +323,7 @@ namespace SpanningTreeClustering {
     public:
         Skater(int rows, int cols,
                double** _distances,
-               double** data,
+               const double** data,
                const vector<bool>& undefs,
                GalElement * w,
                double* controls,
@@ -316,7 +343,7 @@ namespace SpanningTreeClustering {
     public:
         FirstOrderSLKRedCap(int rows, int cols,
                             double** _distances,
-                            double** data,
+                            const double** data,
                             const vector<bool>& undefs,
                             GalElement * w,
                             double* controls,
@@ -338,7 +365,7 @@ namespace SpanningTreeClustering {
     public:
         FirstOrderALKRedCap(int rows, int cols,
                             double** _distances,
-                            double** data,
+                            const double** data,
                             const vector<bool>& undefs,
                             GalElement * w,
                             double* controls,
@@ -361,7 +388,7 @@ namespace SpanningTreeClustering {
     public:
         FirstOrderCLKRedCap(int rows, int cols,
                             double** _distances,
-                            double** data,
+                            const double** data,
                             const vector<bool>& undefs,
                             GalElement * w,
                             double* controls,
@@ -384,7 +411,7 @@ namespace SpanningTreeClustering {
     public:
         FullOrderALKRedCap(int rows, int cols,
                            double** _distances,
-                           double** data,
+                           const double** data,
                            const vector<bool>& undefs,
                            GalElement * w,
                            double* controls,
@@ -411,7 +438,7 @@ namespace SpanningTreeClustering {
     public:
         FullOrderSLKRedCap(int rows, int cols,
                            double** _distances,
-                           double** data,
+                           const double** data,
                            const vector<bool>& undefs,
                            GalElement * w,
                            double* controls,
@@ -434,7 +461,7 @@ namespace SpanningTreeClustering {
     public:
         FullOrderCLKRedCap(int rows, int cols,
                            double** _distances,
-                           double** data,
+                           const double** data,
                            const vector<bool>& undefs,
                            GalElement * w,
                            double* controls,
@@ -457,7 +484,7 @@ namespace SpanningTreeClustering {
     public:
         FullOrderWardRedCap(int rows, int cols,
                            double** _distances,
-                           double** data,
+                           const double** data,
                            const vector<bool>& undefs,
                            GalElement * w,
                            double* controls,

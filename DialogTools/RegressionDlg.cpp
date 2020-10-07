@@ -524,6 +524,9 @@ void RegressionDlg::OnRunClick( wxCommandEvent& event )
             DiagnosticReport m_DR(n, nX, m_constant_term, true, 1);
             if ( false == m_DR.GetDiagStatus()) {
                 UpdateMessageBox("");
+                if (is_new_gal && gal_weight) {
+                    delete[] gal_weight;
+                }
                 return;
             }
             

@@ -1624,8 +1624,8 @@ void LocalMatchSignificanceFrame::OnSigFilterSetup(wxCommandEvent& event)
             gs_coord->fdr = dlg.GetFDR();
             UpdateOptionMenuItems();
         }
-        delete[] p_val;
     }
+    delete[] p_val;
 }
 
 void LocalMatchSignificanceFrame::OnSaveMLJC(wxCommandEvent& event)

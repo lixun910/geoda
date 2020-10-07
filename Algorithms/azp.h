@@ -70,7 +70,7 @@ public:
     // Check if a candidate zone satisfies the restrictions
     bool SatisfyLowerBound(boost::unordered_map<int, bool>& candidates);
 
-    bool CheckLowerBound(const std::vector<int>& candidates);
+    bool CheckLowerBound(boost::unordered_map<int, int>& group, int flag);
 
     bool CheckUpperBound(const std::vector<int>& candidates);
 

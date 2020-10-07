@@ -571,7 +571,7 @@ void SkaterDlg::OnOK(wxCommandEvent& event )
     std::vector<ZoneControl> controllers;
 
 	// Run Skater
-    skater = new SpanningTreeClustering::Skater(rows, columns, distances, input_data, undefs, gw->gal, bound_vals, min_bound, controllers);
+    skater = new SpanningTreeClustering::Skater(rows, columns, distances, (const double**)input_data, undefs, gw->gal, bound_vals, min_bound, controllers);
     
     if (skater==NULL) {
         delete[] bound_vals;

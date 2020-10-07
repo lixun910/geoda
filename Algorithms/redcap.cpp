@@ -44,39 +44,36 @@ using namespace std;
 using namespace boost;
 using namespace SpanningTreeClustering;
 
-bool EdgeLess(Edge* a, Edge* b)
+struct EdgeLess
 {
-    if (a->length < b->length) {
+    inline bool operator() (const Edge* a, const Edge* b){
+        if (a->length < b->length) {
+            return true;
+        } else if (a->length > b->length ) {
+            return false;
+        } else if (a->orig->id < b->orig->id) {
+            return true;
+        } else if (a->orig->id > b->orig->id) {
+            return false;
+        } else if (a->dest->id < b->dest->id) {
+            return true;
+        } else if (a->dest->id > b->dest->id) {
+            return false;
+        }
         return true;
-    } else if (a->length > b->length ) {
-        return false;
-    } else if (a->orig->id < b->orig->id) {
-        return true;
-    } else if (a->orig->id > b->orig->id) {
-        return false;
-    } else if (a->dest->id < b->dest->id) {
-        return true;
-    } else if (a->dest->id > b->dest->id) {
-        return false;
     }
-    return true;
-}
+};
+
 
 /////////////////////////////////////////////////////////////////////////
 //
 // SSDUtils
 //
 /////////////////////////////////////////////////////////////////////////
-void SSDUtils::MeasureSplit(double ssd, vector<int> &ids, int split_position,  Measure& result)
+void SSDUtils::MeasureSplit(double ssd, boost::unordered_map<int, int>& group, Measure& result)
 {
-    int start1 = 0;
-    int end1 = split_position;
-    int start2 = split_position;
-    int end2 = (int)ids.size();
-    
-    double ssd1 = ComputeSSD(ids, start1, end1);
-    double ssd2 = ComputeSSD(ids, start2, end2);
-
+    double ssd1 = ComputeSSD(group, -1);
+    double ssd2 = ComputeSSD(group, 1);
     
     result.measure_reduction = ssd - ssd1 - ssd2;
     result.ssd = ssd;
@@ -84,16 +81,40 @@ void SSDUtils::MeasureSplit(double ssd, vector<int> &ids, int split_position,  M
     result.ssd_part2 = ssd2;
 }
 
-double SSDUtils::ComputeSSD(vector<int> &visited_ids, int start, int end)
+double SSDUtils::ComputeSSD(boost::unordered_map<int, int>& group, int flag)
 {
-    int size = end - start;
+    double sum_squared = 0.0;
+    double val;
+    boost::unordered_map<int, int>::iterator it;
+    
+    for (int i = 0; i < col; ++i) {
+        double sqsum = 0.0;
+        double sum = 0.0;
+        double size = 0.0;
+        for (it = group.begin(); it != group.end(); ++it) {
+            if (it->second == flag) {
+                val = raw_data[it->first][i];
+                sum += val;
+                sqsum += val * val;
+                size += 1;
+            }
+        }
+        double mean = sum / size;
+        sum_squared += sqsum -  size * mean * mean;
+    }
+    return sum_squared / col;
+}
+
+double SSDUtils::ComputeSSD(vector<int> &visited_ids)
+{
+    double size = visited_ids.size();
     double sum_squared = 0.0;
     double val;
     for (int i = 0; i < col; ++i) {
         double sqsum = 0.0;
         double sum = 0.0;
-        for (int j = start; j < end; ++j) {
-            val = raw_data[visited_ids[j]][i];
+        for (int j = 0; j < visited_ids.size(); ++j) {
+            val = raw_data[ visited_ids[j] ][i];
             sum += val;
             sqsum += val * val;
         }
@@ -193,7 +214,7 @@ Tree::Tree(vector<int> _ordered_ids, vector<Edge*> _edges, AbstractClusterFactor
     this->ssd_reduce = 0;
     
     if (ordered_ids.size() > 1) {
-        this->ssd = ssd_utils->ComputeSSD(ordered_ids, 0, size);
+        this->ssd = ssd_utils->ComputeSSD(ordered_ids);
         max_id = -1;
         for (int i=0; i<size; i++) {
             if (ordered_ids[i] > max_id) {
@@ -217,17 +238,20 @@ Tree::Tree(vector<int> _ordered_ids, vector<Edge*> _edges, AbstractClusterFactor
             nbr_dict[d_id].push_back(o_id);
         }
         
-        if (size < 1000) {
-            Partition(0, (int)od_array.size()-1, ordered_ids, od_array, nbr_dict);
-        } else {
-            run_threads(ordered_ids, od_array, nbr_dict);
-        }
+        Partition(0, (int)od_array.size()-1, ordered_ids, od_array, nbr_dict);
+        //if (size < 1000) {
+        //    Partition(0, (int)od_array.size()-1, ordered_ids, od_array, nbr_dict);
+        //} else {
+        //    run_threads(ordered_ids, od_array, nbr_dict);
+        //}
+        
         if (!split_cands.empty()) {
             SplitSolution& ss = split_cands[0];
             this->split_ids = ss.split_ids;
             this->split_pos = ss.split_pos;
             this->ssd = ss.ssd;
             this->ssd_reduce = ss.ssd_reduce;
+            this->group = ss.group;
             
             for (int j=1; j<split_cands.size(); j++) {
                 SplitSolution& tmp_ss = split_cands[j];
@@ -236,6 +260,7 @@ Tree::Tree(vector<int> _ordered_ids, vector<Edge*> _edges, AbstractClusterFactor
                     this->split_pos = tmp_ss.split_pos;
                     this->ssd = tmp_ss.ssd;
                     this->ssd_reduce = tmp_ss.ssd_reduce;
+                    this->group = tmp_ss.group;
                 }
             }
         }
@@ -244,6 +269,8 @@ Tree::Tree(vector<int> _ordered_ids, vector<Edge*> _edges, AbstractClusterFactor
 
 Tree::~Tree()
 {
+    // nothing to clean in memory
+    // subtrees;
 }
 
 void Tree::run_threads(vector<int>& ids,
@@ -278,73 +305,56 @@ void Tree::run_threads(vector<int>& ids,
     threadPool.join_all();
 }
 
-void Tree::Partition(int start, int end, vector<int>& ids,
-                           vector<pair<int, int> >& od_array,
-                           boost::unordered_map<int, vector<int> >& nbr_dict)
+void Tree::Partition(int start, int end, vector<int>& ids,vector<pair<int, int> >& od_array, boost::unordered_map<int, vector<int> >& nbr_dict)
 {
-    int size = (int)nbr_dict.size();
     int orig_id, dest_id;
     int i;
     
     //int best_edge = -1;
     int evaluated = 0;
-    int best_pos = -1;
     double tmp_ssd_reduce = 0, tmp_ssd=0;
-    
-    vector<int> visited_ids(size), best_ids(size);
+        
+    boost::unordered_map<int, int> best_group;
     
     // cut edge one by one
-    for ( i=start; i<=end; i++) {
+    for (i=start; i<=end; i++) {
         orig_id = od_array[i].first;
         dest_id = od_array[i].second;
         
-        int idx = 0;
-        vector<int> cand_ids(max_id+1, -1);
-        Split(orig_id, dest_id, nbr_dict, cand_ids);
+        boost::unordered_map<int, int> group;
+        for (int j=0; j < ids.size(); ++j) group[ ids[j] ] = -1;
         
-        for (int j=0; j<ids.size(); j++) {
-            if (cand_ids[ ids[j] ] == 1) {
-                visited_ids[idx] = ids[j];
-                idx++;
-            }
-        }
+        Split(orig_id, dest_id, nbr_dict, group);
         
-        int tmp_split_pos = idx;
-        
-        if (checkControl(cand_ids, ids, 1)) {
-            evaluated++;
-            for (int j=0; j<ids.size(); j++) {
-                if (cand_ids[ ids[j] ] == -1) {
-                    visited_ids[idx] = ids[j];
-                    idx++;
-                }
-            }
-            if (checkControl(cand_ids, ids, -1)) {
+        if (checkControl(group, 1)) {
+            
+            if (checkControl(group, -1)) {
                 Measure result;
-                ssd_utils->MeasureSplit(ssd, visited_ids, tmp_split_pos, result);
+                evaluated++;
+                ssd_utils->MeasureSplit(ssd, group, result);
+                
                 if (result.measure_reduction > tmp_ssd_reduce) {
                     tmp_ssd_reduce = result.measure_reduction;
                     tmp_ssd = result.ssd;
-                    best_pos = tmp_split_pos;
-                    best_ids = visited_ids;
+                    best_group = group;
                 }
             }
         }
     }
     
-    if (split_pos != -1) {
+    if (best_group.empty() == false) {
         SplitSolution ss;
-        ss.split_pos =  best_pos;
-        ss.split_ids = best_ids;
+        ss.group =  best_group;
+        //ss.split_ids = best_ids;
         ss.ssd = tmp_ssd;
         ss.ssd_reduce = tmp_ssd_reduce;
-        mutex.lock();
+        //mutex.lock();
         split_cands.push_back(ss);
-        mutex.unlock();
+        //mutex.unlock();
     }
 }
 
-void Tree::Split(int orig, int dest, boost::unordered_map<int, vector<int> >& nbr_dict, vector<int>& cand_ids)
+void Tree::Split(int orig, int dest, boost::unordered_map<int, vector<int> >& nbr_dict, boost::unordered_map<int, int>& group)
 {
     stack<int> visited_ids;
     int cur_id, i, nbr_size, nbr;
@@ -353,13 +363,16 @@ void Tree::Split(int orig, int dest, boost::unordered_map<int, vector<int> >& nb
     while (!visited_ids.empty()) {
         cur_id = visited_ids.top();
         visited_ids.pop();
-        cand_ids[cur_id] = 1;
+        group[cur_id] = 1;
+        
         vector<int>& nbrs = nbr_dict[cur_id];
         nbr_size = (int)nbrs.size();
         for (i=0; i<nbr_size; i++) {
             nbr = nbrs[i];
-            if (nbr != dest && cand_ids[nbr] == -1) {
-                visited_ids.push(nbr);
+            if (nbr != dest && group.find(nbr) != group.end()) {
+                if (group[nbr] == -1) {
+                    visited_ids.push(nbr);
+                }
             }
         }
     }
@@ -372,34 +385,27 @@ bool Tree::checkBounds()
     std::vector<ZoneControl>& zc = cluster->zone_controls;
     for (int i=0; i<zc.size(); ++i) {
         has_upperbound = has_upperbound || zc[i].HasUpperBound();
-        if (zc[i].CheckUpperBound(ordered_ids) == false) {
-            return false;
-        } else  if (zc[i].CheckLowerBound(ordered_ids) == false) {
-            return false;
+    }
+    if (has_upperbound) {
+        for (int i=0; i<zc.size(); ++i) {
+            if (zc[i].HasUpperBound()) {
+                return zc[i].CheckUpperBound(ordered_ids);
+            }
         }
     }
-
-    return has_upperbound && true;
+    return true;
 }
 
-bool Tree::checkControl(const vector<int>& cand_ids, vector<int>& ids, int flag)
+bool Tree::checkControl(boost::unordered_map<int, int>& group, int flag)
 {
     if (cluster->zone_controls.empty()) {
         return true;
-    }
-    
-    vector<int> selected_ids;
-
-    for (int j=0; j<ids.size(); j++) {
-        if (cand_ids[ ids[j] ] == flag) {
-            selected_ids.push_back( ids[j] );
-        }
     }
 
     // check if satisfy low bound
     std::vector<ZoneControl>& zc = cluster->zone_controls;
     for (int i=0; i<zc.size(); ++i) {
-        if (zc[i].CheckLowerBound(selected_ids) == false) {
+        if (zc[i].CheckLowerBound(group, flag) == false) {
             return false;
         }
     }
@@ -422,47 +428,33 @@ bool Tree::checkControl(const vector<int>& cand_ids, vector<int>& ids, int flag)
 
 pair<Tree*, Tree*> Tree::GetSubTrees()
 {
-    if (split_ids.empty()) {
-        return this->subtrees;
-    }
-    int size = (int)this->split_ids.size();
-    vector<int> part1_ids(this->split_pos);
-    vector<int> part2_ids(size -this->split_pos);
+    vector<int> part1_ids, part2_ids;
     
-    int max_id = -1;
-    for (int i=0; i<size; i++) {
-        if (i <split_pos) {
-            part1_ids[i] = split_ids[i];
+    boost::unordered_map<int, int>::iterator it;
+    for (it = group.begin(); it != group.end(); ++it) {
+        if (it->second == -1) {
+            part1_ids.push_back(it->first);
         } else {
-            part2_ids[i-split_pos] = split_ids[i];
-        }
-        if (split_ids[i] > max_id) {
-            max_id = split_ids[i];
+            part2_ids.push_back(it->first);
         }
     }
     
     vector<Edge*> part1_edges(part1_ids.size()-1);
     vector<Edge*> part2_edges(part2_ids.size()-1);
     
-    vector<int> part_index(max_id+1, 0);
-    for (int i=0; i< part1_ids.size(); i++) {
-        part_index[ part1_ids[i] ] = -1;
-    }
-    for (int i=0; i< part2_ids.size(); i++) {
-        part_index[ part2_ids[i] ] = 1;
-    }
+
     int o_id, d_id;
-    int cnt1=0, cnt2=0, cnt=0;
+    int cnt1=0, cnt2=0;
     for (int i=0; i<this->edges.size(); i++) {
         o_id = this->edges[i]->orig->id;
         d_id = this->edges[i]->dest->id;
         
-        if (part_index[o_id] == -1 && part_index[d_id] == -1) {
-            part1_edges[cnt1++] = this->edges[i];
-        } else if (part_index[o_id] == 1 && part_index[d_id] == 1) {
-            part2_edges[cnt2++] =  this->edges[i];
-        } else {
-            cnt++;
+        if (group.find(o_id) != group.end() && group.find(d_id) != group.end())  {
+            if (group[o_id] == -1 && group[d_id] == -1) {
+                part1_edges[cnt1++] = this->edges[i];
+            } else if (group[o_id] == 1 && group[d_id] == 1) {
+                part2_edges[cnt2++] =  this->edges[i];
+            }
         }
     }
 
@@ -479,7 +471,7 @@ pair<Tree*, Tree*> Tree::GetSubTrees()
 // AbstractClusterFactory
 //
 ////////////////////////////////////////////////////////////////////////////////
-AbstractClusterFactory::AbstractClusterFactory(int row, int col,  double** _distances, double** _data, const vector<bool>& _undefs, GalElement * _w, const std::vector<ZoneControl>& c)
+AbstractClusterFactory::AbstractClusterFactory(int row, int col,  double** _distances, const double** _data, const vector<bool>& _undefs, GalElement * _w, const std::vector<ZoneControl>& c)
 : rows(row), cols(col), dist_matrix(_distances), raw_data(_data), undefs(_undefs), w(_w), zone_controls(c)
 {
 }
@@ -544,6 +536,8 @@ vector<vector<int> >& AbstractClusterFactory::GetRegions()
 
 void AbstractClusterFactory::Partitioning(int k)
 {
+    wxStopWatch sw;
+    
     vector<Tree*> not_split_trees;
     Tree* current_tree = new Tree(ordered_ids, ordered_edges, this);
     PriorityQueue sub_trees;
@@ -563,11 +557,11 @@ void AbstractClusterFactory::Partitioning(int k)
 
         // if zone controls, using lower and upper bounds to check if
         // splitting is needed; if no upper bounds, ignore checking
-        if (!zone_controls.empty() && tmp_tree->checkBounds()) {
-            not_split_trees.push_back(tmp_tree);
-            k = k -1;
-            continue;
-        }
+        //if (!zone_controls.empty() && tmp_tree->checkBounds()) {
+        //    not_split_trees.push_back(tmp_tree);
+        //    k = k -1;
+        //    continue;
+        //}
 
         // using lower bounds to split tree
         pair<Tree*, Tree*> children = tmp_tree->GetSubTrees();
@@ -609,6 +603,7 @@ void AbstractClusterFactory::Partitioning(int k)
     for (int i = 0; i< not_split_trees.size(); i++) {
         delete not_split_trees[i];
     }
+    LOG_MSG(wxString::Format("Parition took %ld ms", sw.Time()));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -616,7 +611,7 @@ void AbstractClusterFactory::Partitioning(int k)
 // Skater
 //
 ////////////////////////////////////////////////////////////////////////////////
-Skater::Skater(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs, GalElement* w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c)
+Skater::Skater(int rows, int cols, double** _distances, const double** _data, const vector<bool>& _undefs, GalElement* w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c)
 : AbstractClusterFactory(rows, cols, _distances, _data, _undefs, w, c)
 {
     controls = _controls;
@@ -697,7 +692,7 @@ void Skater::Clustering()
 // 1 FirstOrderSLKRedCap
 //
 ////////////////////////////////////////////////////////////////////////////////
-FirstOrderSLKRedCap::FirstOrderSLKRedCap(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs, GalElement* w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c)
+FirstOrderSLKRedCap::FirstOrderSLKRedCap(int rows, int cols, double** _distances, const double** _data, const vector<bool>& _undefs, GalElement* w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c)
 : AbstractClusterFactory(rows, cols, _distances, _data, _undefs, w, c)
 {
     controls = _controls;
@@ -712,7 +707,7 @@ FirstOrderSLKRedCap::~FirstOrderSLKRedCap()
 
 void FirstOrderSLKRedCap::Clustering()
 {
-    std::sort(edges.begin(), edges.end(), EdgeLess);
+    std::sort(edges.begin(), edges.end());
     
     int num_nodes = (int)nodes.size();
 
@@ -765,7 +760,7 @@ void FirstOrderSLKRedCap::Clustering()
 // The First-Order-ALK method also starts with the spatially contiguous graph G*. However, after each merge, the distance between the new cluster and every other cluster is recalculated. Therefore, edges that connect the new cluster and every other cluster are updated with new length values. Edges in G* are then re-sorted and re-evaluated from the beginning. The procedure stops when all objects are in one cluster. The algorithm is shown in figure 3. The complexity is O(n2log n) due to the sorting after each merge.
 //
 ////////////////////////////////////////////////////////////////////////////////
-FirstOrderALKRedCap::FirstOrderALKRedCap(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs, GalElement * w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c)
+FirstOrderALKRedCap::FirstOrderALKRedCap(int rows, int cols, double** _distances, const double** _data, const vector<bool>& _undefs, GalElement * w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c)
 : AbstractClusterFactory(rows, cols, _distances, _data, _undefs, w, c)
 {
     controls = _controls;
@@ -789,7 +784,7 @@ void FirstOrderALKRedCap::Clustering()
 // 3 FirstOrderCLKRedCap
 //
 ////////////////////////////////////////////////////////////////////////////////
-FirstOrderCLKRedCap::FirstOrderCLKRedCap(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs, GalElement * w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c)
+FirstOrderCLKRedCap::FirstOrderCLKRedCap(int rows, int cols, double** _distances, const double** _data, const vector<bool>& _undefs, GalElement * w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c)
 : AbstractClusterFactory(rows, cols, _distances, _data, _undefs, w, c)
 {
     controls = _controls;
@@ -812,7 +807,7 @@ void FirstOrderCLKRedCap::Clustering()
 // 4 FullOrderSLKRedCap
 //
 ////////////////////////////////////////////////////////////////////////////////
-FullOrderSLKRedCap::FullOrderSLKRedCap(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs, GalElement * w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c)
+FullOrderSLKRedCap::FullOrderSLKRedCap(int rows, int cols, double** _distances, const double** _data, const vector<bool>& _undefs, GalElement * w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c)
 : FullOrderALKRedCap(rows, cols, _distances, _data, _undefs, w, _controls, _control_thres, c, false)
 {
     init();
@@ -858,7 +853,7 @@ double FullOrderSLKRedCap::UpdateClusterDist(int cur_id, int o_id, int d_id, boo
 // 5 FullOrderALKRedCap
 //
 ////////////////////////////////////////////////////////////////////////////////
-FullOrderALKRedCap::FullOrderALKRedCap(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs,  GalElement * w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c, bool init_flag)
+FullOrderALKRedCap::FullOrderALKRedCap(int rows, int cols, double** _distances, const double** _data, const vector<bool>& _undefs,  GalElement * w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c, bool init_flag)
 : AbstractClusterFactory(rows, cols, _distances, _data, _undefs, w, c)
 {
     controls = _controls;
@@ -886,7 +881,7 @@ void FullOrderALKRedCap::Clustering()
         ordered_nodes[ dest->id ] = dest;
     }
 
-    std::sort(edges.begin(), edges.end(), EdgeLess);
+    std::sort(edges.begin(), edges.end());
     int num_edges = (int)edges.size();
     vector<Edge*> edges_copy(num_edges);
     for (int i=0; i<num_edges; i++) {
@@ -1094,7 +1089,7 @@ Edge* FullOrderALKRedCap::GetShortestEdge(vector<Edge*>& _edges, int start, int 
 // 6 FullOrderCLKRedCap
 //
 ////////////////////////////////////////////////////////////////////////////////
-FullOrderCLKRedCap::FullOrderCLKRedCap(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs, GalElement * w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c)
+FullOrderCLKRedCap::FullOrderCLKRedCap(int rows, int cols, double** _distances, const double** _data, const vector<bool>& _undefs, GalElement * w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c)
 : FullOrderALKRedCap(rows, cols, _distances, _data, _undefs, w, _controls, _control_thres, c, false)
 {
     init();
@@ -1136,7 +1131,7 @@ double FullOrderCLKRedCap::UpdateClusterDist(int cur_id, int o_id, int d_id, boo
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-FullOrderWardRedCap::FullOrderWardRedCap(int rows, int cols, double** _distances, double** _data, const vector<bool>& _undefs,  GalElement * w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c)
+FullOrderWardRedCap::FullOrderWardRedCap(int rows, int cols, double** _distances, const double** _data, const vector<bool>& _undefs,  GalElement * w, double* _controls, double _control_thres, const std::vector<ZoneControl>& c)
 : AbstractClusterFactory(rows, cols, _distances, _data, _undefs, w, c)
 {
     controls = _controls;
@@ -1162,7 +1157,7 @@ void FullOrderWardRedCap::Clustering()
         ordered_nodes[ dest->id ] = dest;
     }
     
-    std::sort(edges.begin(), edges.end(), EdgeLess);
+    std::sort(edges.begin(), edges.end());
     int num_edges = (int)edges.size();
     vector<Edge*> edges_copy(num_edges);
     for (int i=0; i<num_edges; i++) {

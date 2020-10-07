@@ -501,8 +501,6 @@ void RedcapDlg::OnOK(wxCommandEvent& event )
         ZoneControl zc(ids);
         zc.AddControl(ZoneControl::SUM,
                       ZoneControl::MORE_THAN, l_min_region);
-        zc.AddControl(ZoneControl::SUM,
-                      ZoneControl::LESS_THAN, 20);
         controllers.push_back(zc);
     }
 
@@ -523,6 +521,7 @@ void RedcapDlg::OnOK(wxCommandEvent& event )
                       ZoneControl::MORE_THAN, min_bound);
         controllers.push_back(zc);
         delete[] bound_vals;
+        bound_vals = NULL;
     }
 
 
@@ -568,21 +567,19 @@ void RedcapDlg::OnOK(wxCommandEvent& event )
                                
     int method_idx = combo_method->GetSelection();
     if (method_idx == 0) {
-        redcap = new FirstOrderSLKRedCap(rows, columns, distances, input_data, undefs, gw->gal, bound_vals, min_bound, controllers);
+        redcap = new FirstOrderSLKRedCap(rows, columns, distances, (const double**)input_data, undefs, gw->gal, bound_vals, min_bound, controllers);
     } else if (method_idx == 1) {
-        redcap = new FullOrderCLKRedCap(rows, columns, distances, input_data, undefs, gw->gal, bound_vals, min_bound, controllers);
+        redcap = new FullOrderCLKRedCap(rows, columns, distances, (const double**)input_data, undefs, gw->gal, bound_vals, min_bound, controllers);
     } else if (method_idx == 2) {
-        redcap = new FullOrderALKRedCap(rows, columns, distances, input_data, undefs, gw->gal, bound_vals, min_bound, controllers);
+        redcap = new FullOrderALKRedCap(rows, columns, distances, (const double**)input_data, undefs, gw->gal, bound_vals, min_bound, controllers);
     } else if (method_idx == 3) {
-        redcap = new FullOrderSLKRedCap(rows, columns, distances, input_data, undefs, gw->gal, bound_vals, min_bound, controllers);
+        redcap = new FullOrderSLKRedCap(rows, columns, distances, (const double**)input_data, undefs, gw->gal, bound_vals, min_bound, controllers);
     }
 
    
     if (redcap==NULL) {
         for (int i = 1; i < rows; i++) delete[] distances[i];
         delete[] distances;
-        delete[] bound_vals;
-        bound_vals = NULL;
         return;
     }
     
@@ -651,9 +648,6 @@ void RedcapDlg::OnOK(wxCommandEvent& event )
     // free memory
     for (int i = 1; i < rows; i++) delete[] distances[i];
     delete[] distances;
-    
-	delete[] bound_vals;
-	bound_vals = NULL;
     
     // show a cluster map
     if (project->IsTableOnlyProject()) {

@@ -226,16 +226,59 @@ bool ZoneControl::HasUpperBound()
     return false;
 }
 
-bool ZoneControl::CheckLowerBound(const std::vector<int>& candidates)
+bool ZoneControl::CheckLowerBound(boost::unordered_map<int, int>& group, int flag)
 {
     bool is_valid = true; // default true since no check will yield good cands
     for (size_t i=0;  i< comparators.size(); ++i) {
         if (comparators[i] != MORE_THAN) {
             continue;
         }
-
+        boost::unordered_map<int, int>::iterator it;
+        
         // get zone value for comparison
-        double zone_val = getZoneValue(i, candidates);
+        double zone_val = 0;
+
+        if (operations[i] == SUM) {
+            double sum = 0;
+            for (it = group.begin(); it != group.end(); ++it) {
+                if (it->second == flag) {
+                    sum += data[ it->first ];
+                }
+            }
+            zone_val = sum;
+        } else if (operations[i] == MEAN) {
+            double sum = 0;
+            double sz = 0;
+            for (it = group.begin(); it != group.end(); ++it) {
+                if (it->second == flag) {
+                    sum += data[ it->first ];
+                    sz += 1;
+                }
+            }
+            double mean = sz == 0 ? 0 : sum / sz;
+            zone_val = mean;
+        } else if (operations[i] == MAX) {
+            double max = std::numeric_limits<double>::min();
+            for (it = group.begin(); it != group.end(); ++it) {
+                if (it->second == flag) {
+                    if (max < data[ it->first ]) {
+                        max = data[ it->first ];
+                    }
+                }
+            }
+            zone_val = max;
+        } else if (operations[i] == MIN) {
+            double min = std::numeric_limits<double>::max();
+            for (it = group.begin(); it != group.end(); ++it) {
+                if (it->second == flag) {
+                    if (min > data[ it->first ]) {
+                        min = data[ it->first ];
+                    }
+                }
+            }
+            zone_val = min;
+        }
+        
         // compare zone value
         if (comparators[i] == MORE_THAN) {
             if (zone_val < comp_values[i]) {
