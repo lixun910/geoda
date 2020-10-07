@@ -70,51 +70,75 @@ struct EdgeLess
 // SSDUtils
 //
 /////////////////////////////////////////////////////////////////////////
-void SSDUtils::MeasureSplit(double ssd, boost::unordered_map<int, int>& group, Measure& result)
+void SSDUtils::MeasureSplit(double ssd, vector<int> &ids, int split_position,  Measure& result)
 {
-    double ssd1 = ComputeSSD(group, -1);
-    double ssd2 = ComputeSSD(group, 1);
+    int start1 = 0;
+    int end1 = split_position;
+    int start2 = split_position;
+    int end2 = (int)ids.size();
+    
+    double ssd1 = ComputeSSD(ids, start1, end1);
+    double ssd2 = ComputeSSD(ids, start2, end2);
+
     
     result.measure_reduction = ssd - ssd1 - ssd2;
-    result.ssd = ssd;
+    result.ssd = ssd1 + ssd2;
     result.ssd_part1 = ssd1;
     result.ssd_part2 = ssd2;
 }
 
-double SSDUtils::ComputeSSD(boost::unordered_map<int, int>& group, int flag)
+void SSDUtils::MeasureSplit(double ssd, vector<int> &cand_ids, vector<int>& ids,  Measure& result)
 {
-    double sum_squared = 0.0;
-    double val;
-    boost::unordered_map<int, int>::iterator it;
+    double sum_squared1 = 0, sum_squared2 = 0;
     
     for (int i = 0; i < col; ++i) {
-        double sqsum = 0.0;
-        double sum = 0.0;
-        double size = 0.0;
-        for (it = group.begin(); it != group.end(); ++it) {
-            if (it->second == flag) {
-                val = raw_data[it->first][i];
-                sum += val;
-                sqsum += val * val;
-                size += 1;
+        double sqsum1 = 0, sqsum2 = 0;
+        double sum1 = 0, sum2 = 0;
+        int size1 = 0, size2 = 0;
+        double val;
+        for (int j=0; j<ids.size(); j++) {
+            if (cand_ids[ ids[j] ] == 1) {
+                // group 1
+                val = raw_data[ids[j]][i];
+                sum1 += val;
+                sqsum1 += val * val;
+                size1 += 1;
+            } else {
+                // group 2
+                val = raw_data[ids[j]][i];
+                sum2 += val;
+                sqsum2 += val * val;
+                size2 += 1;
             }
         }
-        double mean = sum / size;
-        sum_squared += sqsum -  size * mean * mean;
+        double mean1 = sum1 / size1;
+        sum_squared1 += sqsum1 -  size1 * mean1 * mean1;
+        
+        double mean2 = sum2 / size2;
+        sum_squared2 += sqsum2 -  size2 * mean2 * mean2;
     }
-    return sum_squared / col;
+
+    
+    double ssd1 = sum_squared1 / col;
+    double ssd2 = sum_squared2 / col;
+
+    
+    result.measure_reduction = ssd - ssd1 - ssd2;
+    result.ssd = ssd1 + ssd2;
+    result.ssd_part1 = ssd1;
+    result.ssd_part2 = ssd2;
 }
 
-double SSDUtils::ComputeSSD(vector<int> &visited_ids)
+double SSDUtils::ComputeSSD(vector<int> &visited_ids, int start, int end)
 {
-    double size = visited_ids.size();
+    int size = end - start;
     double sum_squared = 0.0;
     double val;
     for (int i = 0; i < col; ++i) {
         double sqsum = 0.0;
         double sum = 0.0;
-        for (int j = 0; j < visited_ids.size(); ++j) {
-            val = raw_data[ visited_ids[j] ][i];
+        for (int j = start; j < end; ++j) {
+            val = raw_data[visited_ids[j]][i];
             sum += val;
             sqsum += val * val;
         }
@@ -214,7 +238,7 @@ Tree::Tree(vector<int> _ordered_ids, vector<Edge*> _edges, AbstractClusterFactor
     this->ssd_reduce = 0;
     
     if (ordered_ids.size() > 1) {
-        this->ssd = ssd_utils->ComputeSSD(ordered_ids);
+        this->ssd = ssd_utils->ComputeSSD(ordered_ids, 0, size);
         max_id = -1;
         for (int i=0; i<size; i++) {
             if (ordered_ids[i] > max_id) {
@@ -305,56 +329,223 @@ void Tree::run_threads(vector<int>& ids,
     threadPool.join_all();
 }
 
-void Tree::Partition(int start, int end, vector<int>& ids,vector<pair<int, int> >& od_array, boost::unordered_map<int, vector<int> >& nbr_dict)
+void Tree::Partition(int start, int end, vector<int>& ids,
+                           vector<pair<int, int> >& od_array,
+                           boost::unordered_map<int, vector<int> >& nbr_dict)
 {
+    int size = (int)nbr_dict.size();
     int orig_id, dest_id;
-    int i;
     
     //int best_edge = -1;
     int evaluated = 0;
+    int best_pos = -1;
     double tmp_ssd_reduce = 0, tmp_ssd=0;
+    
+    vector<int> visited_ids(size), best_ids(size);
+    
+    orig_id = od_array[start].first;
+    dest_id = od_array[start].second;
+    vector<int> cand_ids(max_id+1, -1); // this is a dict
+    Split(orig_id, dest_id, nbr_dict, cand_ids);
+    
+    
+    /////////////////////////////
+    int col = cluster->cols;
+    const double** raw_data = cluster->raw_data;
+    
+    double sqsum1 = 0, sqsum2 = 0;
+    double sum1 = 0, sum2 = 0;
+    int size1 = 0, size2 = 0;
+    
+    
+    for (int i = 0; i < col; ++i) {
+        size1 = 0;
+        size2 = 0;
+        double val;
+        for (int j=0; j<ids.size(); j++) {
+            if (cand_ids[ ids[j] ] == 1) {
+                // group 1
+                val = raw_data[ids[j]][i];
+                sum1 += val;
+                sqsum1 += val * val;
+                size1 += 1;
+            } else {
+                // group 2
+                val = raw_data[ids[j]][i];
+                sum2 += val;
+                sqsum2 += val * val;
+                size2 += 1;
+            }
+        }
+    }
+
+    CandidateCut cut;
+    cut.SetValues(orig_id, dest_id, sum1, sum2, sqsum1, sqsum2, size1, size2, raw_data, col);
+    
+    double best_ssd = ssd;
+    
+    std::unordered_map<int, bool> processed_ids;
+    
+    CandidateCut best_c;
+    
+    stack<CandidateCut> cuts;
+    cuts.push(cut);
+    
+    while (!cuts.empty()) {
+        CandidateCut& c = cuts.top();
+        cuts.pop();
         
-    boost::unordered_map<int, int> best_group;
+        double tmp_ssd = c.GetSSD();
+        if (tmp_ssd < best_ssd) {
+            best_ssd = tmp_ssd;
+            best_c = c;
+        }
+        
+        if (processed_ids.find(c.id1) == processed_ids.end()) {
+            // get possible cut from id1
+            vector<int>& next_nodes = nbr_dict[c.id1];
+            for (int i=0; i<next_nodes.size(); ++i) {
+                int sel_nbr = next_nodes[i];
+                if (sel_nbr != c.id1 && sel_nbr != c.id2 && processed_ids.find(sel_nbr) == processed_ids.end()) {
+                    // move id1 to group2
+                    double sum1 = c.sum1, sum2 = c.sum2;
+                    double sqsum1 = c.sqsum1, sqsum2 = c.sqsum2;
+                    double size1 = c.size1, size2 = c.size2;
+                    
+                    for (int j = 0; j < c.col; ++j) {
+                        double val = c.raw_data[c.id1][j];
+                        sum2 += val;
+                        sqsum2 += val * val;
+                        sum1 -= val;
+                        sqsum1 -= val * val;
+                    }
+                    size2 += 1;
+                    size1 -= 1;
+                    // move other neighbors to group2 as well
+                    // other neighbors should be in group2
+                    for (int j=0; j<next_nodes.size(); ++j) {
+                        int nbr = next_nodes[j];
+                        if (nbr != c.id1 && nbr != c.id2 && nbr != sel_nbr && processed_ids.find(nbr) == processed_ids.end())  {
+                            for (int k = 0; k < c.col; ++k) {
+                                double val = c.raw_data[nbr][k];
+                                sum2 += val;
+                                sqsum2 += val * val;
+                                sum1 -= val;
+                                sqsum1 -= val * val;
+                            }
+                            size2 += 1;
+                            size1 -= 1;
+                        }
+                        
+                    }
+                    CandidateCut new_cut;
+                    new_cut.SetValues(sel_nbr, c.id1, sum1, sum2, sqsum1, sqsum2, size1, size2, c.raw_data, c.col);
+                    cuts.push(new_cut);
+                }
+            }
+            processed_ids[c.id1] = true;
+        }
+        
+        if (processed_ids.find(c.id2) == processed_ids.end()) {
+            // get possible cut from id2
+            vector<int>& next_nodes = nbr_dict[c.id2];
+            for (int i=0; i<next_nodes.size(); ++i) {
+                int sel_nbr = next_nodes[i];
+                if (sel_nbr != c.id2 && sel_nbr != c.id1 && processed_ids.find(sel_nbr) == processed_ids.end()) {
+                    // move id2 from group2 to group1
+                    double sum1 = c.sum1, sum2 = c.sum2;
+                    double sqsum1 = c.sqsum1, sqsum2 = c.sqsum2;
+                    double size1 = c.size1, size2 = c.size2;
+                    
+                    for (int j = 0; j < c.col; ++j) {
+                        double val = c.raw_data[c.id2][j];
+                        sum1 += val;
+                        sqsum1 += val * val;
+                        sum2 -= val;
+                        sqsum2 -= val * val;
+                    }
+                    size1 += 1;
+                    size2 -= 1;
+                    // move other neighbors to group1 as well
+                    // other neighbors should be in group2
+                    for (int j=0; j<next_nodes.size(); ++j) {
+                        int nbr = next_nodes[j];
+                        if (nbr != c.id2 && nbr != c.id1 && nbr != sel_nbr && processed_ids.find(nbr) == processed_ids.end())  {
+                            for (int k = 0; k < c.col; ++k) {
+                                double val = c.raw_data[nbr][k];
+                                sum1 += val;
+                                sqsum1 += val * val;
+                                sum2 -= val;
+                                sqsum2 -= val * val;
+                            }
+                            size1 += 1;
+                            size2 -= 1;
+                        }
+                        
+                    }
+                    CandidateCut new_cut;
+                    new_cut.SetValues(sel_nbr, c.id2, sum1, sum2, sqsum1, sqsum2, size1, size2, c.raw_data, c.col);
+                    cuts.push(new_cut);
+                }
+            }
+            processed_ids[c.id2] = true;
+        }
+    }
+    
+    ssd_reduce = ssd - best_ssd;
     
     // cut edge one by one
-    for (i=start; i<=end; i++) {
+    for (int i=start; i<=end; i++) {
         orig_id = od_array[i].first;
         dest_id = od_array[i].second;
         
-        boost::unordered_map<int, int> group;
-        for (int j=0; j < ids.size(); ++j) group[ ids[j] ] = -1;
+        int idx = 0;
+        vector<int> cand_ids(max_id+1, -1); // this is a dict
+        Split(orig_id, dest_id, nbr_dict, cand_ids);
         
-        Split(orig_id, dest_id, nbr_dict, group);
+        for (int j=0; j<ids.size(); j++) {
+            if (cand_ids[ ids[j] ] == 1) {
+                visited_ids[idx] = ids[j];
+                idx++;
+            }
+        }
         
-        if (checkControl(group, 1)) {
-            
-            if (checkControl(group, -1)) {
+        int tmp_split_pos = idx;
+        
+        if (checkControl(cand_ids, ids, 1)) {
+            evaluated++;
+            for (int j=0; j<ids.size(); j++) {
+                if (cand_ids[ ids[j] ] == -1) {
+                    visited_ids[idx] = ids[j];
+                    idx++;
+                }
+            }
+            if (checkControl(cand_ids, ids, -1)) {
                 Measure result;
-                evaluated++;
-                ssd_utils->MeasureSplit(ssd, group, result);
-                
+                ssd_utils->MeasureSplit(ssd, cand_ids, ids, result);
                 if (result.measure_reduction > tmp_ssd_reduce) {
                     tmp_ssd_reduce = result.measure_reduction;
                     tmp_ssd = result.ssd;
-                    best_group = group;
+                    best_pos = tmp_split_pos;
+                    best_ids = visited_ids;
                 }
             }
         }
     }
     
-    if (best_group.empty() == false) {
+    if (split_pos != -1) {
         SplitSolution ss;
-        ss.group =  best_group;
-        //ss.split_ids = best_ids;
+        ss.split_pos =  best_pos;
+        ss.split_ids = best_ids;
         ss.ssd = tmp_ssd;
         ss.ssd_reduce = tmp_ssd_reduce;
-        //mutex.lock();
+        mutex.lock();
         split_cands.push_back(ss);
-        //mutex.unlock();
+        mutex.unlock();
     }
 }
 
-void Tree::Split(int orig, int dest, boost::unordered_map<int, vector<int> >& nbr_dict, boost::unordered_map<int, int>& group)
+void Tree::Split(int orig, int dest, boost::unordered_map<int, vector<int> >& nbr_dict, vector<int>& cand_ids)
 {
     stack<int> visited_ids;
     int cur_id, i, nbr_size, nbr;
@@ -363,16 +554,13 @@ void Tree::Split(int orig, int dest, boost::unordered_map<int, vector<int> >& nb
     while (!visited_ids.empty()) {
         cur_id = visited_ids.top();
         visited_ids.pop();
-        group[cur_id] = 1;
-        
+        cand_ids[cur_id] = 1;
         vector<int>& nbrs = nbr_dict[cur_id];
         nbr_size = (int)nbrs.size();
         for (i=0; i<nbr_size; i++) {
             nbr = nbrs[i];
-            if (nbr != dest && group.find(nbr) != group.end()) {
-                if (group[nbr] == -1) {
-                    visited_ids.push(nbr);
-                }
+            if (nbr != dest && cand_ids[nbr] == -1) {
+                visited_ids.push(nbr);
             }
         }
     }
@@ -393,19 +581,28 @@ bool Tree::checkBounds()
             }
         }
     }
-    return true;
+
+    return has_upperbound && true;
 }
 
-bool Tree::checkControl(boost::unordered_map<int, int>& group, int flag)
+bool Tree::checkControl(const vector<int>& cand_ids, vector<int>& ids, int flag)
 {
     if (cluster->zone_controls.empty()) {
         return true;
+    }
+    
+    vector<int> selected_ids;
+
+    for (int j=0; j<ids.size(); j++) {
+        if (cand_ids[ ids[j] ] == flag) {
+            selected_ids.push_back( ids[j] );
+        }
     }
 
     // check if satisfy low bound
     std::vector<ZoneControl>& zc = cluster->zone_controls;
     for (int i=0; i<zc.size(); ++i) {
-        if (zc[i].CheckLowerBound(group, flag) == false) {
+        if (zc[i].CheckLowerBound(selected_ids) == false) {
             return false;
         }
     }
@@ -428,33 +625,47 @@ bool Tree::checkControl(boost::unordered_map<int, int>& group, int flag)
 
 pair<Tree*, Tree*> Tree::GetSubTrees()
 {
-    vector<int> part1_ids, part2_ids;
+    if (split_ids.empty()) {
+        return this->subtrees;
+    }
+    int size = (int)this->split_ids.size();
+    vector<int> part1_ids(this->split_pos);
+    vector<int> part2_ids(size -this->split_pos);
     
-    boost::unordered_map<int, int>::iterator it;
-    for (it = group.begin(); it != group.end(); ++it) {
-        if (it->second == -1) {
-            part1_ids.push_back(it->first);
+    int max_id = -1;
+    for (int i=0; i<size; i++) {
+        if (i <split_pos) {
+            part1_ids[i] = split_ids[i];
         } else {
-            part2_ids.push_back(it->first);
+            part2_ids[i-split_pos] = split_ids[i];
+        }
+        if (split_ids[i] > max_id) {
+            max_id = split_ids[i];
         }
     }
     
     vector<Edge*> part1_edges(part1_ids.size()-1);
     vector<Edge*> part2_edges(part2_ids.size()-1);
     
-
+    vector<int> part_index(max_id+1, 0);
+    for (int i=0; i< part1_ids.size(); i++) {
+        part_index[ part1_ids[i] ] = -1;
+    }
+    for (int i=0; i< part2_ids.size(); i++) {
+        part_index[ part2_ids[i] ] = 1;
+    }
     int o_id, d_id;
-    int cnt1=0, cnt2=0;
+    int cnt1=0, cnt2=0, cnt=0;
     for (int i=0; i<this->edges.size(); i++) {
         o_id = this->edges[i]->orig->id;
         d_id = this->edges[i]->dest->id;
         
-        if (group.find(o_id) != group.end() && group.find(d_id) != group.end())  {
-            if (group[o_id] == -1 && group[d_id] == -1) {
-                part1_edges[cnt1++] = this->edges[i];
-            } else if (group[o_id] == 1 && group[d_id] == 1) {
-                part2_edges[cnt2++] =  this->edges[i];
-            }
+        if (part_index[o_id] == -1 && part_index[d_id] == -1) {
+            part1_edges[cnt1++] = this->edges[i];
+        } else if (part_index[o_id] == 1 && part_index[d_id] == 1) {
+            part2_edges[cnt2++] =  this->edges[i];
+        } else {
+            cnt++;
         }
     }
 

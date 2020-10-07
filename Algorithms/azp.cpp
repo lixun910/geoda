@@ -226,6 +226,27 @@ bool ZoneControl::HasUpperBound()
     return false;
 }
 
+bool ZoneControl::CheckLowerBound(const std::vector<int>& candidates)
+{
+    bool is_valid = true; // default true since no check will yield good cands
+    for (size_t i=0;  i< comparators.size(); ++i) {
+        if (comparators[i] != MORE_THAN) {
+            continue;
+        }
+
+        // compare zone value
+        if (comparators[i] == MORE_THAN) {
+            // get zone value for comparison
+            double zone_val = getZoneValue(i, candidates);
+            
+            if (zone_val < comp_values[i]) {
+                return false; // not yet satisfy lower bound
+            }
+        }
+    }
+    return is_valid;
+}
+
 bool ZoneControl::CheckLowerBound(boost::unordered_map<int, int>& group, int flag)
 {
     bool is_valid = true; // default true since no check will yield good cands

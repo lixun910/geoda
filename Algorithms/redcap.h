@@ -74,16 +74,56 @@ namespace SpanningTreeClustering {
             row = _row;
             col = _col;
         }
+        ~SSDUtils() {}
         
-
-        virtual ~SSDUtils() {}
+        double ComputeSSD(vector<int>& visited_ids, int start, int end);
+        void MeasureSplit(double ssd, vector<int>& visited_ids, int split_position, Measure& result);
         
-        double ComputeSSD(vector<int> &visited_ids);
-        double ComputeSSD(boost::unordered_map<int, int>& group, int flag);
-        void MeasureSplit(double ssd, boost::unordered_map<int, int>& group, Measure& result);
-        
+        void MeasureSplit(double ssd, vector<int> &cand_ids, vector<int>& ids,  Measure& result);
     };
     
+
+struct CandidateCut {
+    int id1;
+    int id2;
+    
+    double sqsum1;
+    double sqsum2;
+    double sum1;
+    double sum2;
+    double size1;
+    double size2;
+    
+    const double** raw_data;
+    int row;
+    int col;
+    
+    void SetValues(int _id1, int _id2, double _sum1, double _sum2, double _sqsum1,
+                 double _sqsum2, double _size1, double _size2,
+                   const double** _raw_data, int _col)  {
+        id1  = _id1;
+        id2 = _id2;
+        sum1 = _sum1;
+        sum2 = _sum2;
+        sqsum1 = _sqsum1;
+        sqsum2 = _sqsum2;
+        size1 = _size1;
+        size2 =  _size2;
+        raw_data = _raw_data;
+        col = _col;
+    }
+    
+    double GetSSD() {
+        double sum_squared1 = sqsum1 - (sum1 * sum1 / size1);
+        double sum_squared2 = sqsum2 - (sum2 * sum2 / size2);
+        
+        double ssd1 = sum_squared1 / col;
+        double ssd2 = sum_squared2 / col;
+        
+        return ssd1 + ssd2;
+    }
+};
+
     /////////////////////////////////////////////////////////////////////////
     //
     // Node
@@ -207,9 +247,9 @@ namespace SpanningTreeClustering {
         
         void Split(int orig, int dest,
                    boost::unordered_map<int, vector<int> >& nbr_dict,
-                   boost::unordered_map<int, int>& group);
+                   vector<int>& cand_ids);
 
-        bool checkControl(boost::unordered_map<int, int>& group, int flag);
+        bool checkControl(const vector<int>& cand_ids, vector<int>& ids, int flag);
 
         bool checkBounds();
 
