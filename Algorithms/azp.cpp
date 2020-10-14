@@ -230,10 +230,6 @@ bool ZoneControl::CheckLowerBound(const std::vector<int>& candidates)
 {
     bool is_valid = true; // default true since no check will yield good cands
     for (size_t i=0;  i< comparators.size(); ++i) {
-        if (comparators[i] != MORE_THAN) {
-            continue;
-        }
-
         // compare zone value
         if (comparators[i] == MORE_THAN) {
             // get zone value for comparison

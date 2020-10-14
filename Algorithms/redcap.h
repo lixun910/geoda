@@ -66,8 +66,6 @@ namespace SpanningTreeClustering {
         int row;
         int col;
         
-        boost::unordered_map<vector<int>, double> cache;
-        
     public:
         SSDUtils(const double** data, int _row, int _col) {
             raw_data = data;
@@ -79,7 +77,6 @@ namespace SpanningTreeClustering {
         double ComputeSSD(vector<int>& visited_ids, int start, int end);
         void MeasureSplit(double ssd, vector<int>& visited_ids, int split_position, Measure& result);
         
-        void MeasureSplit(double ssd, vector<int> &cand_ids, vector<int>& ids,  Measure& result);
     };
     
 
@@ -87,10 +84,10 @@ struct CandidateCut {
     int id1;
     int id2;
     
-    double sqsum1;
-    double sqsum2;
-    double sum1;
-    double sum2;
+    vector<double> sqsum1;
+    vector<double> sqsum2;
+    vector<double> sum1;
+    vector<double> sum2;
     double size1;
     double size2;
     
@@ -98,8 +95,9 @@ struct CandidateCut {
     int row;
     int col;
     
-    void SetValues(int _id1, int _id2, double _sum1, double _sum2, double _sqsum1,
-                 double _sqsum2, double _size1, double _size2,
+    void SetValues(int _id1, int _id2, vector<double>& _sum1, vector<double>& _sum2,
+                   vector<double>& _sqsum1,  vector<double>& _sqsum2,
+                   double _size1, double _size2,
                    const double** _raw_data, int _col)  {
         id1  = _id1;
         id2 = _id2;
@@ -114,8 +112,15 @@ struct CandidateCut {
     }
     
     double GetSSD() {
-        double sum_squared1 = sqsum1 - (sum1 * sum1 / size1);
-        double sum_squared2 = sqsum2 - (sum2 * sum2 / size2);
+        double sum_squared1 = 0, sum_squared2 = 0;
+        
+        for (int i=0; i<col; ++i) {
+            double mean1 = sum1[i] / size1;
+            double mean2 = sum2[i] / size2;
+            
+            sum_squared1 += sqsum1[i] - size1 * mean1 * mean1;
+            sum_squared2 += sqsum2[i] - size2 * mean2 * mean2;
+        }
         
         double ssd1 = sum_squared1 / col;
         double ssd2 = sum_squared2 / col;
@@ -232,7 +237,6 @@ struct CandidateCut {
         vector<int> split_ids;
         double ssd;
         double ssd_reduce;
-        boost::unordered_map<int, int> group;
     };
     
     class Tree
@@ -265,7 +269,6 @@ struct CandidateCut {
         int max_id;
         int split_pos;
         vector<int> split_ids;
-        boost::unordered_map<int, int> group;
         
         vector<Edge*> edges;
         vector<int> ordered_ids;
@@ -280,6 +283,11 @@ struct CandidateCut {
                        vector<pair<int, int> >& od_array,
                        boost::unordered_map<int, vector<int> >& nbr_dict);
         vector<SplitSolution> split_cands;
+        
+        void ProcessNeighbor(int node, bool to_group1, int sel_nbr,
+                        CandidateCut& c,
+                        boost::unordered_map<int, bool>& processed_ids,
+                        boost::unordered_map<int, vector<int> >& nbr_dict);
     };
     
     ////////////////////////////////////////////////////////////////////////////////

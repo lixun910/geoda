@@ -87,48 +87,6 @@ void SSDUtils::MeasureSplit(double ssd, vector<int> &ids, int split_position,  M
     result.ssd_part2 = ssd2;
 }
 
-void SSDUtils::MeasureSplit(double ssd, vector<int> &cand_ids, vector<int>& ids,  Measure& result)
-{
-    double sum_squared1 = 0, sum_squared2 = 0;
-    
-    for (int i = 0; i < col; ++i) {
-        double sqsum1 = 0, sqsum2 = 0;
-        double sum1 = 0, sum2 = 0;
-        int size1 = 0, size2 = 0;
-        double val;
-        for (int j=0; j<ids.size(); j++) {
-            if (cand_ids[ ids[j] ] == 1) {
-                // group 1
-                val = raw_data[ids[j]][i];
-                sum1 += val;
-                sqsum1 += val * val;
-                size1 += 1;
-            } else {
-                // group 2
-                val = raw_data[ids[j]][i];
-                sum2 += val;
-                sqsum2 += val * val;
-                size2 += 1;
-            }
-        }
-        double mean1 = sum1 / size1;
-        sum_squared1 += sqsum1 -  size1 * mean1 * mean1;
-        
-        double mean2 = sum2 / size2;
-        sum_squared2 += sqsum2 -  size2 * mean2 * mean2;
-    }
-
-    
-    double ssd1 = sum_squared1 / col;
-    double ssd2 = sum_squared2 / col;
-
-    
-    result.measure_reduction = ssd - ssd1 - ssd2;
-    result.ssd = ssd1 + ssd2;
-    result.ssd_part1 = ssd1;
-    result.ssd_part2 = ssd2;
-}
-
 double SSDUtils::ComputeSSD(vector<int> &visited_ids, int start, int end)
 {
     int size = end - start;
@@ -275,7 +233,6 @@ Tree::Tree(vector<int> _ordered_ids, vector<Edge*> _edges, AbstractClusterFactor
             this->split_pos = ss.split_pos;
             this->ssd = ss.ssd;
             this->ssd_reduce = ss.ssd_reduce;
-            this->group = ss.group;
             
             for (int j=1; j<split_cands.size(); j++) {
                 SplitSolution& tmp_ss = split_cands[j];
@@ -284,7 +241,6 @@ Tree::Tree(vector<int> _ordered_ids, vector<Edge*> _edges, AbstractClusterFactor
                     this->split_pos = tmp_ss.split_pos;
                     this->ssd = tmp_ss.ssd;
                     this->ssd_reduce = tmp_ss.ssd_reduce;
-                    this->group = tmp_ss.group;
                 }
             }
         }
@@ -293,8 +249,6 @@ Tree::Tree(vector<int> _ordered_ids, vector<Edge*> _edges, AbstractClusterFactor
 
 Tree::~Tree()
 {
-    // nothing to clean in memory
-    // subtrees;
 }
 
 void Tree::run_threads(vector<int>& ids,
@@ -352,39 +306,50 @@ void Tree::Partition(int start, int end, vector<int>& ids,
     /////////////////////////////
     int col = cluster->cols;
     const double** raw_data = cluster->raw_data;
-    
-    double sqsum1 = 0, sqsum2 = 0;
-    double sum1 = 0, sum2 = 0;
+    vector<double> v_sqsum1, v_sqsum2, v_sum1, v_sum2;
     int size1 = 0, size2 = 0;
-    
     
     for (int i = 0; i < col; ++i) {
         size1 = 0;
         size2 = 0;
         double val;
+        double sqsum1 = 0, sqsum2 = 0;
+        double sum1 = 0, sum2 = 0;
+        
         for (int j=0; j<ids.size(); j++) {
+            val = raw_data[ids[j]][i];
             if (cand_ids[ ids[j] ] == 1) {
                 // group 1
-                val = raw_data[ids[j]][i];
                 sum1 += val;
                 sqsum1 += val * val;
                 size1 += 1;
             } else {
                 // group 2
-                val = raw_data[ids[j]][i];
                 sum2 += val;
                 sqsum2 += val * val;
                 size2 += 1;
             }
         }
+        
+        v_sum1.push_back(sum1);
+        v_sum2.push_back(sum2);
+        v_sqsum1.push_back(sqsum1);
+        v_sqsum2.push_back(sqsum2);
     }
 
+    int group1 = cand_ids[orig_id] == 1 ? orig_id : dest_id;
+    int group2 = cand_ids[dest_id] == -1 ? dest_id : orig_id;
+    
     CandidateCut cut;
-    cut.SetValues(orig_id, dest_id, sum1, sum2, sqsum1, sqsum2, size1, size2, raw_data, col);
+    cut.SetValues(group1, group2, v_sum1, v_sum2, v_sqsum1, v_sqsum2, size1, size2, raw_data, col);
+    
+    wxString msg;
+    msg << cut.id1 << "," <<cut.id2 << "," << cut.GetSSD();
+    LOG_MSG(msg);
     
     double best_ssd = ssd;
     
-    std::unordered_map<int, bool> processed_ids;
+    boost::unordered_map<int, bool> processed_ids;
     
     CandidateCut best_c;
     
@@ -392,108 +357,101 @@ void Tree::Partition(int start, int end, vector<int>& ids,
     cuts.push(cut);
     
     while (!cuts.empty()) {
-        CandidateCut& c = cuts.top();
+        CandidateCut c = cuts.top();
         cuts.pop();
         
         double tmp_ssd = c.GetSSD();
+        
         if (tmp_ssd < best_ssd) {
             best_ssd = tmp_ssd;
             best_c = c;
         }
         
-        if (processed_ids.find(c.id1) == processed_ids.end()) {
+        int cid1 = c.id1;
+        int cid2 = c.id2;
+        
+        if (processed_ids[cid1] == false) {
             // get possible cut from id1
-            vector<int>& next_nodes = nbr_dict[c.id1];
+            vector<int>& next_nodes = nbr_dict[cid1];
             for (int i=0; i<next_nodes.size(); ++i) {
                 int sel_nbr = next_nodes[i];
-                if (sel_nbr != c.id1 && sel_nbr != c.id2 && processed_ids.find(sel_nbr) == processed_ids.end()) {
+                if (sel_nbr != cid1 && sel_nbr != cid2 && processed_ids[sel_nbr] == false) {
                     // move id1 to group2
-                    double sum1 = c.sum1, sum2 = c.sum2;
-                    double sqsum1 = c.sqsum1, sqsum2 = c.sqsum2;
-                    double size1 = c.size1, size2 = c.size2;
-                    
+                    CandidateCut new_cut = c;  // copy
                     for (int j = 0; j < c.col; ++j) {
-                        double val = c.raw_data[c.id1][j];
-                        sum2 += val;
-                        sqsum2 += val * val;
-                        sum1 -= val;
-                        sqsum1 -= val * val;
+                        double val = c.raw_data[cid1][j];
+                        new_cut.sum2[j] += val;
+                        new_cut.sqsum2[j] += val * val;
+                        new_cut.sum1[j] -= val;
+                        new_cut.sqsum1[j] -= val * val;
                     }
-                    size2 += 1;
-                    size1 -= 1;
+                    new_cut.size2 += 1;
+                    new_cut.size1 -= 1;
                     // move other neighbors to group2 as well
                     // other neighbors should be in group2
                     for (int j=0; j<next_nodes.size(); ++j) {
                         int nbr = next_nodes[j];
-                        if (nbr != c.id1 && nbr != c.id2 && nbr != sel_nbr && processed_ids.find(nbr) == processed_ids.end())  {
-                            for (int k = 0; k < c.col; ++k) {
-                                double val = c.raw_data[nbr][k];
-                                sum2 += val;
-                                sqsum2 += val * val;
-                                sum1 -= val;
-                                sqsum1 -= val * val;
-                            }
-                            size2 += 1;
-                            size1 -= 1;
+                        if (nbr != cid1 && nbr != cid2 && nbr != sel_nbr && processed_ids[nbr] == false)  {
+                            ProcessNeighbor(nbr, false, sel_nbr, new_cut, processed_ids, nbr_dict);
                         }
                         
                     }
-                    CandidateCut new_cut;
-                    new_cut.SetValues(sel_nbr, c.id1, sum1, sum2, sqsum1, sqsum2, size1, size2, c.raw_data, c.col);
+                    new_cut.id1 = sel_nbr;
+                    new_cut.id2 = cid1;
+                    
+                    wxString msg;
+                    msg << new_cut.id1 << "," <<new_cut.id2 << "," << new_cut.GetSSD();
+                    LOG_MSG(msg);
+                    
                     cuts.push(new_cut);
                 }
             }
-            processed_ids[c.id1] = true;
+            processed_ids[cid1] = true;
         }
         
-        if (processed_ids.find(c.id2) == processed_ids.end()) {
+        if (processed_ids[cid2] == false) {
             // get possible cut from id2
-            vector<int>& next_nodes = nbr_dict[c.id2];
+            vector<int>& next_nodes = nbr_dict[cid2];
             for (int i=0; i<next_nodes.size(); ++i) {
                 int sel_nbr = next_nodes[i];
-                if (sel_nbr != c.id2 && sel_nbr != c.id1 && processed_ids.find(sel_nbr) == processed_ids.end()) {
+                if (sel_nbr != cid2 && sel_nbr != cid1 && processed_ids[sel_nbr] == false) {
                     // move id2 from group2 to group1
-                    double sum1 = c.sum1, sum2 = c.sum2;
-                    double sqsum1 = c.sqsum1, sqsum2 = c.sqsum2;
-                    double size1 = c.size1, size2 = c.size2;
+                    CandidateCut new_cut = c;  // copy
                     
                     for (int j = 0; j < c.col; ++j) {
-                        double val = c.raw_data[c.id2][j];
-                        sum1 += val;
-                        sqsum1 += val * val;
-                        sum2 -= val;
-                        sqsum2 -= val * val;
+                        double val = c.raw_data[cid2][j];
+                        new_cut.sum1[j] += val;
+                        new_cut.sqsum1[j] += val * val;
+                        new_cut.sum2[j] -= val;
+                        new_cut.sqsum2[j] -= val * val;
                     }
-                    size1 += 1;
-                    size2 -= 1;
+                    new_cut.size1 += 1;
+                    new_cut.size2 -= 1;
                     // move other neighbors to group1 as well
                     // other neighbors should be in group2
                     for (int j=0; j<next_nodes.size(); ++j) {
                         int nbr = next_nodes[j];
-                        if (nbr != c.id2 && nbr != c.id1 && nbr != sel_nbr && processed_ids.find(nbr) == processed_ids.end())  {
-                            for (int k = 0; k < c.col; ++k) {
-                                double val = c.raw_data[nbr][k];
-                                sum1 += val;
-                                sqsum1 += val * val;
-                                sum2 -= val;
-                                sqsum2 -= val * val;
-                            }
-                            size1 += 1;
-                            size2 -= 1;
+                        if (nbr != cid2 && nbr != cid1 && nbr != sel_nbr && processed_ids[nbr] == false)  {
+                            ProcessNeighbor(nbr, true, sel_nbr, new_cut, processed_ids, nbr_dict);
                         }
                         
                     }
-                    CandidateCut new_cut;
-                    new_cut.SetValues(sel_nbr, c.id2, sum1, sum2, sqsum1, sqsum2, size1, size2, c.raw_data, c.col);
+                    new_cut.id1 = cid2;
+                    new_cut.id2 = sel_nbr;
+                    
+                    wxString msg;
+                    msg << new_cut.id1 << "," <<new_cut.id2 << "," << new_cut.GetSSD();
+                    LOG_MSG(msg);
+                    
                     cuts.push(new_cut);
                 }
             }
-            processed_ids[c.id2] = true;
+            processed_ids[cid2] = true;
         }
     }
     
     ssd_reduce = ssd - best_ssd;
-    
+LOG_MSG("msg");
     // cut edge one by one
     for (int i=start; i<=end; i++) {
         orig_id = od_array[i].first;
@@ -522,7 +480,12 @@ void Tree::Partition(int start, int end, vector<int>& ids,
             }
             if (checkControl(cand_ids, ids, -1)) {
                 Measure result;
-                ssd_utils->MeasureSplit(ssd, cand_ids, ids, result);
+                ssd_utils->MeasureSplit(ssd, visited_ids, tmp_split_pos, result);
+
+                wxString msg;
+                msg << orig_id << "," << dest_id << "," << result.ssd;
+                LOG_MSG(msg);
+                
                 if (result.measure_reduction > tmp_ssd_reduce) {
                     tmp_ssd_reduce = result.measure_reduction;
                     tmp_ssd = result.ssd;
@@ -542,6 +505,47 @@ void Tree::Partition(int start, int end, vector<int>& ids,
         mutex.lock();
         split_cands.push_back(ss);
         mutex.unlock();
+    }
+}
+
+void Tree::ProcessNeighbor(int node, bool to_group1,  int sel_nbr,
+                           CandidateCut& cut,
+                           boost::unordered_map<int, bool>& processed_ids,
+                           boost::unordered_map<int, vector<int> >& nbr_dict)
+{
+    std::map<int,  bool> id_dict;
+    stack<int> accessed_ids;
+    accessed_ids.push(node);
+    
+    int sym1 = to_group1 ? 1 : -1;
+    int sym2 = to_group1 ? -1 : 1;
+    
+    while (!accessed_ids.empty()) {
+        int cur_id = accessed_ids.top();
+        accessed_ids.pop();
+                
+        vector<int>& nbrs = nbr_dict[cur_id];
+        
+        for (int i=0; i<nbrs.size(); i++) {
+            int nn = nbrs[i];
+            if (nn != cut.id1 && nn != cut.id2 && nn != sel_nbr &&
+                id_dict[nn] == false && processed_ids[nn] == false) {
+                // move "nn" to
+                for (int k = 0; k < cut.col; ++k) {
+                    double val = cut.raw_data[nn][k];
+                    cut.sum1[k] += sym1 * val;
+                    cut.sqsum1[k] += sym1 * val * val;
+                    cut.sum2[k] += sym2 * val;
+                    cut.sqsum2[k] += sym2 * val * val;
+                }
+                cut.size1 += sym1;
+                cut.size2 += sym2;
+                LOG_MSG(nn);
+                accessed_ids.push(nn);
+                
+            }
+            id_dict[nn] = true;
+        }
     }
 }
 
@@ -918,7 +922,7 @@ FirstOrderSLKRedCap::~FirstOrderSLKRedCap()
 
 void FirstOrderSLKRedCap::Clustering()
 {
-    std::sort(edges.begin(), edges.end());
+    std::sort(edges.begin(), edges.end(), EdgeLess());
     
     int num_nodes = (int)nodes.size();
 
