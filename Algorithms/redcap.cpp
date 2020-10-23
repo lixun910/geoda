@@ -205,7 +205,7 @@ Tree::Tree(vector<int> _ordered_ids, vector<Edge*> _edges, AbstractClusterFactor
         }
         
         // use edges and ordered_ids to create nbr_dict and od_array
-        boost::unordered_map<int, vector<int> > nbr_dict;
+        //boost::unordered_map<int, vector<int> > nbr_dict;
         od_array.resize(edge_size);
         
         int o_id, d_id;
@@ -220,13 +220,13 @@ Tree::Tree(vector<int> _ordered_ids, vector<Edge*> _edges, AbstractClusterFactor
             nbr_dict[d_id].push_back(o_id);
         }
         
-        Partition(0, (int)od_array.size()-1, ordered_ids, od_array, nbr_dict);
-        //if (size < 1000) {
-        //    Partition(0, (int)od_array.size()-1, ordered_ids, od_array, nbr_dict);
-        //} else {
-        //    run_threads(ordered_ids, od_array, nbr_dict);
-        //}
-        
+        //Partition(0, (int)od_array.size()-1, ordered_ids, od_array, nbr_dict);
+        if (size < 1000) {
+            Partition(0, (int)od_array.size()-1, ordered_ids, od_array, nbr_dict);
+        } else {
+            run_threads(ordered_ids, od_array, nbr_dict);
+        }
+        /*
         if (!split_cands.empty()) {
             SplitSolution& ss = split_cands[0];
             this->split_ids = ss.split_ids;
@@ -244,6 +244,7 @@ Tree::Tree(vector<int> _ordered_ids, vector<Edge*> _edges, AbstractClusterFactor
                 }
             }
         }
+         */
     }
 }
 
@@ -343,15 +344,12 @@ void Tree::Partition(int start, int end, vector<int>& ids,
     CandidateCut cut;
     cut.SetValues(group1, group2, v_sum1, v_sum2, v_sqsum1, v_sqsum2, size1, size2, raw_data, col);
     
-    wxString msg;
-    msg << cut.id1 << "," <<cut.id2 << "," << cut.GetSSD();
-    LOG_MSG(msg);
-    
+    //wxString msg;
+    //msg << cut.id1 << "," <<cut.id2 << "," << cut.GetSSD();
+    //LOG_MSG(msg);
+    best_c = cut;
     double best_ssd = ssd;
-    
     boost::unordered_map<int, bool> processed_ids;
-    
-    CandidateCut best_c;
     
     stack<CandidateCut> cuts;
     cuts.push(cut);
@@ -394,14 +392,13 @@ void Tree::Partition(int start, int end, vector<int>& ids,
                         if (nbr != cid1 && nbr != cid2 && nbr != sel_nbr && processed_ids[nbr] == false)  {
                             ProcessNeighbor(nbr, false, sel_nbr, new_cut, processed_ids, nbr_dict);
                         }
-                        
                     }
                     new_cut.id1 = sel_nbr;
                     new_cut.id2 = cid1;
                     
-                    wxString msg;
-                    msg << new_cut.id1 << "," <<new_cut.id2 << "," << new_cut.GetSSD();
-                    LOG_MSG(msg);
+                    //wxString msg;
+                    //msg << new_cut.id1 << "," <<new_cut.id2 << "," << new_cut.GetSSD();
+                    //LOG_MSG(msg);
                     
                     cuts.push(new_cut);
                 }
@@ -417,7 +414,6 @@ void Tree::Partition(int start, int end, vector<int>& ids,
                 if (sel_nbr != cid2 && sel_nbr != cid1 && processed_ids[sel_nbr] == false) {
                     // move id2 from group2 to group1
                     CandidateCut new_cut = c;  // copy
-                    
                     for (int j = 0; j < c.col; ++j) {
                         double val = c.raw_data[cid2][j];
                         new_cut.sum1[j] += val;
@@ -434,14 +430,13 @@ void Tree::Partition(int start, int end, vector<int>& ids,
                         if (nbr != cid2 && nbr != cid1 && nbr != sel_nbr && processed_ids[nbr] == false)  {
                             ProcessNeighbor(nbr, true, sel_nbr, new_cut, processed_ids, nbr_dict);
                         }
-                        
                     }
                     new_cut.id1 = cid2;
                     new_cut.id2 = sel_nbr;
                     
-                    wxString msg;
-                    msg << new_cut.id1 << "," <<new_cut.id2 << "," << new_cut.GetSSD();
-                    LOG_MSG(msg);
+                    //wxString msg;
+                    //msg << new_cut.id1 << "," <<new_cut.id2 << "," << new_cut.GetSSD();
+                    //LOG_MSG(msg);
                     
                     cuts.push(new_cut);
                 }
@@ -451,7 +446,8 @@ void Tree::Partition(int start, int end, vector<int>& ids,
     }
     
     ssd_reduce = ssd - best_ssd;
-LOG_MSG("msg");
+    /*
+    LOG_MSG("msg");
     // cut edge one by one
     for (int i=start; i<=end; i++) {
         orig_id = od_array[i].first;
@@ -482,9 +478,9 @@ LOG_MSG("msg");
                 Measure result;
                 ssd_utils->MeasureSplit(ssd, visited_ids, tmp_split_pos, result);
 
-                wxString msg;
-                msg << orig_id << "," << dest_id << "," << result.ssd;
-                LOG_MSG(msg);
+                //wxString msg;
+                //msg << orig_id << "," << dest_id << "," << result.ssd;
+                //LOG_MSG(msg);
                 
                 if (result.measure_reduction > tmp_ssd_reduce) {
                     tmp_ssd_reduce = result.measure_reduction;
@@ -506,6 +502,7 @@ LOG_MSG("msg");
         split_cands.push_back(ss);
         mutex.unlock();
     }
+    */
 }
 
 void Tree::ProcessNeighbor(int node, bool to_group1,  int sel_nbr,
@@ -513,6 +510,7 @@ void Tree::ProcessNeighbor(int node, bool to_group1,  int sel_nbr,
                            boost::unordered_map<int, bool>& processed_ids,
                            boost::unordered_map<int, vector<int> >& nbr_dict)
 {
+    // move "node" and all its "children" except sel_nbr to "group1"
     std::map<int,  bool> id_dict;
     stack<int> accessed_ids;
     accessed_ids.push(node);
@@ -524,23 +522,26 @@ void Tree::ProcessNeighbor(int node, bool to_group1,  int sel_nbr,
         int cur_id = accessed_ids.top();
         accessed_ids.pop();
                 
+        // move "cur_id" to
+        for (int k = 0; k < cut.col; ++k) {
+            double val = cut.raw_data[cur_id][k];
+            cut.sum1[k] += sym1 * val;
+            cut.sqsum1[k] += sym1 * val * val;
+            cut.sum2[k] += sym2 * val;
+            cut.sqsum2[k] += sym2 * val * val;
+        }
+        cut.size1 += sym1;
+        cut.size2 += sym2;
+        //LOG_MSG(cur_id);
+        
+        // process it's neighbors
         vector<int>& nbrs = nbr_dict[cur_id];
         
         for (int i=0; i<nbrs.size(); i++) {
             int nn = nbrs[i];
-            if (nn != cut.id1 && nn != cut.id2 && nn != sel_nbr &&
+            if (nn != cut.id1 && nn != cut.id2 && nn != sel_nbr && nn != node &&
                 id_dict[nn] == false && processed_ids[nn] == false) {
-                // move "nn" to
-                for (int k = 0; k < cut.col; ++k) {
-                    double val = cut.raw_data[nn][k];
-                    cut.sum1[k] += sym1 * val;
-                    cut.sqsum1[k] += sym1 * val * val;
-                    cut.sum2[k] += sym2 * val;
-                    cut.sqsum2[k] += sym2 * val * val;
-                }
-                cut.size1 += sym1;
-                cut.size2 += sym2;
-                LOG_MSG(nn);
+                
                 accessed_ids.push(nn);
                 
             }
@@ -629,6 +630,51 @@ bool Tree::checkControl(const vector<int>& cand_ids, vector<int>& ids, int flag)
 
 pair<Tree*, Tree*> Tree::GetSubTrees()
 {
+    if (best_c.is_valid == false) {
+        return this->subtrees; // null children
+    }
+    
+    // build left tree using best_cut.id1
+    std::vector<int> cand_ids(max_id+1, -1); // this is a dict
+    Split(best_c.id1, best_c.id2, nbr_dict, cand_ids);
+    
+    vector<int> part1_ids, part2_ids;
+    for (int j=0; j<ordered_ids.size(); j++) {
+        if (cand_ids[ ordered_ids[j] ] == 1) {
+            part1_ids.push_back(ordered_ids[j]);
+        } else {
+            part2_ids.push_back(ordered_ids[j]);
+        }
+    }
+    
+    vector<Edge*> part1_edges(part1_ids.size()-1);
+    vector<Edge*> part2_edges(part2_ids.size()-1);
+    
+    int o_id, d_id;
+    int cnt1=0, cnt2=0, cnt=0;
+    for (int i=0; i<this->edges.size(); i++) {
+        o_id = this->edges[i]->orig->id;
+        d_id = this->edges[i]->dest->id;
+        
+        if (cand_ids[o_id] == 1 && cand_ids[d_id] == 1) {
+            part1_edges[cnt1++] = this->edges[i];
+        } else if (cand_ids[o_id] == -1 && cand_ids[d_id] == -1) {
+            part2_edges[cnt2++] =  this->edges[i];
+        } else {
+            cnt++;
+        }
+    }
+    
+    Tree* left_tree = new Tree(part1_ids, part1_edges, cluster);
+    Tree* right_tree = new Tree(part2_ids, part2_edges, cluster);
+    subtrees.first = left_tree;
+    subtrees.second = right_tree;
+    return subtrees;
+}
+
+/*
+pair<Tree*, Tree*> Tree::GetSubTrees()
+{
     if (split_ids.empty()) {
         return this->subtrees;
     }
@@ -680,7 +726,7 @@ pair<Tree*, Tree*> Tree::GetSubTrees()
     subtrees.second = right_tree;
     return subtrees;
 }
-
+*/
 ////////////////////////////////////////////////////////////////////////////////
 //
 // AbstractClusterFactory

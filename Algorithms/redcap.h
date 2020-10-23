@@ -81,6 +81,7 @@ namespace SpanningTreeClustering {
     
 
 struct CandidateCut {
+    bool is_valid;
     int id1;
     int id2;
     
@@ -94,6 +95,8 @@ struct CandidateCut {
     const double** raw_data;
     int row;
     int col;
+    
+    CandidateCut() : is_valid(false) {}
     
     void SetValues(int _id1, int _id2, vector<double>& _sum1, vector<double>& _sum2,
                    vector<double>& _sqsum1,  vector<double>& _sqsum2,
@@ -109,6 +112,7 @@ struct CandidateCut {
         size2 =  _size2;
         raw_data = _raw_data;
         col = _col;
+        is_valid = true;
     }
     
     double GetSSD() {
@@ -259,6 +263,8 @@ struct CandidateCut {
 
         pair<Tree*, Tree*> GetSubTrees();
         
+        pair<Tree*, Tree*> GetSubTrees(boost::unordered_map<int, vector<int> >& nbr_dict);
+        
         double ssd_reduce;
         double ssd;
         
@@ -276,6 +282,9 @@ struct CandidateCut {
         
         double* controls;
         double control_thres;
+        
+        boost::unordered_map<int, vector<int> > nbr_dict;
+        CandidateCut best_c;
         
         // threads
         boost::mutex mutex;
