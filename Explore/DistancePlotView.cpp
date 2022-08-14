@@ -69,7 +69,6 @@ void DistancePlotCanvas::DisplayRightClickMenu(const wxPoint& pos)
 
     Connect(XRCID("ID_EDIT_LOESS_PARAMS"),  wxEVT_MENU,  wxCommandEventHandler(DistancePlotCanvas::OnEditLoess));
 
-    Connect(XRCID("ID_USE_ADJUST_Y_AXIS"),  wxEVT_MENU,  wxCommandEventHandler(DistancePlotCanvas::OnUseAdjustYAxis));
     Connect(XRCID("ID_ADJUST_Y_AXIS"), wxEVT_MENU, wxCommandEventHandler(DistancePlotCanvas::OnAdjustYAxis));
 
     PopupMenu(optMenu, pos);
@@ -156,7 +155,6 @@ void DistancePlotCanvas::SetCheckMarks(wxMenu* menu)
 {
     GeneralWxUtils::CheckMenuItem(menu, XRCID("ID_DISTPLOT_SHOW_POINTS"), style & show_data_points);
     //GeneralWxUtils::CheckMenuItem(menu, XRCID("ID_DISTPLOT_SHOW_CONFIDENCE_INTERVAL"), style & show_confidence_interval);
-    GeneralWxUtils::CheckMenuItem(menu, XRCID("ID_USE_ADJUST_Y_AXIS"), use_def_y_range);
 }
 
 IMPLEMENT_CLASS(DistancePlotFrame, TemplateFrame)
