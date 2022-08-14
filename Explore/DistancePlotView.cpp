@@ -334,7 +334,7 @@ void DistancePlotDlg::CreateControls()
     thresh_cbx->SetValue(true);
     maxdist_choice = new wxChoice(panel, XRCID("ID_MAXDIST_CHOICE"),
                                wxDefaultPosition, wxSize(160,-1));
-    maxdist_choice->Append(_("Maximum pairwise distance"));
+    maxdist_choice->Append(_("1/2 maximum pairwise distance"));
     maxdist_choice->Append(_("1/2 diagonal of bounding box"));
 
     size_t nobs = project->GetNumRecords();
@@ -976,8 +976,3 @@ double DistancePlotDlg::GetThreshMax()
             return r;
     }
 }
-
-
-
-
-

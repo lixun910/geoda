@@ -6990,8 +6990,8 @@ msgid "Variable distance"
 msgstr "Расстояние переменной"
 
 # contributors:
-msgid "Maximum pairwise distance"
-msgstr "Все попарные расстояния"
+msgid "1/2 maximum pairwise distance"
+msgstr "1/2 Все попарные расстояния"
 
 # contributors:
 msgid "1/2 diagonal of bounding box"

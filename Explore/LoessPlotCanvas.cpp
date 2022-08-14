@@ -482,7 +482,7 @@ void LoessPlotCanvas::UpdateMargins()
 
 LoessSettingsDlg::LoessSettingsDlg(LoessPlotCanvas* canvas)
 : wxDialog(NULL, wxID_ANY, _("Loess Settings"), wxDefaultPosition,
-           wxSize(420, 250), wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
+           wxSize(420, 200), wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
 canvas(canvas)
 {
     CreateControls();
@@ -498,7 +498,7 @@ void LoessSettingsDlg::CreateControls()
     wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
 
     // Parameters
-    wxFlexGridSizer* gbox = new wxFlexGridSizer(5,2,5,0);
+    wxFlexGridSizer* gbox = new wxFlexGridSizer(4,2,5,0);
 
     // span
     wxStaticText* st_span = new wxStaticText(panel, wxID_ANY, _("Degree of smoothing (span):"));
@@ -521,13 +521,6 @@ void LoessSettingsDlg::CreateControls()
     m_family->SetSelection(0);
     gbox->Add(st_family, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxLEFT, 10);
     gbox->Add(m_family, 1, wxEXPAND);
-
-    // normalize
-    wxStaticText* st_norm = new wxStaticText(panel, wxID_ANY, _("Normalize predictors:"));
-    m_normalize = new wxCheckBox(panel, wxID_ANY, "");
-    m_normalize->SetValue(true);
-    gbox->Add(st_norm, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxLEFT, 10);
-    gbox->Add(m_normalize, 1, wxEXPAND);
 
     wxStaticBoxSizer *hbox = new wxStaticBoxSizer(wxHORIZONTAL, panel, _("Loess Parameters:"));
     hbox->Add(gbox, 1, wxEXPAND);
@@ -642,11 +635,6 @@ void LoessSettingsDlg::Setup(loess* lo)
         m_family->SetSelection(0);
     else
         m_family->SetSelection(1);
-
-    if (lo->model->normalize == 1)
-        m_normalize->SetValue(true);
-    else
-        m_normalize->SetValue(false);
     
     wxString str_cell;
     str_cell <<  lo->control->cell;
@@ -706,7 +694,7 @@ void LoessSettingsDlg::OnOK(wxCommandEvent& event )
 
         long degree = m_degree->GetSelection() + 1;
         const char* family = m_family->GetStringSelection().c_str();
-        bool normalize = m_normalize->GetValue();
+        bool normalize = true;
         const char* surface = m_surface->GetStringSelection().c_str();
         const char* statistics = m_statistics->GetStringSelection().c_str();
         const char* trace_hat = m_tracehat->GetStringSelection().c_str();
