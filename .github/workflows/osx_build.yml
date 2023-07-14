@@ -21,8 +21,19 @@ on:
 jobs:
   # This workflow contains a single job called "build"
   osx_build:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - os: m1max
+            arch: arm64
+          - os: macos-latest
+            arch: x86_64
+    env:
+      TARGET_ARCH: ${{ matrix.arch }}
     # The type of runner that the job will run on
-    runs-on: macos-latest
+    runs-on:
+      - ${{ matrix.os }}
     if: ${{ !contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]') }}
 
     env:
@@ -49,7 +60,7 @@ jobs:
           cd BuildTools
           cd macosx
           export GEODA_HOME=$PWD
-          export GEODA_ARCH=x86_64
+          export GEODA_ARCH=${{ env.TARGET_ARCH }}
           echo "find identity"
           security find-identity -v
           echo "start installing..."
