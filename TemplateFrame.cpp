@@ -76,6 +76,7 @@ TemplateFrame::TemplateFrame(wxFrame *parent, Project* project_s,
 	frames_manager->registerObserver(this);
 	table_state->registerObserver(this);
 	time_state->registerObserver(this);
+	SetClientSize(FromDIP(size));
 }
 
 TemplateFrame::~TemplateFrame()

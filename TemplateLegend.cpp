@@ -202,7 +202,7 @@ isDragDropAllowed(false)
     
     int numRect = template_canvas->cat_data.GetNumCategories(0);
     int height = numRect * 20 + py;
-    SetVirtualSize(wxSize(-1,height));
+    SetVirtualSize(FromDIP(wxSize(-1,height)));
     SetScrollRate(1, 1);
 }
 

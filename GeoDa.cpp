@@ -375,12 +375,12 @@ bool GdaApp::OnInit(void)
         frameWidth = screenX;
         appFramePos = wxPoint(0, 0);
     }
-
-	wxFrame* frame = new GdaFrame("GeoDa", appFramePos,
-                                  wxSize(frameWidth, frameHeight),
+    wxSize frameSz = wxSize(frameWidth, frameHeight);
+	wxFrame* frame = new GdaFrame("GeoDa", appFramePos, frameSz,
 								  wxDEFAULT_FRAME_STYLE & ~(wxMAXIMIZE_BOX));
     frame->Show(true);
     frame->SetMinSize(wxSize(640, frameHeight));
+    frame->SetClientSize(frame->FromDIP(frameSz));
     
 	SetTopWindow(GdaFrame::GetGdaFrame());
 	
