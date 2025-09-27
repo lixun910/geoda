@@ -3,6 +3,15 @@
 # stops the execution of a script if a command or pipeline has an error
 set -e
 
+# Default to regular Ubuntu build if BUILD_TYPE not specified
+BUILD_TYPE=${BUILD_TYPE:-"regular"}
+
+if [ "$BUILD_TYPE" = "appimage" ]; then
+    echo "Creating dependencies for AppImage build"
+else
+    echo "Creating dependencies for Ubuntu build"
+fi
+
 echo $OS
 echo $VER
 echo $APT
@@ -19,8 +28,14 @@ mkdir -p temp
 
 cd temp
 
-# Install libgdal
-export DEBIAN_FRONTEND=noninteractive
+# Install libgdal and development tools
+if [ "$BUILD_TYPE" = "appimage" ]; then
+    # Install development tools and headers (but not runtime packages for AppImage)
+    export DEBIAN_FRONTEND=noninteractive
+else
+    # Install libgdal for regular builds
+    export DEBIAN_FRONTEND=noninteractive
+fi
 $APT update -y
 # fix curl 60 error
 $APT install -y ca-certificates libgnutls30
@@ -50,7 +65,13 @@ if ! [ -d "boost" ] ; then
 fi
 cd boost
 ./bootstrap.sh
-./b2 --with-thread --with-date_time --with-chrono --with-system link=static threading=multi stage
+if [ "$BUILD_TYPE" = "appimage" ]; then
+    # Build boost statically for AppImage
+    ./b2 --with-thread --with-date_time --with-chrono --with-system link=static threading=multi stage
+else
+    # Build boost normally for regular builds
+    ./b2 --with-thread --with-date_time --with-chrono --with-system link=static threading=multi stage
+fi
 cd ..
 
 # Build JSON Spirit v4.08
@@ -111,8 +132,20 @@ if ! [ -d "wxWidgets-3.2.4" ] ; then
 fi
 cd wxWidgets-3.2.4
 chmod +x configure
-./configure --with-gtk=3 --disable-shared --enable-monolithic --with-opengl --enable-postscript --without-libtiff --disable-debug --enable-webview --prefix=$GEODA_HOME/libraries
+if [ "$BUILD_TYPE" = "appimage" ]; then
+    # Configure for static build for AppImage
+    ./configure --with-gtk=3 --disable-shared --enable-monolithic --with-opengl --enable-postscript --without-libtiff --disable-debug --enable-webview --prefix=$GEODA_HOME/libraries
+else
+    # Configure for regular build
+    ./configure --with-gtk=3 --disable-shared --enable-monolithic --with-opengl --enable-postscript --without-libtiff --disable-debug --enable-webview --prefix=$GEODA_HOME/libraries
+fi
 make -j$(nproc)
 make install
 cd ..
 cd ..
+
+if [ "$BUILD_TYPE" = "appimage" ]; then
+    echo "AppImage dependencies created successfully"
+else
+    echo "Ubuntu dependencies created successfully"
+fi
