@@ -1,16 +1,20 @@
 **Build instructions**
 
-Please see .github/workflows/ubuntu1804_build.yml
+Please see .github/workflows/ubuntu1804_build.yml and .github/workflows/appimage-build.yml
 
-files:
+**Current build files:**
 
-- build_bionic.sh
-- build_travis.sh
-- build_disco.sh
-- build_xenial.sh
-- create_deb.sh
+- **create_deps.sh** - Creates dependencies for both regular Ubuntu and AppImage builds (controlled by BUILD_TYPE env var)
+- **create_appimage_deps.sh** - Wrapper that sets BUILD_TYPE=appimage and delegates to create_deps.sh
+- **install.sh** - Builds GeoDa for both regular Ubuntu and AppImage builds (controlled by BUILD_TYPE env var)  
+- **install_appimage.sh** - Wrapper that sets BUILD_TYPE=appimage and delegates to install.sh
+- **create_deb.sh** - Creates .deb packages
+- build_bionic.sh, build_travis.sh, build_disco.sh, build_xenial.sh - Legacy scripts for specific Ubuntu versions
 
-(NOTE: other files are not used anymore)
+**URL Management:**
+All dependency URLs are centralized in create_deps.sh to ensure consistency between regular and AppImage builds.
+
+(NOTE: Legacy build scripts may not use the centralized URLs)
 
 
 **OLD instructions**
