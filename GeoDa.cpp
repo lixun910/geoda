@@ -187,6 +187,7 @@
 #include "TemplateFrame.h"
 #include "SaveButtonManager.h"
 #include "GeoDa.h"
+#include "MCP/McpHttpServer.h"
 #include "version.h"
 #include "arizona/viz3/plots/scatterplot.h"
 #include "rc/GeoDaIcon-16x16.xpm"
@@ -383,7 +384,19 @@ bool GdaApp::OnInit(void)
     frame->SetMinSize(wxSize(640, frameHeight));
     
 	SetTopWindow(GdaFrame::GetGdaFrame());
-	
+
+    // start built-in MCP server if requested via --mcp-port
+    // (no wxLogMessage here: the log target is not set up yet, and a queued
+    //  message would flush into a blocking modal dialog)
+    if (m_mcp_port > 0) {
+        McpHttpServer* mcp_server = new McpHttpServer(m_mcp_port);
+        if (mcp_server->Start()) {
+            GdaFrame::GetGdaFrame()->SetMcpServer(mcp_server);
+        } else {
+            delete mcp_server;
+        }
+    }
+
 	if (GeneralWxUtils::isWindows()) {
 		// For XP / Vista / Win 7, the user can select to use font sizes
 		// of %100, %125 or %150.
@@ -445,6 +458,11 @@ bool GdaApp::OnInit(void)
 
 bool GdaApp::OnCmdLineParsed(wxCmdLineParser& parser)
 {
+    m_mcp_port = 0;
+    long mcp_port = 0;
+    if ( parser.Found("mcp-port", &mcp_port) ) {
+        m_mcp_port = (int)mcp_port;
+    }
     if ( parser.GetParamCount() > 0) {
         cmd_line_proj_file_name = parser.GetParam(0);
     }
@@ -456,6 +474,9 @@ const wxCmdLineEntryDesc GdaApp::globalCmdLineDesc [] =
 	{ wxCMD_LINE_SWITCH, "h", "help",
 		"displays help on the command line parameters",
 		wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
+	{ wxCMD_LINE_OPTION, "m", "mcp-port",
+		"start the built-in MCP server on the given port",
+		wxCMD_LINE_VAL_NUMBER, wxCMD_LINE_PARAM_OPTIONAL },
 	{ wxCMD_LINE_PARAM, NULL, NULL, "project file",
 		wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
 	{ wxCMD_LINE_NONE }
@@ -765,11 +786,16 @@ void GdaFrame::SetMenusToDefault()
 
 GdaFrame::GdaFrame(const wxString& title, const wxPoint& pos,
 				   const wxSize& size, long style)
-: wxFrame(NULL, wxID_ANY, title, pos, size, style)
+: wxFrame(NULL, wxID_ANY, title, pos, size, style), m_mcp_server(NULL)
 {
 	SetBackgroundColour(*wxWHITE);
 	SetIcon(wxIcon(GeoDaIcon_16x16_xpm));
 	SetMenuBar(wxXmlResource::Get()->LoadMenuBar("ID_SHARED_MAIN_MENU"));
+
+    Bind(wxEVT_COMMAND_MENU_SELECTED, &GdaFrame::OnMcpStartServer, this,
+         XRCID("ID_MCP_START_SERVER"));
+    Bind(wxEVT_COMMAND_MENU_SELECTED, &GdaFrame::OnMcpStopServer, this,
+         XRCID("ID_MCP_STOP_SERVER"));
 
 	if (!GetHtmlMenuItems() || htmlMenuItems.size() == 0) {
 	} else {
@@ -808,6 +834,11 @@ GdaFrame::GdaFrame(const wxString& title, const wxPoint& pos,
 
 GdaFrame::~GdaFrame()
 {
+    if (m_mcp_server) {
+        delete m_mcp_server;
+        m_mcp_server = NULL;
+    }
+
 	GdaFrame::gda_frame = 0;
 }
 
@@ -1198,6 +1229,39 @@ void GdaFrame::OnEmptyCustomCategoryClick(wxCommandEvent& event)
                                     GdaConst::map_default_size);
         nf->ChangeMapType(CatClassification::custom, MapCanvas::no_smoothing, 4, boost::uuids::nil_uuid(), true, dlg.var_info, dlg.col_ids, cc_title);
         nf->UpdateTitle();
+    }
+}
+
+void GdaFrame::OnMcpStartServer(wxCommandEvent& event)
+{
+    if (m_mcp_server && m_mcp_server->IsRunning()) {
+        wxMessageBox(_("The MCP server is already running."), _("MCP Server"),
+                     wxOK | wxICON_INFORMATION, this);
+        return;
+    }
+    if (!m_mcp_server) {
+        m_mcp_server = new McpHttpServer(8765);
+    }
+    if (!m_mcp_server->Start()) {
+        wxMessageBox(_("Failed to start the MCP server."), _("MCP Server"),
+                     wxOK | wxICON_ERROR, this);
+        return;
+    }
+    wxString url = m_mcp_server->GetUrl();
+    wxTextEntryDialog dlg(this, _("MCP server is running. Copy this URL and "
+                                   "configure it in your MCP client, e.g. in "
+                                   "Claude Code:\n{\"geoda\": {\"type\": "
+                                   "\"http\", \"url\": \"<url>\"}}"),
+                          _("MCP Server"), url);
+    dlg.ShowModal();
+}
+
+void GdaFrame::OnMcpStopServer(wxCommandEvent& event)
+{
+    if (m_mcp_server) {
+        m_mcp_server->Stop();
+        wxMessageBox(_("MCP server stopped."), _("MCP Server"),
+                     wxOK | wxICON_INFORMATION, this);
     }
 }
 

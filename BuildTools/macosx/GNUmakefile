@@ -14,7 +14,7 @@ app:  build-geoda-mac
 compile-geoda:	weights-target ogl-target io-target algorithms-target dataviewer-target dialogtools-target \
 		knn-target explore-target libgdiam-target regression-target \
 		shapeoperations-target resource-target varcalc-target \
-		geoda-target
+		mcp-target geoda-target
 
 test:
 	echo $(WX_HEADER)
@@ -57,6 +57,9 @@ shapeoperations-target:
 
 varcalc-target:
 	(cd $(GeoDa_ROOT)/VarCalc; $(MAKE))
+
+mcp-target:
+	(cd $(GeoDa_ROOT)/MCP; $(MAKE))
 
 geoda-target:
 	(cd $(GeoDa_ROOT); $(MAKE))
