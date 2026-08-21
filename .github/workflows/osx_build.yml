@@ -83,7 +83,14 @@ jobs:
             # codesign at it explicitly.
             security default-keychain -s "${{ github.run_id }}.keychain"
             security unlock-keychain -p "${{ github.run_id }}" "${{ github.run_id }}.keychain"
-            codesign --force --timestamp -o runtime -s "Developer ID Application: Geodapress LLC (26M5NG43GP)" BuildTools/macosx/build/GeoDa.app
+            # Skip signing when the identity is not usable (e.g. an expired
+            # certificate on a fork); the build is still verified, just
+            # unsigned. find-identity -v only lists non-expired identities.
+            if security find-identity -v -p codesigning "${{ github.run_id }}.keychain" | grep -q "Developer ID Application: Geodapress LLC"; then
+              codesign --force --timestamp -o runtime -s "Developer ID Application: Geodapress LLC (26M5NG43GP)" BuildTools/macosx/build/GeoDa.app
+            else
+              echo "::warning::Signing identity not found (certificate may be expired); skipping codesign."
+            fi
           fi
           VER_MAJOR=$(grep "const int version_major" version.h | sed -e 's/.*const int version_major = \([0-9]*\);.*/\1/')
           VER_MINOR=$(grep "const int version_minor" version.h | sed -e 's/.*const int version_minor = \([0-9]*\);.*/\1/')
@@ -93,7 +100,9 @@ jobs:
           cd BuildTools/macosx/create-dmg
           ./geoda.sh $GEODA_VERSION
           if [ -n "${{ env.MACOS_CERTIFICATE }}" ]; then
-            codesign --timestamp -s "Developer ID Application: Geodapress LLC (26M5NG43GP)" -i edu.uchicago.spatial GeoDa$GEODA_VERSION-Installer.dmg
+            if security find-identity -v -p codesigning "${{ github.run_id }}.keychain" | grep -q "Developer ID Application: Geodapress LLC"; then
+              codesign --timestamp -s "Developer ID Application: Geodapress LLC (26M5NG43GP)" -i edu.uchicago.spatial GeoDa$GEODA_VERSION-Installer.dmg
+            fi
           fi
 
       - name: Notarize DMG
