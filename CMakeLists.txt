@@ -82,6 +82,11 @@ if(APPLE OR WIN32)
   find_package(OpenCL REQUIRED)
 endif()
 
+if(APPLE)
+  # The dylib bundling POST_BUILD step below is a python script.
+  find_package(Python3 REQUIRED COMPONENTS Interpreter)
+endif()
+
 # json_spirit - small JSON lib with an old CMakeLists that also builds demos/
 # tests, so populate the source and build our own static library from it.
 FetchContent_Declare(json_spirit
@@ -365,6 +370,23 @@ if(APPLE)
   add_custom_command(TARGET geoda POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E copy_if_different
       "${CMAKE_SOURCE_DIR}/rc/GeoDa.icns" "${GEODA_RUNTIME_DEST}/GeoDa.icns"
+    VERBATIM)
+endif()
+
+if(APPLE)
+  # Bundle the runtime dylib dependencies into Contents/Frameworks so the app
+  # is self-contained and portable. The CMake build links GeoDa against
+  # homebrew (or other) dylibs by absolute path, which exist only on the build
+  # machine; bundle_dylibs.py copies every non-system dylib (recursively, so
+  # transitive deps like GDAL's libarchive/openssl/libtiff chain are included)
+  # into the bundle and rewrites the load commands to
+  # @executable_path/../Frameworks/. Mirrors the legacy install_name.py step of
+  # the old BuildTools toolchain. Idempotent: incremental builds skip the
+  # already-bundled refs.
+  add_custom_command(TARGET geoda POST_BUILD
+    COMMAND "${Python3_EXECUTABLE}"
+      "${CMAKE_SOURCE_DIR}/BuildTools/macosx/bundle_dylibs.py"
+      "$<TARGET_BUNDLE_DIR:geoda>"
     VERBATIM)
 endif()
 

@@ -87,6 +87,12 @@ jobs:
             # certificate on a fork); the build is still verified, just
             # unsigned. find-identity -v only lists non-expired identities.
             if security find-identity -v -p codesigning "${{ github.run_id }}.keychain" | grep -q "Developer ID Application: Geodapress LLC"; then
+              # bundle_dylibs.py (CMake POST_BUILD) ad-hoc signs each bundled
+              # dylib so the app launches; re-sign them with the Developer ID
+              # so the bundle seals correctly for notarization.
+              for dylib in BuildTools/macosx/build/GeoDa.app/Contents/Frameworks/*.dylib; do
+                codesign --force --timestamp -o runtime -s "Developer ID Application: Geodapress LLC (26M5NG43GP)" "$dylib"
+              done
               codesign --force --timestamp -o runtime -s "Developer ID Application: Geodapress LLC (26M5NG43GP)" BuildTools/macosx/build/GeoDa.app
             else
               echo "::warning::Signing identity not found (certificate may be expired); skipping codesign."
