@@ -281,6 +281,7 @@ target_link_libraries(geoda PRIVATE
   Eigen3::Eigen
   json_spirit
   OpenGL::GL
+  OpenGL::GLU
   clapack
   CURL::libcurl
   ZLIB::ZLIB
@@ -288,13 +289,11 @@ target_link_libraries(geoda PRIVATE
 
 if(APPLE)
   target_link_libraries(geoda PRIVATE
-    OpenGL::GLU
     "${OpenCL_LIBRARIES}"
     iconv)
 endif()
 if(WIN32)
   target_link_libraries(geoda PRIVATE
-    OpenGL::GLU
     "${OpenCL_LIBRARIES}"
     wsock32 comctl32 winmm rpcrt4)
 endif()
