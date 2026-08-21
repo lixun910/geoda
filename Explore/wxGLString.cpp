@@ -1,13 +1,13 @@
 #include "wxGLString.h"
 #include <iostream>
 
+#include "wx/wx.h"
+
 #ifdef __WXMAC__
 #include "OpenGL/gl.h"
 #else
 #include <GL/gl.h>
 #endif
-
-#include "wx/wx.h"
 
 
 GLuint* loadImage(wxImage* img)
