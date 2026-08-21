@@ -241,6 +241,8 @@ jobs:
             $env:CLAPACK_LIB="$env:GDA_PATH\temp\CLAPACK-3.1.1-VisualStudio\LIB\x64"
             $env:BOOST_LIB="$env:GDA_PATH\temp\boost\lib\win64"
           }
+          # libcurl comes from the gisinternals GDAL SDK (bundled in the
+          # release-1911-x64-dev.zip extracted to BuildTools/windows/libraries).
           cmake -S $env:GITHUB_WORKSPACE -B $env:GITHUB_WORKSPACE\build -A $env:CMAKE_ARCHITECTURE `
             -DCMAKE_BUILD_TYPE=Release `
             -DwxWidgets_ROOT_DIR="$env:GDA_PATH\temp\wxWidgets" `
@@ -251,7 +253,11 @@ jobs:
             -DGDAL_ROOT="$env:GDA_PATH\libraries" `
             -DEIGEN3_INCLUDE_DIR="$env:GDA_PATH\temp\eigen3" `
             -DOpenCL_INCLUDE_DIR="$env:GDA_PATH\temp\OpenCL\sdk\include" `
-            -DOpenCL_LIBRARY="$env:OPENCL_LIB"
+            -DOpenCL_LIBRARY="$env:OPENCL_LIB" `
+            -DCURL_INCLUDE_DIR="$env:GDA_PATH\libraries\include" `
+            -DCURL_LIBRARY="$env:GDA_PATH\libraries\lib\libcurl_imp.lib" `
+            -DZLIB_INCLUDE_DIR="$env:GDA_PATH\libraries\include" `
+            -DZLIB_LIBRARY="$env:GDA_PATH\libraries\lib\zlib.lib"
           cmake --build $env:GITHUB_WORKSPACE\build --config Release
           # update installer version numbers in iss files
           python update_installer_version.py
