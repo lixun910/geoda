@@ -10,7 +10,8 @@
 #     stc gl xrc qa webview components)
 #   * GDAL (>= 3)
 #   * Boost (>= 1.66: thread, date_time, system, chrono, atomic, regex)
-#   * Eigen3 (>= 3.3)
+#   * Eigen3 (>= 3.3; not version-pinned in find_package so it works with both
+#     the 3.x series from apt and the 5.x series now shipped by homebrew)
 #   * CLAPACK -- see GEODA_CLAPACK_DIR / GEODA_USE_CLAPACK_EXTERNAL below
 #
 # json_spirit and Spectra are fetched automatically.
@@ -57,7 +58,10 @@ find_package(wxWidgets REQUIRED COMPONENTS
   base core net xml html adv aui propgrid richtext ribbon stc gl xrc qa webview)
 find_package(Boost 1.66 REQUIRED COMPONENTS thread date_time chrono atomic regex)
 find_package(GDAL REQUIRED)        # GDAL::GDAL
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)  # Eigen3::Eigen
+# Config mode first (brew/apt ship Eigen3Config.cmake); falls back to CMake's
+# FindEigen3 module for the Windows eigen3.zip which ships headers only
+# (Eigen3::Eigen is provided by both).
+find_package(Eigen3 REQUIRED)
 
 # OpenCL is only required on Apple and Windows; the Linux sources stub it out
 # themselves (#ifdef __linux__) and do not include any OpenCL header.
