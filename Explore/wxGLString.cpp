@@ -9,6 +9,12 @@
 #include <GL/gl.h>
 #endif
 
+// The Windows SDK's gl.h implements OpenGL 1.1 and does not define the
+// OpenGL 1.2 GL_CLAMP_TO_EDGE constant (macOS/Linux GL headers do).
+#ifndef GL_CLAMP_TO_EDGE
+#define GL_CLAMP_TO_EDGE 0x812F
+#endif
+
 
 GLuint* loadImage(wxImage* img)
 {
