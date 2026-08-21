@@ -40,6 +40,9 @@ jobs:
     env:
       GEODA_VER: '1.22.0'
       GEODA_ARCH: ${{ matrix.pre }}
+      # Exposed via env so it can be tested in step `if` conditions (the
+      # secrets context is not available there). Empty on forks/PRs.
+      MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
 
@@ -49,7 +52,7 @@ jobs:
 
       - name: Install application certificate
         # Skip on forks / PRs where the signing certificate secret is absent.
-        if: ${{ secrets.MACOS_CERTIFICATE != '' }}
+        if: ${{ env.MACOS_CERTIFICATE != '' }}
         uses: apple-actions/import-codesign-certs@v2
         with:
           keychain: ${{ github.run_id }}
@@ -74,7 +77,7 @@ jobs:
           cp -R build/bin/GeoDa.app BuildTools/macosx/build/
           # Codesign only when the signing certificate is available (upstream
           # repo); forks / PRs skip signing so the build can still be verified.
-          if [ -n "${{ secrets.MACOS_CERTIFICATE }}" ]; then
+          if [ -n "${{ env.MACOS_CERTIFICATE }}" ]; then
             codesign --force --timestamp -o runtime -s "Developer ID Application: Geodapress LLC (26M5NG43GP)" BuildTools/macosx/build/GeoDa.app
           fi
           VER_MAJOR=$(grep "const int version_major" version.h | sed -e 's/.*const int version_major = \([0-9]*\);.*/\1/')
@@ -84,7 +87,7 @@ jobs:
           echo $GEODA_VERSION
           cd BuildTools/macosx/create-dmg
           ./geoda.sh $GEODA_VERSION
-          if [ -n "${{ secrets.MACOS_CERTIFICATE }}" ]; then
+          if [ -n "${{ env.MACOS_CERTIFICATE }}" ]; then
             codesign --timestamp -s "Developer ID Application: Geodapress LLC (26M5NG43GP)" -i edu.uchicago.spatial GeoDa$GEODA_VERSION-Installer.dmg
           fi
 
