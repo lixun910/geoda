@@ -68,19 +68,21 @@ jobs:
               $env:WIN64_ARG="WIN64=YES"
               $env:CMAKE_ARCHITECTURE="x64"
           }
-          echo "::set-env name=PATH::$env:PATH"
-          echo "::set-env name=ARCHITECTURE::$env:ARCHITECTURE"
-          echo "::set-env name=WIN64_ARG::$env:WIN64_ARG"
+          # Persist across steps via $GITHUB_ENV (the old ::set-env command
+          # was removed from GitHub Actions).
+          "ARCHITECTURE=$env:ARCHITECTURE" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "WIN64_ARG=$env:WIN64_ARG" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "CMAKE_ARCHITECTURE=$env:CMAKE_ARCHITECTURE" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       # Set compiler environment
       - name: Set compiler environment
         shell: cmd
         run: |
           if "%VS_VER%" == "2022" CALL "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat" -arch=%ARCHITECTURE%
-          echo ::set-env name=PATH::%PATH%
-          echo ::set-env name=INCLUDE::%INCLUDE%
-          echo ::set-env name=LIB::%LIB%
-          echo ::set-env name=LIBPATH::%LIBPATH%
+          echo PATH=%PATH% >> %GITHUB_ENV%
+          echo INCLUDE=%INCLUDE% >> %GITHUB_ENV%
+          echo LIB=%LIB% >> %GITHUB_ENV%
+          echo LIBPATH=%LIBPATH% >> %GITHUB_ENV%
 
       - uses: actions/cache@v4
         id: cache
@@ -230,16 +232,21 @@ jobs:
           if($env:platform -eq "x86")
           {
             $env:OPENCL_LIB="$env:GDA_PATH\temp\OpenCL\sdk\lib\x86\OpenCL.lib"
+            $env:CLAPACK_LIB="$env:GDA_PATH\temp\CLAPACK-3.1.1-VisualStudio\LIB\Win32"
+            $env:BOOST_LIB="$env:GDA_PATH\temp\boost\lib\win32"
           }
           else
           {
             $env:OPENCL_LIB="$env:GDA_PATH\temp\OpenCL\sdk\lib\x64\OpenCL.lib"
+            $env:CLAPACK_LIB="$env:GDA_PATH\temp\CLAPACK-3.1.1-VisualStudio\LIB\x64"
+            $env:BOOST_LIB="$env:GDA_PATH\temp\boost\lib\win64"
           }
           cmake -S $env:GITHUB_WORKSPACE -B $env:GITHUB_WORKSPACE\build -A $env:CMAKE_ARCHITECTURE `
             -DCMAKE_BUILD_TYPE=Release `
             -DwxWidgets_ROOT_DIR="$env:GDA_PATH\temp\wxWidgets" `
-            -DGEODA_CLAPACK_PATH="$env:GDA_PATH\temp\CLAPACK-3.1.1-VisualStudio" `
+            -DGEODA_CLAPACK_PATH="$env:CLAPACK_LIB" `
             -DBoost_ROOT="$env:GDA_PATH\temp\boost" `
+            -DBoost_LIBRARY_DIR="$env:BOOST_LIB" `
             -DBoost_COMPILER=-vc142 `
             -DGDAL_ROOT="$env:GDA_PATH\libraries" `
             -DEIGEN3_INCLUDE_DIR="$env:GDA_PATH\temp\eigen3" `
