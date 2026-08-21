@@ -36,9 +36,11 @@ jobs:
           - distro: 'ubuntu-24.04'
             pre: 'noble'
             webkit: 'libwebkit2gtk-4.1-dev'
+            wx: 'libwxgtk3.2-dev libwxgtk-webview3.2-dev'
           - distro: 'ubuntu-22.04'
             pre: 'jammy'
             webkit: 'libwebkit2gtk-4.0-dev'
+            wx: 'libwxgtk3.0-gtk3-dev libwxgtk-webview3.0-gtk3-dev'
 
     env:
       platform: ${{ matrix.distro }}
@@ -56,7 +58,7 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y ca-certificates
           sudo apt-get install -y cmake ninja-build build-essential
-          sudo apt-get install -y libwxgtk3.2-dev
+          sudo apt-get install -y ${{ matrix.wx }}
           sudo apt-get install -y libgdal-dev
           sudo apt-get install -y libboost-all-dev
           sudo apt-get install -y libeigen3-dev
