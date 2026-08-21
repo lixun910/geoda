@@ -172,37 +172,15 @@ jobs:
           asset_content_type: application/octet-stream
         continue-on-error: true
 
-      - name: Upload Ubuntu 20.04 Package
+      - name: Upload Linux AppImage
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/GeoDa-${{ steps.get_version.outputs.version }}-focal/geoda_${{ steps.get_version.outputs.version }}-1focal1_amd64.deb
-          asset_name: geoda_${{ steps.get_version.outputs.version }}-1focal1_amd64.deb
-          asset_content_type: application/vnd.debian.binary-package
-        continue-on-error: true
-
-      - name: Upload Ubuntu 22.04 Package
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/GeoDa-${{ steps.get_version.outputs.version }}-jammy/geoda_${{ steps.get_version.outputs.version }}-1jammy1_amd64.deb
-          asset_name: geoda_${{ steps.get_version.outputs.version }}-1jammy1_amd64.deb
-          asset_content_type: application/vnd.debian.binary-package
-        continue-on-error: true
-
-      - name: Upload Ubuntu 24.04 Package
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/GeoDa-${{ steps.get_version.outputs.version }}-noble/geoda_${{ steps.get_version.outputs.version }}-1noble1_amd64.deb
-          asset_name: geoda_${{ steps.get_version.outputs.version }}-1noble1_amd64.deb
-          asset_content_type: application/vnd.debian.binary-package
+          asset_path: ./artifacts/GeoDa-${{ steps.get_version.outputs.version }}-AppImage/GeoDa-${{ steps.get_version.outputs.version }}-x86_64.AppImage
+          asset_name: GeoDa-${{ steps.get_version.outputs.version }}-x86_64.AppImage
+          asset_content_type: application/octet-stream
         continue-on-error: true
 
       - name: Verify Release Assets

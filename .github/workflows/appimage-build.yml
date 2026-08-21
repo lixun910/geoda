@@ -25,12 +25,12 @@ jobs:
   # This workflow contains a single job called "appimage_build"
   appimage_build:
     # The type of runner that the job will run on
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     if: ${{ !contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]') }}
 
     env:
       GEODA_VER: '1.22.0'
-      TARGET_OS: 'jammy'
+      TARGET_OS: 'noble'
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -51,16 +51,18 @@ jobs:
           wget -O linuxdeploy-x86_64.AppImage https://github.com/linuxdeploy/linuxdeploy/releases/download/1-alpha-20220822-1/linuxdeploy-x86_64.AppImage
           chmod +x linuxdeploy-x86_64.AppImage
           # Install build dependencies
-          sudo apt-get install -y ca-certificates libgnutls30
+          sudo apt-get install -y ca-certificates
           echo '-k' > ~/.curlrc
           sudo apt-get install -y cmake ninja-build build-essential
-          sudo apt-get install -y libwxgtk3.0-gtk3-dev libwxgtk-webview3.0-gtk3-dev
+          # GeoDa requires wxWidgets >= 3.1 (wxWindow::FromDIP, wx/xrc/xh_auitoolb.h);
+          # ubuntu-24.04 ships wx 3.2 via apt.
+          sudo apt-get install -y libwxgtk3.2-dev libwxgtk-webview3.2-dev
           sudo apt-get install -y libgdal-dev
           sudo apt-get install -y libboost-all-dev
           sudo apt-get install -y libeigen3-dev
           sudo apt-get install -y libgl1-mesa-dev libglu1-mesa-dev
           sudo apt-get install -y libcurl4-openssl-dev
-          sudo apt-get install -y libwebkit2gtk-4.0-dev
+          sudo apt-get install -y libwebkit2gtk-4.1-dev
 
       # Build GeoDa
       - name: Build GeoDa
