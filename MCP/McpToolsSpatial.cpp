@@ -46,7 +46,10 @@
 #include "GenUtils.h"
 #include "VarTools.h"
 #include "SpatialIndAlgs.h"
+#include "GdaException.h"
 #include "DataViewer/TableInterface.h"
+#include "DataViewer/DataSource.h"
+#include "ShapeOperations/OGRDataAdapter.h"
 #include "VarCalc/WeightsManInterface.h"
 #include "VarCalc/WeightsMetaInfo.h"
 #include "ShapeOperations/WeightsManager.h"
@@ -292,6 +295,68 @@ namespace
                 "Unknown column: " + name.ToStdString());
         }
         return col;
+    }
+
+    // Validate that the given columns' field names can be written to the
+    // target format. The GUI export path fixes illegal or duplicated names
+    // with a modal FieldNameCorrectionDlg; from a worker thread that dialog
+    // cannot be shown, so reject with a clear error instead.
+    void ValidateExportFieldNames(TableInterface* table,
+                                  const std::vector<int>& col_ids,
+                                  GdaConst::DataSourceType ds_type,
+                                  const wxString& format)
+    {
+        std::map<wxString, bool> seen_names;
+        int time_steps = table->GetTimeSteps();
+        for (size_t c = 0; c < col_ids.size(); ++c) {
+            int id = col_ids[c];
+            std::vector<wxString> names;
+            if (table->IsColTimeVariant(id)) {
+                for (int t = 0; t < time_steps; ++t) {
+                    wxString fname = table->GetColName(id, t);
+                    if (!fname.IsEmpty()) names.push_back(fname);
+                }
+            } else {
+                wxString fname = table->GetColName(id);
+                if (!fname.IsEmpty()) names.push_back(fname);
+            }
+            for (size_t k = 0; k < names.size(); ++k) {
+                wxString fname = names[k];
+                std::map<GdaConst::DataSourceType, int>::const_iterator lit =
+                    GdaConst::datasrc_field_lens.find(ds_type);
+                if (lit != GdaConst::datasrc_field_lens.end() &&
+                    lit->second > 0 && fname.length() > lit->second) {
+                    wxString msg = wxString::Format(
+                        "Field name \"%s\" is longer than %d characters, which "
+                        "%s cannot store. Rename the column first.",
+                        fname, lit->second, format);
+                    throw McpError(-32602, msg.ToStdString());
+                }
+                std::map<GdaConst::DataSourceType, wxString>::const_iterator rit =
+                    GdaConst::datasrc_field_regex.find(ds_type);
+                if (rit != GdaConst::datasrc_field_regex.end() &&
+                    !rit->second.IsEmpty()) {
+                    wxRegEx regex;
+                    regex.Compile(rit->second);
+                    if (!regex.Matches(fname)) {
+                        wxString msg = wxString::Format(
+                            "Field name \"%s\" is not valid for %s. Rename the "
+                            "field first.",
+                            fname, format);
+                        throw McpError(-32602, msg.ToStdString());
+                    }
+                }
+                wxString key = fname.Upper();
+                if (seen_names.find(key) != seen_names.end()) {
+                    wxString msg = wxString::Format(
+                        "Duplicate field name \"%s\" cannot be exported to %s. "
+                        "Rename one of the fields first.",
+                        fname, format);
+                    throw McpError(-32602, msg.ToStdString());
+                }
+                seen_names[key] = true;
+            }
+        }
     }
 
     // ---------------------------------------------------------------------
@@ -871,6 +936,542 @@ json_spirit::Value McpTableUnivariateStats(const McpToolContext& ctx,
     r.push_back(P("iqr", json_spirit::Value(q3 - q1)));
     r.push_back(P("skewness", json_spirit::Value(skewness)));
     r.push_back(P("kurtosis", json_spirit::Value(kurtosis)));
+    return Obj(r);
+}
+
+// =========================================================================
+// file/export (scripted data export)
+// =========================================================================
+// Headless counterpart of File->Export Data. Writes the open data set
+// (geometry + table) to a file via OGR. This runs on a worker thread, so it
+// must not touch wx GUI code: field names are validated here instead of
+// popping the FieldNameCorrectionDlg, and OGR geometry conversion is driven
+// directly (see ExportDataDlg::CreateOGRLayer for the GUI equivalent).
+json_spirit::Value McpFileExport(const McpToolContext& ctx,
+                                 const json_spirit::Object& params)
+{
+    Project* project = RequireProject(ctx);
+    TableInterface* table = project->GetTableInt();
+    if (!table) {
+        throw McpError(-32602, "The open project has no table.");
+    }
+    wxString out_path = GetStr(params, "path");
+    if (out_path.IsEmpty()) {
+        throw McpError(-32602, "Missing required parameter: path");
+    }
+    // Resolve the OGR format name from the explicit parameter or the file
+    // extension (e.g. GeoJSON, ESRI Shapefile, GeoPackage, CSV).
+    wxString format = GetStr(params, "format");
+    if (format.IsEmpty()) {
+        wxFileName fname(out_path);
+        format = IDataSource::GetDataTypeNameByExt(fname.GetExt());
+    }
+    if (format.IsEmpty()) {
+        throw McpError(-32602,
+            "Cannot determine export format. Use a known file extension "
+            "(e.g. .geojson, .gpkg, .shp, .csv) or pass format explicitly.");
+    }
+    GdaConst::DataSourceType ds_type = IDataSource::FindDataSourceType(format);
+    if (ds_type == GdaConst::ds_unknown) {
+        throw McpError(-32602,
+            "Unsupported export format: " + format.ToStdString());
+    }
+    bool is_table = IDataSource::IsTableOnly(ds_type);
+
+    // Export every observation (all rows, no selection).
+    int num_obs = project->main_data.records.size();
+    if (num_obs == 0) num_obs = project->GetNumRecords();
+    if (num_obs == 0) {
+        throw McpError(-32602, "Export failed: the current data set is empty.");
+    }
+    std::vector<int> selected_rows;
+    for (int i = 0; i < num_obs; ++i) selected_rows.push_back(i);
+
+    // Convert the in-memory geometry records to GdaShapes. Mirrors
+    // ExportDataDlg::CreateOGRLayer; table-only data keeps an empty list.
+    std::vector<GdaShape*> geometries;
+    Shapefile::ShapeType shape_type = Shapefile::NULL_SHAPE;
+    if (project->main_data.header.shape_type == Shapefile::POINT_TYP) {
+        Shapefile::PointContents* pc;
+        for (int i = 0; i < num_obs; ++i) {
+            pc = (Shapefile::PointContents*)
+                project->main_data.records[i].contents_p;
+            if (pc->x == 0 && pc->y == 0 &&
+                (pc->x < project->main_data.header.bbox_x_min ||
+                 pc->x > project->main_data.header.bbox_x_max) &&
+                (pc->y < project->main_data.header.bbox_y_min ||
+                 pc->y > project->main_data.header.bbox_y_max)) {
+                geometries.push_back(new GdaPoint());
+            } else {
+                geometries.push_back(
+                    new GdaPoint(wxRealPoint(pc->x, pc->y)));
+            }
+        }
+        shape_type = Shapefile::POINT_TYP;
+    } else if (project->main_data.header.shape_type == Shapefile::POLYGON) {
+        Shapefile::PolygonContents* pc;
+        for (int i = 0; i < num_obs; ++i) {
+            pc = (Shapefile::PolygonContents*)
+                project->main_data.records[i].contents_p;
+            geometries.push_back(new GdaPolygon(pc));
+        }
+        shape_type = Shapefile::POLYGON;
+    }
+
+    // Validate field names up front. The GUI export path fixes illegal or
+    // duplicated names with a modal FieldNameCorrectionDlg; from a worker
+    // thread that dialog cannot be shown, so reject with a clear error.
+    wxString cpgEncoding = project->GetCpgEncode();
+    std::vector<int> all_col_ids;
+    for (int id = 0; id < table->GetNumberCols(); ++id) {
+        all_col_ids.push_back(id);
+    }
+    ValidateExportFieldNames(table, all_col_ids, ds_type, format);
+
+    // Convert GdaShapes to OGR geometries and reproject if a CRS was given.
+    OGRDataAdapter& ogr_adapter = OGRDataAdapter::GetInstance();
+    std::vector<OGRGeometry*> ogr_geometries;
+    OGRwkbGeometryType geom_type = wkbNone;
+    OGRSpatialReference* spatial_ref = project->GetSpatialReference();
+    OGRSpatialReference new_ref;
+    if (is_table) {
+        spatial_ref = NULL;  // table-only output, avoid creating a .prj
+    } else {
+        geom_type = ogr_adapter.MakeOGRGeometries(geometries, shape_type,
+                                                  ogr_geometries,
+                                                  selected_rows);
+        wxString str_crs = GetStr(params, "crs");
+        bool valid_input_crs = false;
+        if (!str_crs.IsEmpty()) {
+            if (new_ref.importFromProj4(str_crs.c_str()) != OGRERR_NONE) {
+                wxString msg = wxString::Format("Invalid crs value: %s",
+                                                str_crs);
+                throw McpError(-32602, msg.ToStdString());
+            }
+            valid_input_crs = true;
+        }
+        if (out_path.EndsWith(".json") || out_path.EndsWith(".geojson")) {
+            // for GeoJSON, force transform to EPSG4326 automatically so the
+            // output can be dropped into a web map (e.g. kepler.gl)
+            new_ref.importFromEPSG(4326);
+            valid_input_crs = true;
+        }
+        if (ogr_geometries.size() > 0 && valid_input_crs) {
+            if (spatial_ref && spatial_ref->IsSame(&new_ref) == false) {
+                OGRCoordinateTransformation *poCT;
+#ifdef __PROJ6__
+                spatial_ref->SetAxisMappingStrategy(OAMS_TRADITIONAL_GIS_ORDER);
+                new_ref.SetAxisMappingStrategy(OAMS_TRADITIONAL_GIS_ORDER);
+#endif
+                poCT = OGRCreateCoordinateTransformation(spatial_ref, &new_ref);
+                if (!poCT) {
+                    // Happens when PROJ data (proj.db) is unavailable, e.g. a
+                    // bare binary run outside its bundle. A NULL transform
+                    // would segfault inside transform(), so fail cleanly.
+                    throw McpError(-32000,
+                        "Cannot create the coordinate transformation to "
+                        "EPSG:4326 (PROJ database not available).");
+                }
+                for (size_t i = 0; i < ogr_geometries.size(); ++i) {
+                    ogr_geometries[i]->transform(poCT);
+                }
+                OGRCoordinateTransformation::DestroyCT(poCT);
+            }
+            spatial_ref = &new_ref;
+        }
+    }
+
+    wxString layer_name = GetStr(params, "layer_id");
+    if (layer_name.IsEmpty()) layer_name = table->GetTableName();
+    if (layer_name.IsEmpty()) layer_name = "geoda_export";
+
+    OGRLayerProxy* new_layer = NULL;
+    try {
+        new_layer = ogr_adapter.ExportDataSource(
+            format, out_path, layer_name, geom_type, ogr_geometries, table,
+            selected_rows, spatial_ref, false, cpgEncoding,
+            true /* skip_field_name_dialog: names validated above */);
+    } catch (GdaException& e) {
+        for (size_t i = 0; i < ogr_geometries.size(); ++i) {
+            OGRGeometryFactory::destroyGeometry(ogr_geometries[i]);
+        }
+        for (size_t i = 0; i < geometries.size(); ++i) delete geometries[i];
+        throw McpError(-32000,
+                       std::string("Export failed: ") + e.what());
+    }
+    if (new_layer == NULL) {
+        for (size_t i = 0; i < ogr_geometries.size(); ++i) {
+            OGRGeometryFactory::destroyGeometry(ogr_geometries[i]);
+        }
+        for (size_t i = 0; i < geometries.size(); ++i) delete geometries[i];
+        throw McpError(-32602, "Export failed: unable to create the data source.");
+    }
+
+    // Wait for the background AddFeatures thread (ExportDataDlg::CreateOGRLayer).
+    int prog_n_max = selected_rows.size();
+    while (new_layer->export_progress < prog_n_max) {
+        wxMilliSleep(100);
+        if (new_layer->stop_exporting) {
+            throw McpError(-32000, "Export cancelled.");
+        }
+        if (new_layer->export_progress == -1) {
+            wxString msg = wxString::Format("Export to %s failed.\n\n%s",
+                                            out_path, new_layer->error_message);
+            throw McpError(-32000, msg.ToStdString());
+        }
+    }
+    ogr_adapter.StopExport();  // deletes new_layer and its OGR geometries
+    for (size_t i = 0; i < geometries.size(); ++i) delete geometries[i];
+
+    std::vector<json_spirit::Pair> r;
+    r.push_back(P("success", json_spirit::Value(true)));
+    r.push_back(P("path", json_spirit::Value(out_path.ToStdString())));
+    r.push_back(P("format", json_spirit::Value(format.ToStdString())));
+    r.push_back(P("num_features", json_spirit::Value((int)selected_rows.size())));
+    return Obj(r);
+}
+
+// =========================================================================
+// table/export (scripted column-subset export)
+// =========================================================================
+// Export a selection of columns (plus geometry when the data is spatial) to
+// a file via OGR. Unlike file/export this writes only the requested columns,
+// so e.g. an ID, a LISA cluster label and centroid coordinates can be saved
+// without dragging along every column of the table. Runs on the worker
+// thread: no wx GUI objects, field names are pre-validated (see
+// ValidateExportFieldNames). The OGR datasource is built by hand so that the
+// layer contains exactly the selected fields (ExportDataSource writes the
+// whole table).
+json_spirit::Value McpTableExport(const McpToolContext& ctx,
+                                  const json_spirit::Object& params)
+{
+    Project* project = RequireProject(ctx);
+    TableInterface* table = RequireTable(ctx);
+    wxString out_path = GetStr(params, "path");
+    if (out_path.IsEmpty()) {
+        throw McpError(-32602, "Missing required parameter: path");
+    }
+    // Resolve the OGR format name from the explicit parameter or the file
+    // extension.
+    wxString format = GetStr(params, "format");
+    if (format.IsEmpty()) {
+        wxFileName fname(out_path);
+        format = IDataSource::GetDataTypeNameByExt(fname.GetExt());
+    }
+    if (format.IsEmpty()) {
+        throw McpError(-32602,
+            "Cannot determine export format. Use a known file extension "
+            "(e.g. .geojson, .gpkg, .shp, .csv) or pass format explicitly.");
+    }
+    GdaConst::DataSourceType ds_type = IDataSource::FindDataSourceType(format);
+    if (ds_type == GdaConst::ds_unknown) {
+        throw McpError(-32602,
+            "Unsupported export format: " + format.ToStdString());
+    }
+    bool is_table = IDataSource::IsTableOnly(ds_type);
+    bool include_geometry = GetBool(params, "include_geometry", true);
+
+    // Select the columns to export: an explicit list, or all columns.
+    std::vector<wxString> requested = GetStrArray(params, "columns");
+    std::vector<int> col_ids;
+    if (requested.empty()) {
+        for (int id = 0; id < table->GetNumberCols(); ++id) {
+            col_ids.push_back(id);
+        }
+    } else {
+        for (size_t i = 0; i < requested.size(); ++i) {
+            col_ids.push_back(RequireColumn(table, requested[i]));
+        }
+    }
+    if (col_ids.empty()) {
+        throw McpError(-32602, "Export failed: no columns to export.");
+    }
+    ValidateExportFieldNames(table, col_ids, ds_type, format);
+
+    // Export every observation (all rows, no selection).
+    int num_obs = project->main_data.records.size();
+    if (num_obs == 0) num_obs = project->GetNumRecords();
+    if (num_obs == 0) {
+        throw McpError(-32602, "Export failed: the current data set is empty.");
+    }
+    std::vector<int> selected_rows;
+    for (int i = 0; i < num_obs; ++i) selected_rows.push_back(i);
+
+    // Convert the in-memory geometry records to GdaShapes. Mirrors
+    // ExportDataDlg::CreateOGRLayer; table-only data keeps an empty list.
+    std::vector<GdaShape*> geometries;
+    Shapefile::ShapeType shape_type = Shapefile::NULL_SHAPE;
+    if (!is_table && include_geometry) {
+        if (project->main_data.header.shape_type == Shapefile::POINT_TYP) {
+            Shapefile::PointContents* pc;
+            for (int i = 0; i < num_obs; ++i) {
+                pc = (Shapefile::PointContents*)
+                    project->main_data.records[i].contents_p;
+                if (pc->x == 0 && pc->y == 0 &&
+                    (pc->x < project->main_data.header.bbox_x_min ||
+                     pc->x > project->main_data.header.bbox_x_max) &&
+                    (pc->y < project->main_data.header.bbox_y_min ||
+                     pc->y > project->main_data.header.bbox_y_max)) {
+                    geometries.push_back(new GdaPoint());
+                } else {
+                    geometries.push_back(
+                        new GdaPoint(wxRealPoint(pc->x, pc->y)));
+                }
+            }
+            shape_type = Shapefile::POINT_TYP;
+        } else if (project->main_data.header.shape_type ==
+                   Shapefile::POLYGON) {
+            Shapefile::PolygonContents* pc;
+            for (int i = 0; i < num_obs; ++i) {
+                pc = (Shapefile::PolygonContents*)
+                    project->main_data.records[i].contents_p;
+                geometries.push_back(new GdaPolygon(pc));
+            }
+            shape_type = Shapefile::POLYGON;
+        }
+    }
+
+    // Convert GdaShapes to OGR geometries and reproject if a CRS was given.
+    OGRDataAdapter& ogr_adapter = OGRDataAdapter::GetInstance();
+    std::vector<OGRGeometry*> ogr_geometries;
+    OGRwkbGeometryType geom_type = wkbNone;
+    OGRSpatialReference* spatial_ref = NULL;
+    OGRSpatialReference new_ref;
+    if (!is_table && include_geometry) {
+        geom_type = ogr_adapter.MakeOGRGeometries(geometries, shape_type,
+                                                  ogr_geometries,
+                                                  selected_rows);
+        spatial_ref = project->GetSpatialReference();
+        wxString str_crs = GetStr(params, "crs");
+        bool valid_input_crs = false;
+        if (!str_crs.IsEmpty()) {
+            if (new_ref.importFromProj4(str_crs.c_str()) != OGRERR_NONE) {
+                wxString msg = wxString::Format("Invalid crs value: %s",
+                                                str_crs);
+                throw McpError(-32602, msg.ToStdString());
+            }
+            valid_input_crs = true;
+        }
+        if (out_path.EndsWith(".json") || out_path.EndsWith(".geojson")) {
+            // for GeoJSON, force transform to EPSG4326 automatically so the
+            // output can be dropped into a web map (e.g. kepler.gl)
+            new_ref.importFromEPSG(4326);
+            valid_input_crs = true;
+        }
+        if (ogr_geometries.size() > 0 && valid_input_crs) {
+            if (spatial_ref && spatial_ref->IsSame(&new_ref) == false) {
+                OGRCoordinateTransformation *poCT;
+#ifdef __PROJ6__
+                spatial_ref->SetAxisMappingStrategy(OAMS_TRADITIONAL_GIS_ORDER);
+                new_ref.SetAxisMappingStrategy(OAMS_TRADITIONAL_GIS_ORDER);
+#endif
+                poCT = OGRCreateCoordinateTransformation(spatial_ref, &new_ref);
+                if (!poCT) {
+                    // Happens when PROJ data (proj.db) is unavailable, e.g. a
+                    // bare binary run outside its bundle. A NULL transform
+                    // would segfault inside transform(), so fail cleanly.
+                    throw McpError(-32000,
+                        "Cannot create the coordinate transformation to "
+                        "EPSG:4326 (PROJ database not available).");
+                }
+                for (size_t i = 0; i < ogr_geometries.size(); ++i) {
+                    ogr_geometries[i]->transform(poCT);
+                }
+                OGRCoordinateTransformation::DestroyCT(poCT);
+            }
+            spatial_ref = &new_ref;
+        }
+    }
+
+    // Read the selected column values once (time step 0). Mirrors the typed
+    // reads in OGRLayerProxy::AddFeatures.
+    std::vector<std::vector<double> > d_vals(col_ids.size());
+    std::vector<std::vector<wxInt64> > l_vals(col_ids.size());
+    std::vector<std::vector<wxString> > s_vals(col_ids.size());
+    std::vector<std::vector<unsigned long long> > t_vals(col_ids.size());
+    std::vector<std::vector<bool> > col_undefs(col_ids.size());
+    for (size_t c = 0; c < col_ids.size(); ++c) {
+        GdaConst::FieldType ftype = table->GetColType(col_ids[c], 0);
+        if (ftype == GdaConst::double_type) {
+            table->GetColData(col_ids[c], 0, d_vals[c], col_undefs[c]);
+        } else if (ftype == GdaConst::long64_type) {
+            table->GetColData(col_ids[c], 0, l_vals[c], col_undefs[c]);
+        } else if (ftype == GdaConst::date_type ||
+                   ftype == GdaConst::time_type ||
+                   ftype == GdaConst::datetime_type) {
+            table->GetColData(col_ids[c], 0, t_vals[c], col_undefs[c]);
+        } else {
+            // others are treated as string_type
+            table->GetColData(col_ids[c], 0, s_vals[c], col_undefs[c]);
+            if (ds_type == GdaConst::ds_csv) {
+                for (size_t m = 0; m < s_vals[c].size(); ++m) {
+                    col_undefs[c][m] = false;  // no undefs in csv file
+                    if (s_vals[c][m].IsEmpty()) s_vals[c][m] = " ";
+                }
+            }
+        }
+    }
+
+    // OGR drivers generally refuse to overwrite an existing file, so remove
+    // the target first (a missing file is fine). Shapefile keeps a set of
+    // sidecar files that must go too.
+    wxRemoveFile(out_path);
+    if (ds_type == GdaConst::ds_shapefile) {
+        wxString base = out_path.BeforeLast('.');
+        wxArrayString exts;
+        exts.Add("shp"); exts.Add("shx"); exts.Add("dbf"); exts.Add("prj");
+        exts.Add("cpg"); exts.Add("sbn"); exts.Add("sbx"); exts.Add("qix");
+        for (size_t i = 0; i < exts.size(); ++i) {
+            wxString fn;
+            fn << base << "." << exts[i];
+            if (fn != out_path) wxRemoveFile(fn);
+        }
+    }
+
+    wxString layer_name = GetStr(params, "layer_id");
+    if (layer_name.IsEmpty()) layer_name = table->GetTableName();
+    if (layer_name.IsEmpty()) layer_name = "geoda_export";
+
+    GDALDataset* ds = NULL;
+    try {
+        GDALDriver* driver = GetGDALDriverManager()->GetDriverByName(
+            format.ToStdString().c_str());
+        if (!driver) {
+            throw McpError(-32000,
+                "Export failed: no OGR driver for format: " +
+                format.ToStdString());
+        }
+        ds = driver->Create(out_path.ToStdString().c_str(),
+                            0, 0, 0, GDT_Unknown, NULL);
+        if (!ds) {
+            wxString msg = wxString::Format(
+                "Export failed: cannot create %s.\n\n%s",
+                out_path, CPLGetLastErrorMsg());
+            throw McpError(-32000, msg.ToStdString());
+        }
+
+        char** papszLCO = NULL;
+        papszLCO = CSLAddString(papszLCO, "OVERWRITE=yes");
+        papszLCO = CSLAddString(papszLCO, "LAUNDER=no");
+        if (ds_type == GdaConst::ds_csv && GdaConst::gda_create_csvt) {
+            papszLCO = CSLAddString(papszLCO, "CREATE_CSVT=YES");
+        }
+        OGRLayer* ogr_layer = ds->CreateLayer(layer_name.mb_str(), spatial_ref,
+                                              geom_type, papszLCO);
+        CSLDestroy(papszLCO);
+        if (!ogr_layer) {
+            wxString msg = wxString::Format(
+                "Export failed: cannot create layer \"%s\".\n\n%s",
+                layer_name, CPLGetLastErrorMsg());
+            throw McpError(-32000, msg.ToStdString());
+        }
+
+        // Create one field per selected column, mirroring
+        // OGRDatasourceProxy::CreateLayer's field type mapping.
+        OGRFeatureDefn* feat_def = ogr_layer->GetLayerDefn();
+        std::vector<OGRFieldType> field_types;
+        for (size_t c = 0; c < col_ids.size(); ++c) {
+            int id = col_ids[c];
+            wxString fname = table->GetColName(id);
+            GdaConst::FieldType ftype = table->GetColType(id, 0);
+            OGRFieldType oft = OFTString;
+            if (ftype == GdaConst::long64_type) {
+                oft = OFTInteger64;
+            } else if (ftype == GdaConst::double_type) {
+                oft = OFTReal;
+            } else if (ftype == GdaConst::date_type) {
+                oft = OFTDate;
+            } else if (ftype == GdaConst::time_type) {
+                oft = OFTTime;
+            } else if (ftype == GdaConst::datetime_type) {
+                oft = OFTDateTime;
+            }
+            OGRFieldDefn oField(fname.utf8_str(), oft);
+            oField.SetWidth(table->GetColLength(id, 0));
+            int dec = table->GetColDecimals(id, 0);
+            if (dec > 0) oField.SetPrecision(dec);
+            if (ogr_layer->CreateField(&oField, false) != OGRERR_NONE) {
+                wxString msg = wxString::Format(
+                    "Export failed: cannot create field \"%s\".\n\n%s",
+                    fname, CPLGetLastErrorMsg());
+                throw McpError(-32000, msg.ToStdString());
+            }
+            field_types.push_back(oft);
+        }
+
+        // Write the features. SetGeometry copies, so ogr_geometries stay
+        // owned by this function and are destroyed after the datasource
+        // closes.
+        for (int row = 0; row < num_obs; ++row) {
+            OGRFeature* feat = OGRFeature::CreateFeature(feat_def);
+            if (include_geometry && row < (int)ogr_geometries.size() &&
+                ogr_geometries[row] != NULL) {
+                feat->SetGeometry(ogr_geometries[row]);
+            }
+            for (size_t c = 0; c < col_ids.size(); ++c) {
+                if (row < (int)col_undefs[c].size() && col_undefs[c][row]) {
+                    feat->SetFieldNull((int)c);
+                    continue;
+                }
+                GdaConst::FieldType ftype = table->GetColType(col_ids[c], 0);
+                if (ftype == GdaConst::double_type &&
+                    row < (int)d_vals[c].size()) {
+                    feat->SetField((int)c, d_vals[c][row]);
+                } else if (ftype == GdaConst::long64_type &&
+                           row < (int)l_vals[c].size()) {
+                    feat->SetField((int)c, (GIntBig)l_vals[c][row]);
+                } else if ((ftype == GdaConst::date_type ||
+                            ftype == GdaConst::time_type ||
+                            ftype == GdaConst::datetime_type) &&
+                           row < (int)t_vals[c].size()) {
+                    unsigned long long v = t_vals[c][row];
+                    int year = v / 10000000000;
+                    int month = (v % 10000000000) / 100000000;
+                    int day = (v % 100000000) / 1000000;
+                    int hour = (v % 1000000) / 10000;
+                    int minute = (v % 10000) / 100;
+                    int second = v % 100;
+                    feat->SetField((int)c, year, month, day, hour, minute,
+                                   second);
+                } else if (row < (int)s_vals[c].size()) {
+                    feat->SetField((int)c, s_vals[c][row].c_str());
+                }
+            }
+            if (ogr_layer->CreateFeature(feat) != OGRERR_NONE) {
+                OGRFeature::DestroyFeature(feat);
+                wxString msg = wxString::Format(
+                    "Export failed at feature %d.\n\n%s",
+                    row, CPLGetLastErrorMsg());
+                throw McpError(-32000, msg.ToStdString());
+            }
+            OGRFeature::DestroyFeature(feat);
+        }
+    } catch (McpError&) {
+        if (ds) GDALClose(ds);
+        for (size_t i = 0; i < ogr_geometries.size(); ++i) {
+            OGRGeometryFactory::destroyGeometry(ogr_geometries[i]);
+        }
+        for (size_t i = 0; i < geometries.size(); ++i) delete geometries[i];
+        throw;
+    }
+    GDALClose(ds);
+    for (size_t i = 0; i < ogr_geometries.size(); ++i) {
+        OGRGeometryFactory::destroyGeometry(ogr_geometries[i]);
+    }
+    for (size_t i = 0; i < geometries.size(); ++i) delete geometries[i];
+
+    json_spirit::Array cols_out;
+    for (size_t c = 0; c < col_ids.size(); ++c) {
+        cols_out.push_back(json_spirit::Value(
+            table->GetColName(col_ids[c]).ToStdString()));
+    }
+    std::vector<json_spirit::Pair> r;
+    r.push_back(P("success", json_spirit::Value(true)));
+    r.push_back(P("path", json_spirit::Value(out_path.ToStdString())));
+    r.push_back(P("format", json_spirit::Value(format.ToStdString())));
+    r.push_back(P("num_features", json_spirit::Value((int)selected_rows.size())));
+    r.push_back(P("num_columns", json_spirit::Value((int)col_ids.size())));
+    r.push_back(P("columns", json_spirit::Value(cols_out)));
     return Obj(r);
 }
 

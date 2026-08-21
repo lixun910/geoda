@@ -1015,9 +1015,55 @@ void RegisterCommands(McpTools& tools)
         "Close the current project. Requires the GeoDa GUI.",
         NoParams(), false, McpRequiresGui);
 
-    Add(tools, "file/export", "Export", "File",
-        "Export the current data. Requires the GeoDa GUI.",
-        NoParams(), false, McpRequiresGui);
+    Add(tools, "file/export", "Export Data", "File",
+        "Export the open data set to a file via OGR. Geometry data is "
+        "included when the format supports it (e.g. GeoJSON, GeoPackage, "
+        "Shapefile, CSV, KML). For GeoJSON the output is automatically "
+        "reprojected to EPSG:4326.",
+        Schema(std::vector<json_spirit::Pair>{
+                   P("path",
+                     StrProp("Output file path (extension selects the "
+                             "format, e.g. .geojson, .gpkg, .shp, .csv)")),
+                   P("format",
+                     StrProp("OGR format name, overrides the extension, e.g. "
+                             "\"GeoJSON\", \"ESRI Shapefile\", \"GeoPackage\"")),
+                   P("crs",
+                     StrProp("Optional PROJ string to reproject to (GeoJSON "
+                             "always uses EPSG:4326)")),
+                   P("layer_id",
+                     StrProp("Optional layer name (defaults to the table "
+                             "name)"))},
+               {"path"}),
+        true, McpFileExport);
+
+    Add(tools, "table/export", "Export Table Columns", "Table",
+        "Export a subset of the table columns (with geometry when the data "
+        "is spatial) to a file via OGR. Unlike file/export, only the "
+        "requested columns are written, so e.g. an ID, a cluster label and "
+        "centroid coordinates can be saved without the whole table. Geometry "
+        "data is included when the format supports it. For GeoJSON the "
+        "output is automatically reprojected to EPSG:4326.",
+        Schema(std::vector<json_spirit::Pair>{
+                   P("path",
+                     StrProp("Output file path (extension selects the "
+                             "format, e.g. .geojson, .gpkg, .shp, .csv)")),
+                   P("columns",
+                     ArrProp("Column names to export; defaults to all "
+                             "columns", "string")),
+                   P("include_geometry",
+                     BoolProp("Include geometry when the format supports it "
+                              "(default true)")),
+                   P("format",
+                     StrProp("OGR format name, overrides the extension, e.g. "
+                             "\"GeoJSON\", \"ESRI Shapefile\", \"GeoPackage\"")),
+                   P("crs",
+                     StrProp("Optional PROJ string to reproject to (GeoJSON "
+                             "always uses EPSG:4326)")),
+                   P("layer_id",
+                     StrProp("Optional layer name (defaults to the table "
+                             "name)"))},
+               {"path"}),
+        true, McpTableExport);
 
     Add(tools, "table/aggregation", "Aggregation", "Table",
         "Aggregate the table. Requires the GeoDa GUI.",
