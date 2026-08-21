@@ -78,6 +78,11 @@ jobs:
           # Codesign only when the signing certificate is available (upstream
           # repo); forks / PRs skip signing so the build can still be verified.
           if [ -n "${{ env.MACOS_CERTIFICATE }}" ]; then
+            # The import-codesign-certs action puts the cert in a keychain
+            # named after the run id but does not make it the default; point
+            # codesign at it explicitly.
+            security default-keychain -s "${{ github.run_id }}.keychain"
+            security unlock-keychain -p "${{ github.run_id }}" "${{ github.run_id }}.keychain"
             codesign --force --timestamp -o runtime -s "Developer ID Application: Geodapress LLC (26M5NG43GP)" BuildTools/macosx/build/GeoDa.app
           fi
           VER_MAJOR=$(grep "const int version_major" version.h | sed -e 's/.*const int version_major = \([0-9]*\);.*/\1/')
