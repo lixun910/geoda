@@ -281,10 +281,11 @@ jobs:
           cmake --build $env:GITHUB_WORKSPACE\build --config Release
           # The InnoSetup scripts (installer\{32,64}bit\*.iss) reference the exe
           # at ..\..\Release\GeoDa.exe (the legacy GNUmake/MSVC output location).
-          # The CMake build emits to build\Release\, so copy it to where the
-          # installer scripts expect it.
+          # The CMake build emits to build\bin\Release\GeoDa.exe
+          # (CMAKE_RUNTIME_OUTPUT_DIRECTORY=bin + MSVC config subdir), so copy
+          # it to where the installer scripts expect it.
           New-Item -ItemType Directory -Force -Path "$env:GDA_PATH\Release" | Out-Null
-          Copy-Item "$env:GITHUB_WORKSPACE\build\Release\GeoDa.exe" "$env:GDA_PATH\Release\GeoDa.exe" -Force
+          Copy-Item "$env:GITHUB_WORKSPACE\build\bin\Release\GeoDa.exe" "$env:GDA_PATH\Release\GeoDa.exe" -Force
           # update installer version numbers in iss files
           python update_installer_version.py
           if ($LASTEXITCODE -ne 0) {
