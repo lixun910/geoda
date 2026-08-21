@@ -144,7 +144,16 @@ TMGLIB = tmglib.a
       COMMAND cp F2CLIBS/libf2c.a .
     INSTALL_COMMAND ""
     BUILD_IN_SOURCE TRUE
-    LOG_BUILD 1)
+    LOG_BUILD 1
+    # Declare the static libs produced by the make build step so the Ninja
+    # generator (used by the Linux CI) knows the geoda link can depend on
+    # them; Makefiles otherwise tolerate them appearing as a side effect.
+    # NOTE: must be BUILD_BYPRODUCTS - the archives are outputs of the
+    # build step, and a bare BYPRODUCTS keyword is silently ignored.
+    BUILD_BYPRODUCTS
+      "${GEODA_CLAPACK_SRC_DIR}/lapack.a"
+      "${GEODA_CLAPACK_SRC_DIR}/blas.a"
+      "${GEODA_CLAPACK_SRC_DIR}/libf2c.a")
 
   add_library(clapack INTERFACE)
   add_dependencies(clapack clapack_ext)
