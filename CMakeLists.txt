@@ -58,10 +58,23 @@ find_package(wxWidgets REQUIRED COMPONENTS
   base core net xml html adv aui propgrid richtext ribbon stc gl xrc qa webview)
 find_package(Boost 1.66 REQUIRED COMPONENTS thread date_time chrono atomic regex)
 find_package(GDAL REQUIRED)        # GDAL::GDAL
-# Config mode first (brew/apt ship Eigen3Config.cmake); falls back to CMake's
-# FindEigen3 module for the Windows eigen3.zip which ships headers only
-# (Eigen3::Eigen is provided by both).
-find_package(Eigen3 REQUIRED)
+# Eigen3: config mode first (brew/apt ship Eigen3Config.cmake); fall back to
+# locating the headers directly. The Windows eigen3.zip ships headers only and
+# CMake >= 3.30 no longer ships FindEigen3.cmake, so the module fallback is
+# gone. EIGEN3_INCLUDE_DIR is passed explicitly by the Windows workflow.
+find_package(Eigen3 QUIET NO_MODULE)
+if(NOT TARGET Eigen3::Eigen)
+  if(NOT EIGEN3_INCLUDE_DIR)
+    find_path(EIGEN3_INCLUDE_DIR NAMES Eigen/Core)
+  endif()
+  if(NOT EIGEN3_INCLUDE_DIR)
+    message(FATAL_ERROR "Eigen3 not found. Set EIGEN3_INCLUDE_DIR to the "
+      "directory containing Eigen/Core.")
+  endif()
+  add_library(Eigen3::Eigen INTERFACE IMPORTED)
+  set_target_properties(Eigen3::Eigen PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${EIGEN3_INCLUDE_DIR}")
+endif()
 
 # OpenCL is only required on Apple and Windows; the Linux sources stub it out
 # themselves (#ifdef __linux__) and do not include any OpenCL header.
