@@ -286,6 +286,30 @@ jobs:
           # it to where the installer scripts expect it.
           New-Item -ItemType Directory -Force -Path "$env:GDA_PATH\Release" | Out-Null
           Copy-Item "$env:GITHUB_WORKSPACE\build\bin\Release\GeoDa.exe" "$env:GDA_PATH\Release\GeoDa.exe" -Force
+          # Smoke test: launch the built exe and assert it stays alive. The
+          # GitHub Windows runners have an interactive desktop, so GUI apps
+          # start normally. The exe's DLLs live in the deps dirs (not beside
+          # the exe), so put them on PATH first; the runtime data (data/, proj/,
+          # lang/, ...) is already staged next to the exe by the CMake
+          # POST_BUILD step.
+          if($env:platform -eq "x86") {
+            $env:PATH = "$env:GDA_PATH\temp\wxWidgets\lib\vc_dll;$env:GDA_PATH\libraries\bin;$env:GDA_PATH\temp\OpenCL\sdk\bin\x86;$env:PATH"
+          } else {
+            $env:PATH = "$env:GDA_PATH\temp\wxWidgets\lib\vc_x64_dll;$env:GDA_PATH\libraries\bin;$env:GDA_PATH\temp\OpenCL\sdk\bin\x64;$env:PATH"
+          }
+          $appExe = "$env:GITHUB_WORKSPACE\build\bin\Release\GeoDa.exe"
+          if (-not (Test-Path $appExe)) { Write-Error "smoke test: exe not found at $appExe"; exit 1 }
+          $p = Start-Process -FilePath $appExe -PassThru -RedirectStandardOutput "$env:GDA_PATH\geoda_smoke.log" -RedirectStandardError "$env:GDA_PATH\geoda_smoke.err.log"
+          Start-Sleep -Seconds 10
+          $p.Refresh()
+          if ($p.HasExited) {
+            Write-Error "GeoDa smoke test FAILED: exited early with code $($p.ExitCode)"
+            Write-Output "--- stdout ---"; Get-Content "$env:GDA_PATH\geoda_smoke.log" -ErrorAction SilentlyContinue
+            Write-Output "--- stderr ---"; Get-Content "$env:GDA_PATH\geoda_smoke.err.log" -ErrorAction SilentlyContinue
+            exit 1
+          }
+          Write-Output "GeoDa smoke test passed: process alive after 10s (pid $($p.Id))"
+          Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
           # update installer version numbers in iss files
           python update_installer_version.py
           if ($LASTEXITCODE -ne 0) {
