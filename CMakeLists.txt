@@ -258,6 +258,12 @@ target_include_directories(geoda PRIVATE
   "${GDAL_INCLUDE_DIRS}"
   "${EIGEN3_INCLUDE_DIR}"
   "${json_spirit_SOURCE_DIR}")
+if(APPLE OR WIN32)
+  # OpenCL headers are not on the default search path on Windows; the
+  # workflow passes -DOpenCL_INCLUDE_DIR pointing at the SDK headers.
+  # (macOS finds them via the framework, but the dir is harmless there.)
+  target_include_directories(geoda PRIVATE "${OpenCL_INCLUDE_DIR}")
+endif()
 
 target_compile_definitions(geoda PRIVATE
   __PROJ6__
