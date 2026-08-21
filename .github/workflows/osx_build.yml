@@ -110,6 +110,14 @@ jobs:
           cd BuildTools/macosx/create-dmg
           DMG_FILE="GeoDa${{ env.GEODA_VER }}-${{ env.GEODA_ARCH }}-Installer.dmg"
 
+          # Notarization requires a signed DMG; skip when the signing identity
+          # is not usable (e.g. an expired certificate on a fork), matching the
+          # codesign guard in the Package DMG step.
+          if [ -n "${{ env.MACOS_CERTIFICATE }}" ] && ! security find-identity -v -p codesigning "${{ github.run_id }}.keychain" | grep -q "Developer ID Application: Geodapress LLC"; then
+            echo "Signing identity not usable; skipping notarization"
+            exit 0
+          fi
+
           # Check if Apple ID credentials are available
           if [ -z "${{ secrets.APPLE_ID_USERNAME }}" ] || [ -z "${{ secrets.APPLE_ID_APP_SPECIFIC_PASSWORD }}" ] || [ -z "${{ secrets.APPLE_TEAM_ID }}" ]; then
             echo "Apple ID credentials not available, skipping notarization"
