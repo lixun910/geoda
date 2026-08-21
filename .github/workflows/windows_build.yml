@@ -130,7 +130,7 @@ jobs:
           #
           # GDAL # gisinternals SDK version still to 2016
           #
-          if($env:platform -eq "x86") 
+          if($env:platform -eq "x86")
           {
             $env:GDAL_SDK_VER="release-1911"
           }
@@ -138,28 +138,28 @@ jobs:
           {
             $env:GDAL_SDK_VER="release-1911-x64"
           }
-          cd temp 
-          Invoke-WebRequest "https://github.com/GeoDaCenter/software/releases/download/v2000/$env:GDAL_SDK_VER-dev.zip" -OutFile "$env:GDAL_SDK_VER.zip" 
+          cd temp
+          Invoke-WebRequest "https://github.com/GeoDaCenter/software/releases/download/v2000/$env:GDAL_SDK_VER-dev.zip" -OutFile "$env:GDAL_SDK_VER.zip"
           cd ..
           7z x .\temp\$env:GDAL_SDK_VER.zip
           dir
           Rename-Item $env:GDAL_SDK_VER libraries
           cd temp
           #
-          # wxWidgets 3.1.4
+          # wxWidgets 3.1.4 (non-monolithic so FindwxWidgets can resolve components)
           #
           if(-Not (Test-Path -Path wxWidgets.zip)) { Invoke-WebRequest "https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.4/wxWidgets-3.1.4.zip" -OutFile "wxWidgets.zip" }
           7z x wxWidgets.zip -owxWidgets
           cd wxWidgets
           xcopy /E /Y $env:GDA_PATH\dep\wxWidgets .
           cd build\msw
-          if($env:platform -eq "x86") 
+          if($env:platform -eq "x86")
           {
-            nmake -f makefile.vc UNICODE=1 SHARED=1 RUNTIME_LIBS=dynamic BUILD=release MONOLITHIC=1 USE_OPENGL=1 USE_POSTSCRIPT=1
+            nmake -f makefile.vc UNICODE=1 SHARED=1 RUNTIME_LIBS=dynamic BUILD=release MONOLITHIC=0 USE_OPENGL=1 USE_POSTSCRIPT=1
           }
-          else 
+          else
           {
-            nmake -f makefile.vc UNICODE=1 SHARED=1 RUNTIME_LIBS=dynamic BUILD=release MONOLITHIC=1 USE_OPENGL=1 USE_POSTSCRIPT=1 TARGET_CPU=AMD64
+            nmake -f makefile.vc UNICODE=1 SHARED=1 RUNTIME_LIBS=dynamic BUILD=release MONOLITHIC=0 USE_OPENGL=1 USE_POSTSCRIPT=1 TARGET_CPU=AMD64
           }
           cd $env:GDA_PATH\temp
           #
@@ -169,25 +169,9 @@ jobs:
           7z x boost.zip
           Rename-Item pygeoda_boost-1.18 boost
           #
-          # JSON Spirit v4.08
-          #
-          if(-Not (Test-Path -Path json_spirit_v4.08.zip )) { Invoke-WebRequest "https://github.com/GeoDaCenter/software/releases/download/v2000/json_spirit_v4.08.zip" -OutFile "json_spirit_v4.08.zip" }
-          if(-Not (Test-Path -Path json_spirit_v4.08)) { 7z x json_spirit_v4.08.zip }
-          cd json_spirit_v4.08
-          xcopy /E /Y $env:GDA_PATH\dep\json_spirit .
-          if($env:platform -eq "x86") 
-          {
-            msbuild.exe json_vs2019.sln /property:Configuration="Release" /p:Platform="Win32"
-          }
-          else 
-          {
-            msbuild.exe json_vs2019.sln /property:Configuration="Release" /p:Platform="x64"
-          }
-          cd ..
-          #
           # CLAPACK 3.1.1
           #
-          Invoke-WebRequest "https://github.com/GeoDaCenter/software/releases/download/v2000/CLAPACK-3.1.1-VisualStudio.zip" -OutFile "CLAPACK-3.1.1-VisualStudio.zip" 
+          Invoke-WebRequest "https://github.com/GeoDaCenter/software/releases/download/v2000/CLAPACK-3.1.1-VisualStudio.zip" -OutFile "CLAPACK-3.1.1-VisualStudio.zip"
           7z x CLAPACK-3.1.1-VisualStudio.zip
           cd CLAPACK-3.1.1-VisualStudio
           xcopy /E /Y $env:GDA_PATH\dep\CLAPACK-3.1.1-VisualStudio .
@@ -197,7 +181,7 @@ jobs:
             msbuild.exe clapack_vs2019.sln /t:BLAS\blas_vs2019 /property:Configuration="ReleaseDLL" /p:Platform="Win32"
             msbuild.exe clapack_vs2019.sln /t:clapack_vs2019 /property:Configuration="ReleaseDLL" /p:Platform="Win32"
           }
-          else 
+          else
           {
             msbuild.exe clapack_vs2019.sln /t:libf2c_vs2019 /property:Configuration="ReleaseDLL" /p:Platform="x64"
             msbuild.exe clapack_vs2019.sln /t:BLAS\blas_vs2019 /property:Configuration="ReleaseDLL" /p:Platform="x64"
@@ -209,12 +193,6 @@ jobs:
           #
           Invoke-WebRequest "https://github.com/GeoDaCenter/software/releases/download/v2000/eigen3.zip" -OutFile "eigen3.zip"
           7z x eigen3.zip
-          #
-          # Spectra v0.8.0
-          #
-          Invoke-WebRequest "https://github.com/yixuan/spectra/archive/refs/tags/v0.8.0.zip" -OutFile "spectra.zip"
-          7z x spectra.zip
-          Rename-Item spectra-0.8.0 spectra
           #
           # OpenCL
           #
@@ -251,12 +229,23 @@ jobs:
           cd $env:GDA_PATH
           if($env:platform -eq "x86")
           {
-            msbuild.exe GeoDa.vs2019.sln /t:GeoDa /property:Configuration="Release" /m /p:Platform="Win32"
+            $env:OPENCL_LIB="$env:GDA_PATH\temp\OpenCL\sdk\lib\x86\OpenCL.lib"
           }
           else
           {
-            msbuild.exe GeoDa.vs2019.sln /t:GeoDa /property:Configuration="Release" /m /p:Platform="x64"  
+            $env:OPENCL_LIB="$env:GDA_PATH\temp\OpenCL\sdk\lib\x64\OpenCL.lib"
           }
+          cmake -S $env:GITHUB_WORKSPACE -B $env:GITHUB_WORKSPACE\build -A $env:CMAKE_ARCHITECTURE `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DwxWidgets_ROOT_DIR="$env:GDA_PATH\temp\wxWidgets" `
+            -DGEODA_CLAPACK_PATH="$env:GDA_PATH\temp\CLAPACK-3.1.1-VisualStudio" `
+            -DBoost_ROOT="$env:GDA_PATH\temp\boost" `
+            -DBoost_COMPILER=-vc142 `
+            -DGDAL_ROOT="$env:GDA_PATH\libraries" `
+            -DEIGEN3_INCLUDE_DIR="$env:GDA_PATH\temp\eigen3" `
+            -DOpenCL_INCLUDE_DIR="$env:GDA_PATH\temp\OpenCL\sdk\include" `
+            -DOpenCL_LIBRARY="$env:OPENCL_LIB"
+          cmake --build $env:GITHUB_WORKSPACE\build --config Release
           # update installer version numbers in iss files
           python update_installer_version.py
           if ($LASTEXITCODE -ne 0) {
@@ -266,7 +255,7 @@ jobs:
           {
             ISCC.exe /q installer\32bit\GeoDa.iss
             ISCC.exe /q installer\32bit\GeoDa-win7+.iss
-          } 
+          }
           else
           {
             ISCC.exe /q installer\64bit\GeoDa.iss
