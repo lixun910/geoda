@@ -60,8 +60,9 @@ Source: "..\..\..\CommonDistFiles\proj\*"; DestDir: "{app}\proj"; Flags: recurse
 
 Source: "VC_redist.x64.exe"; DestDir: "{app}"
 Source: "..\..\temp\OpenCL\sdk\bin\x64\OpenCL.dll"; DestDir: "{app}"
-Source: "..\..\temp\wxWidgets\lib\vc_x64_dll\wxmsw314u_vc_custom.dll"; DestDir: "{app}"
-Source: "..\..\temp\wxWidgets\lib\vc_x64_dll\wxmsw314u_gl_vc_custom.dll"; DestDir: "{app}"
+; wxWidgets is built non-monolithic (MONOLITHIC=0) so CMake's FindwxWidgets can
+; resolve per-component libs; package every split DLL from the build dir.
+Source: "..\..\temp\wxWidgets\lib\vc_x64_dll\*.dll"; DestDir: "{app}"
 Source: "..\..\libraries\bin\expat.dll"; DestDir: "{app}"
 Source: "..\..\libraries\bin\freexl.dll"; DestDir: "{app}"
 Source: "..\..\libraries\bin\gdal302.dll"; DestDir: "{app}"
