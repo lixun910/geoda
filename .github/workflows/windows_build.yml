@@ -118,11 +118,27 @@ jobs:
           Install-Module VSSetup -Scope CurrentUser
           if($env:VS_VER -eq "2022")
           {
+            # Set up the MSVC build environment directly. Relying on the
+            # GITHUB_ENV propagation from the "Set compiler environment" step
+            # is not reliable for the long LIB/INCLUDE values, and VsDevCmd.bat
+            # emits some Windows Kits paths with doubled separators (e.g.
+            # ...\10\\lib\\10.0.26100.0\\um\\x64) which the MSVC linker rejects
+            # when searching for kernel32.lib. Re-run VsDevCmd here and
+            # normalize the paths before building wxWidgets.
+            cmd /c "call \"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat\" -arch=$env:ARCHITECTURE >nul 2>&1 && set" | ForEach-Object {
+              if ($_ -match '^([^=]+)=(.*)$') {
+                Set-Item -Path "Env:$($matches[1])" -Value $matches[2]
+              }
+            }
           }
           else
           {
               Import-VisualStudioVars -VisualStudioVersion $env:VS_VER -Architecture $env:ARCHITECTURE
           }
+          # Normalize doubled separators in the MSVC env vars (see above).
+          if ($env:LIB) { $env:LIB = $env:LIB -replace '\\\\', '\' }
+          if ($env:INCLUDE) { $env:INCLUDE = $env:INCLUDE -replace '\\\\', '\' }
+          if ($env:PATH) { $env:PATH = $env:PATH -replace '\\\\', '\' }
           #
           # prepare
           #
