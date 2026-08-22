@@ -44,6 +44,11 @@ jobs:
       MSVC_VER: ${{ matrix.MSVC_VER }}
       platform: ${{ matrix.platform }}
       APPVEYOR: true # to skip some tests
+      # Pin vcpkg to a specific commit for fully reproducible dependency
+      # builds. To update dependencies, bump this to a newer vcpkg master
+      # commit and re-check the GDAL feature names against ports/gdal/vcpkg.json
+      # in that commit (the valid set changes over time).
+      VCPKG_COMMIT: "127402f1c75bb3d5ff6bce04b285faa4930a5aca"
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true # see https://github.blog/changelog/2020-10-01-github-actions-deprecating-set-env-and-add-path-commands/
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -73,6 +78,11 @@ jobs:
           "ARCHITECTURE=$env:ARCHITECTURE" | Out-File -FilePath $env:GITHUB_ENV -Append
           "WIN64_ARG=$env:WIN64_ARG" | Out-File -FilePath $env:GITHUB_ENV -Append
           "CMAKE_ARCHITECTURE=$env:CMAKE_ARCHITECTURE" | Out-File -FilePath $env:GITHUB_ENV -Append
+          # VCPKG_TRIPLET is consumed by the "Build GeoDa" step, which runs even
+          # when a deps cache hit skips "Create Dependencies", so persist it here
+          # (in a step that always runs) rather than in the gated step.
+          if($env:platform -eq "x86") { $env:VCPKG_TRIPLET="x86-windows" } else { $env:VCPKG_TRIPLET="x64-windows" }
+          "VCPKG_TRIPLET=$env:VCPKG_TRIPLET" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       # Set compiler environment
       - name: Set compiler environment
@@ -88,9 +98,14 @@ jobs:
         id: cache
         with:
           path: |
-            BuildTools/windows/libraries
             BuildTools/windows/temp
-          key: ${{ runner.os }}-${{ matrix.platform }}-deps-cache-${{ hashFiles('BuildTools/windows/deps.md') }}
+            BuildTools/windows/vcpkg
+            BuildTools/windows/vcpkg-cache
+          # The whole vcpkg dir (vcpkg.exe, toolchain, installed/ tree) must be
+          # restored on a cache hit because "Build GeoDa" references it and the
+          # gated "Create Dependencies" step is skipped on warm runs. VCPKG_COMMIT
+          # is in the key so bumping the pin invalidates the cache.
+          key: ${{ runner.os }}-${{ matrix.platform }}-deps-cache-${{ hashFiles('BuildTools/windows/deps.md') }}-${{ env.VCPKG_COMMIT }}
 
       # Install innosetup
       - name: Install innosetup
@@ -148,22 +163,41 @@ jobs:
           cd $env:GDA_PATH
           mkdir temp
           #
-          # GDAL # gisinternals SDK version still to 2016
+          # GDAL / curl / zlib -- built with vcpkg so we get a modern GDAL with
+          # the Parquet and Arrow OGR drivers (x64 only; Apache Arrow C++ does
+          # not build for 32-bit MSVC). The previous gisinternals release-1911
+          # SDK was GDAL 3.0.4 (2019) and shipped no Parquet/Arrow drivers.
           #
+          # VCPKG_TRIPLET is set in the "Set environment" step above. Only the
+          # GDAL feature list differs per architecture here.
           if($env:platform -eq "x86")
           {
-            $env:GDAL_SDK_VER="release-1911"
+            $env:GDAL_FEATURES="recommended-features,mysql-libmariadb,postgresql,libkml,libxml2,netcdf,libspatialite,openjpeg,webp,zstd,lzma,gif"
           }
           else
           {
-            $env:GDAL_SDK_VER="release-1911-x64"
+            $env:GDAL_FEATURES="recommended-features,parquet,arrow,mysql-libmariadb,postgresql,libkml,libxml2,netcdf,libspatialite,openjpeg,webp,zstd,lzma,gif"
           }
-          cd temp
-          Invoke-WebRequest "https://github.com/GeoDaCenter/software/releases/download/v2000/$env:GDAL_SDK_VER-dev.zip" -OutFile "$env:GDAL_SDK_VER.zip"
+          # Clone vcpkg (shallow) and bootstrap it. If VCPKG_COMMIT is set, fetch
+          # and check out that exact commit so the dependency tree is pinned.
+          git clone --depth 1 https://github.com/microsoft/vcpkg.git
+          cd vcpkg
+          if($env:VCPKG_COMMIT -and $env:VCPKG_COMMIT -ne "") {
+            git fetch --depth 1 origin $env:VCPKG_COMMIT
+            git checkout $env:VCPKG_COMMIT
+          }
+          .\bootstrap-vcpkg.bat -disableMetrics
+          # Use a vcpkg binary cache (restored by actions/cache) so warm builds
+          # do not rebuild Arrow/GDAL from source, and cap parallelism so the
+          # runner does not run out of memory building the Arrow dependency tree.
+          if(-Not (Test-Path "$env:GDA_PATH\vcpkg-cache")) { New-Item -ItemType Directory -Force "$env:GDA_PATH\vcpkg-cache" | Out-Null }
+          $env:VCPKG_BINARY_SOURCES="files,$env:GDA_PATH\vcpkg-cache,readwrite"
+          $env:VCPKG_MAX_CONCURRENCY=$env:NUMBER_OF_PROCESSORS
+          # --clean-after-build drops buildtrees/packages so the cached vcpkg
+          # dir (restored whole by actions/cache on warm runs) stays small; the
+          # built libs remain in installed/ and the binary cache keeps archives.
+          .\vcpkg.exe install --clean-after-build "gdal[$env:GDAL_FEATURES]:$env:VCPKG_TRIPLET" "curl:$env:VCPKG_TRIPLET" "zlib:$env:VCPKG_TRIPLET"
           cd ..
-          7z x .\temp\$env:GDAL_SDK_VER.zip
-          dir
-          Rename-Item $env:GDAL_SDK_VER libraries
           cd temp
           #
           # wxWidgets 3.1.4 (non-monolithic so FindwxWidgets can resolve components)
@@ -261,23 +295,29 @@ jobs:
             $env:CLAPACK_LIB="$env:GDA_PATH\temp\CLAPACK-3.1.1-VisualStudio\LIB\x64"
             $env:BOOST_LIB="$env:GDA_PATH\temp\boost\lib\win64"
           }
-          # libcurl comes from the gisinternals GDAL SDK (bundled in the
-          # release-1911-x64-dev.zip extracted to BuildTools/windows/libraries).
+          # gdal, libcurl and zlib come from the vcpkg-installed GDAL (built in
+          # the "Create Dependencies" step). The vcpkg toolchain makes
+          # find_package(GDAL/CURL/ZLIB) resolve to them; the explicit
+          # *_INCLUDE_DIR/*_LIBRARY hints keep CMake's module-mode finders
+          # deterministic on Windows.
           cmake -S $env:GITHUB_WORKSPACE -B $env:GITHUB_WORKSPACE\build -A $env:CMAKE_ARCHITECTURE `
             -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_TOOLCHAIN_FILE="$env:GDA_PATH\vcpkg\scripts\buildsystems\vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET="$env:VCPKG_TRIPLET" `
             -DwxWidgets_ROOT_DIR="$env:GDA_PATH\temp\wxWidgets" `
             -DGEODA_CLAPACK_PATH="$env:CLAPACK_LIB" `
             -DBoost_ROOT="$env:GDA_PATH\temp\boost" `
             -DBoost_LIBRARY_DIR="$env:BOOST_LIB" `
             -DBoost_COMPILER=-vc142 `
-            -DGDAL_ROOT="$env:GDA_PATH\libraries" `
             -DEIGEN3_INCLUDE_DIR="$env:GDA_PATH\temp\eigen3" `
             -DOpenCL_INCLUDE_DIR="$env:GDA_PATH\temp\OpenCL\sdk\include" `
             -DOpenCL_LIBRARY="$env:OPENCL_LIB" `
-            -DCURL_INCLUDE_DIR="$env:GDA_PATH\libraries\include" `
-            -DCURL_LIBRARY="$env:GDA_PATH\libraries\lib\libcurl_imp.lib" `
-            -DZLIB_INCLUDE_DIR="$env:GDA_PATH\libraries\include" `
-            -DZLIB_LIBRARY="$env:GDA_PATH\libraries\lib\zlib.lib"
+            -DGDAL_INCLUDE_DIR="$env:GDA_PATH\vcpkg\installed\$env:VCPKG_TRIPLET\include" `
+            -DGDAL_LIBRARY="$env:GDA_PATH\vcpkg\installed\$env:VCPKG_TRIPLET\lib\gdal.lib" `
+            -DCURL_INCLUDE_DIR="$env:GDA_PATH\vcpkg\installed\$env:VCPKG_TRIPLET\include" `
+            -DCURL_LIBRARY="$env:GDA_PATH\vcpkg\installed\$env:VCPKG_TRIPLET\lib\libcurl.lib" `
+            -DZLIB_INCLUDE_DIR="$env:GDA_PATH\vcpkg\installed\$env:VCPKG_TRIPLET\include" `
+            -DZLIB_LIBRARY="$env:GDA_PATH\vcpkg\installed\$env:VCPKG_TRIPLET\lib\zlib.lib"
           cmake --build $env:GITHUB_WORKSPACE\build --config Release
           # The InnoSetup scripts (installer\{32,64}bit\*.iss) reference the exe
           # at ..\..\Release\GeoDa.exe (the legacy GNUmake/MSVC output location).
@@ -293,9 +333,9 @@ jobs:
           # lang/, ...) is already staged next to the exe by the CMake
           # POST_BUILD step.
           if($env:platform -eq "x86") {
-            $env:PATH = "$env:GDA_PATH\temp\wxWidgets\lib\vc_dll;$env:GDA_PATH\libraries\bin;$env:GDA_PATH\temp\OpenCL\sdk\bin\x86;$env:PATH"
+            $env:PATH = "$env:GDA_PATH\temp\wxWidgets\lib\vc_dll;$env:GDA_PATH\vcpkg\installed\x86-windows\bin;$env:GDA_PATH\temp\OpenCL\sdk\bin\x86;$env:PATH"
           } else {
-            $env:PATH = "$env:GDA_PATH\temp\wxWidgets\lib\vc_x64_dll;$env:GDA_PATH\libraries\bin;$env:GDA_PATH\temp\OpenCL\sdk\bin\x64;$env:PATH"
+            $env:PATH = "$env:GDA_PATH\temp\wxWidgets\lib\vc_x64_dll;$env:GDA_PATH\vcpkg\installed\x64-windows\bin;$env:GDA_PATH\temp\OpenCL\sdk\bin\x64;$env:PATH"
           }
           $appExe = "$env:GITHUB_WORKSPACE\build\bin\Release\GeoDa.exe"
           if (-not (Test-Path $appExe)) { Write-Error "smoke test: exe not found at $appExe"; exit 1 }
@@ -318,12 +358,12 @@ jobs:
           if($env:platform -eq "x86")
           {
             ISCC.exe /q installer\32bit\GeoDa.iss
-            ISCC.exe /q installer\32bit\GeoDa-win7+.iss
+            ISCC.exe /q installer\32bit\GeoDa-win8+.iss
           }
           else
           {
             ISCC.exe /q installer\64bit\GeoDa.iss
-            ISCC.exe /q installer\64bit\GeoDa-win7+.iss
+            ISCC.exe /q installer\64bit\GeoDa-win8+.iss
           }
 
       - uses: actions/upload-artifact@v4
@@ -331,7 +371,9 @@ jobs:
           name: GeoDa-Windows-${{ env.platform }}-installer
           path: ${{ github.workspace }}\BuildTools\windows\GeoDa_1.22_${{ env.platform }}_Setup.exe
 
+      # "win8+" variant: same app, but the vcpkg-built deps and the VS2022
+      # toolset require Windows 8.1+ (see GeoDa-win8+.iss).
       - uses: actions/upload-artifact@v4
         with:
-          name: GeoDa-Windows7+-${{ env.platform }}-installer
-          path: ${{ github.workspace }}\BuildTools\windows\GeoDa_1.22_win7+${{ env.platform }}_Setup.exe
+          name: GeoDa-Windows8+-${{ env.platform }}-installer
+          path: ${{ github.workspace }}\BuildTools\windows\GeoDa_1.22_win8+${{ env.platform }}_Setup.exe

@@ -128,25 +128,25 @@ jobs:
           asset_content_type: application/octet-stream
         continue-on-error: true
 
-      - name: Upload Windows 7+ 32-bit Installer
+      - name: Upload Windows 8+ 32-bit Installer
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/GeoDa-Windows7+-x86-installer/GeoDa_${{ steps.get_version.outputs.version }}_win7+x86_Setup.exe
-          asset_name: GeoDa_${{ steps.get_version.outputs.version }}_win7+x86_Setup.exe
+          asset_path: ./artifacts/GeoDa-Windows8+-x86-installer/GeoDa_${{ steps.get_version.outputs.version }}_win8+x86_Setup.exe
+          asset_name: GeoDa_${{ steps.get_version.outputs.version }}_win8+x86_Setup.exe
           asset_content_type: application/octet-stream
         continue-on-error: true
 
-      - name: Upload Windows 7+ 64-bit Installer
+      - name: Upload Windows 8.1+ 64-bit installer
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/GeoDa-Windows7+-x64-installer/GeoDa_${{ steps.get_version.outputs.version }}_win7+x64_Setup.exe
-          asset_name: GeoDa_${{ steps.get_version.outputs.version }}_win7+x64_Setup.exe
+          asset_path: ./artifacts/GeoDa-Windows8+-x64-installer/GeoDa_${{ steps.get_version.outputs.version }}_win8+x64_Setup.exe
+          asset_name: GeoDa_${{ steps.get_version.outputs.version }}_win8+x64_Setup.exe
           asset_content_type: application/octet-stream
         continue-on-error: true
 
