@@ -23,6 +23,19 @@ Driver coverage vs the old SDK:
   not produced by vcpkg. The PostgreSQL driver is compiled into gdal.dll via
   the `postgresql` feature.
 
+Boost shadowing: the GDAL `libkml` feature pulls the vcpkg boost metaport into
+the installed tree, and its boost-uninstall port installs
+`share/boost/vcpkg-cmake-wrapper.cmake` + `share/boost/BoostConfig.cmake`.
+That wrapper forces `Boost_NO_BOOST_CMAKE=OFF` and routes `find_package(Boost)`
+to the vcpkg BoostConfig, which does per-component `find_package(boost_<comp>)`
+and fails because only libkml's minimal boost subset is installed (no
+boost_thread, etc.). GeoDa links its own static Boost 1.75 (temp/boost,
+-vc142), so the "Build GeoDa" step deletes
+`installed/<triplet>/share/boost` and `installed/<triplet>/include/boost`
+before configuring; with include/boost gone the vcpkg toolchain's special Boost
+branch is skipped and find_package(Boost) falls through to the classic
+FindBoost module using -DBoost_ROOT/-DBoost_LIBRARY_DIR/-DBoost_COMPILER=-vc142.
+
 Minimum OS: vcpkg builds with the VS2022 (v143) toolset targeting the current
 Windows SDK, so the bundled GDAL/Arrow/curl DLLs and GeoDa.exe require
 Windows 8.1 or newer -- the "win8+" installers (installer/*bit/GeoDa-win8+.iss)

@@ -300,6 +300,22 @@ jobs:
           # find_package(GDAL/CURL/ZLIB) resolve to them; the explicit
           # *_INCLUDE_DIR/*_LIBRARY hints keep CMake's module-mode finders
           # deterministic on Windows.
+          #
+          # The vcpkg boost metaport (pulled in transitively by the GDAL libkml
+          # feature) installs share/boost/BoostConfig.cmake plus a
+          # vcpkg-cmake-wrapper.cmake that forces Boost_NO_BOOST_CMAKE=OFF and
+          # routes find_package(Boost) to the vcpkg BoostConfig. That config
+          # does per-component find_package(boost_<comp>) and fails because only
+          # libkml's minimal boost subset is installed (no boost_thread, etc.).
+          # GeoDa links its own static Boost 1.75 (temp/boost, -vc142), so drop
+          # the vcpkg boost config AND headers: with include/boost gone the
+          # toolchain's special Boost branch is skipped and find_package(Boost)
+          # falls through to the classic FindBoost module using
+          # -DBoost_ROOT/-DBoost_LIBRARY_DIR/-DBoost_COMPILER=-vc142 below.
+          # This runs in the always-executed Build GeoDa step (Create
+          # Dependencies is skipped on a deps cache hit).
+          Remove-Item -Recurse -Force "$env:GDA_PATH\vcpkg\installed\$env:VCPKG_TRIPLET\share\boost" -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force "$env:GDA_PATH\vcpkg\installed\$env:VCPKG_TRIPLET\include\boost" -ErrorAction SilentlyContinue
           cmake -S $env:GITHUB_WORKSPACE -B $env:GITHUB_WORKSPACE\build -A $env:CMAKE_ARCHITECTURE `
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_TOOLCHAIN_FILE="$env:GDA_PATH\vcpkg\scripts\buildsystems\vcpkg.cmake" `
