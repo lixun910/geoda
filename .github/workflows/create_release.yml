@@ -150,6 +150,17 @@ jobs:
           asset_content_type: application/octet-stream
         continue-on-error: true
 
+      - name: Upload Windows ARM64 Installer
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/GeoDa-Windows-arm64-installer/GeoDa_${{ steps.get_version.outputs.version }}_arm64_Setup.exe
+          asset_name: GeoDa_${{ steps.get_version.outputs.version }}_arm64_Setup.exe
+          asset_content_type: application/octet-stream
+        continue-on-error: true
+
       - name: Upload macOS Intel Installer
         uses: actions/upload-release-asset@v1
         env:
