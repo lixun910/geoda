@@ -70,6 +70,14 @@ if ! [ -f "wxWidgets-3.2.6.tar.bz2" ]; then
 fi
 if ! [ -f "../libraries/bin/wx-config" ]; then
     cd wxWidgets-3.2.6
+    # The bundled libpng's pngpriv.h still includes the legacy <fp.h> header on
+    # macOS (TARGET_OS_MAC branch), which Apple removed from the macOS 15 SDK.
+    # <math.h> is the correct header on modern macOS and <float.h> (already
+    # included just above) provides DBL_DIG/MIN/MAX, so substitute it here.
+    # This mirrors the fix that upstream libpng adopted for newer SDKs.
+    if [ -f "src/png/pngpriv.h" ]; then
+        sed -i '' 's|^#      include <fp.h>|#      include <math.h>|' src/png/pngpriv.h
+    fi
     ./configure --with-cocoa --with-opengl --enable-postscript --enable-textfile --without-liblzma --enable-webview --enable-cxx11 --disable-mediactrl --enable-webviewwebkit --enable-monolithic --with-libtiff=builtin --with-libpng=builtin --with-libjpeg=builtin --prefix=$GEODA_HOME/libraries
     make -j $CPUS
     make install
