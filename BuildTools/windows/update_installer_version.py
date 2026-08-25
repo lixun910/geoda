@@ -106,7 +106,7 @@ def main():
     installer_dir = script_dir / "installer"
     iss_files = []
 
-    for arch_dir in ["32bit", "64bit"]:
+    for arch_dir in ["32bit", "64bit", "arm64"]:
         arch_path = installer_dir / arch_dir
         if arch_path.exists():
             for iss_file in arch_path.glob("*.iss"):
