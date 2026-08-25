@@ -55,7 +55,9 @@ fi
 if ! [ -f "../libraries/lib/libboost_thread.a" ]; then
     cd boost_1_76_0
     ./bootstrap.sh
-    ./b2 --with-thread --with-date_time --with-chrono --with-system link=static threading=multi stage
+    # -Wno-enum-constexpr-conversion: Boost 1.76's MPL casts (value - 1) to an
+    # enum, which clang 17+ on macOS 15 runners treats as an error.
+    ./b2 --with-thread --with-date_time --with-chrono --with-system link=static threading=multi stage cxxflags="-Wno-enum-constexpr-conversion -Wno-int-conversion"
     cp -R stage/lib/* ../../libraries/lib/.
     cp -R boost ../../libraries/include/.
     cd ..
