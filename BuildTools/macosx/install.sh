@@ -96,6 +96,15 @@ if ! [ -f "eigen3.zip" ]; then
     curl -L -O https://github.com/GeoDaCenter/software/releases/download/v2000/eigen3.zip
     unzip eigen3.zip
 fi
+# Eigen 3.3.3 in the vendored zip is incompatible with the clang shipped on
+# macOS 15+ runners: Transpositions.h calls .derived() on a
+# Transpose<TranspositionsBase<...>> value, which newer clang rejects
+# ("no member named 'derived'"). Backport the Eigen 3.4.0 fix by using the
+# nestedExpression() accessor that the class already defines.
+EIGEN_TRANSPOSITIONS=$GEODA_HOME/temp/eigen3/Eigen/src/Core/Transpositions.h
+if [ -f "$EIGEN_TRANSPOSITIONS" ] && grep -q "trt.derived()" "$EIGEN_TRANSPOSITIONS"; then
+    sed -i '' 's/trt\.derived()/trt.nestedExpression()/' "$EIGEN_TRANSPOSITIONS"
+fi
 if ! [ -f "v0.8.0.zip" ]; then
     curl -L -O https://github.com/yixuan/spectra/archive/refs/tags/v0.8.0.zip
     unzip v0.8.0.zip
