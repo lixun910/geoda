@@ -38,7 +38,7 @@ jobs:
           - distro: 'macos-14'
             pre: 'arm64'
     env:
-      GEODA_VER: '1.22.0'
+      GEODA_VER: '1.22.1'
       GEODA_ARCH: ${{ matrix.pre }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -121,8 +121,13 @@ jobs:
           GEODA_VERSION=$VER_MAJOR.$VER_MINOR.$VER_BUILD-$GEODA_ARCH
           echo $GEODA_VERSION
           # Update version in plist files
-          VER_SUB=$(grep "const int version_subbuild" $GEODA_HOME/../../version.h | sed -e 's/.*const int version_subbuild = \([0-9]*\);.*/\1/')
-          VER_STR="${VER_MAJOR}.${VER_MINOR}.${VER_BUILD}.${VER_SUB}"
+          # 3-part version (major.minor.build); append a 4th component only if
+          # version.h still carries version_subbuild (legacy 1.22.0.x scheme).
+          VER_STR="${VER_MAJOR}.${VER_MINOR}.${VER_BUILD}"
+          VER_SUB=$(grep "const int version_subbuild" $GEODA_HOME/../../version.h | sed -e 's/.*const int version_subbuild = \([0-9]*\);.*/\1/' || true)
+          if [ -n "$VER_SUB" ]; then
+            VER_STR="$VER_STR.$VER_SUB"
+          fi
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VER_STR" GeoDa-GDAL-Info.plist
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $VER_STR" GeoDa-GDAL-Info.plist
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VER_STR" GeoDa-Xcode-Info.plist
