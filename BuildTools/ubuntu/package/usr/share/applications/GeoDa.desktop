@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.22
+Type=Application
+Name=GeoDa
+GenericName=GeoDa Software
+Comment=GeoDa Software
+Exec=/usr/local/geoda/GeoDa
+TryExec=/usr/local/geoda/GeoDa
+Icon=geoda
+Categories=Education

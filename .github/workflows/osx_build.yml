@@ -1,0 +1,170 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Mac OSX builds
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [master]
+    tags: ['v*']
+    paths-ignore:
+      - '**/README.md'
+  # Stop checking osx build on pull request, one has to check is manually
+  pull_request:
+    branches-ignore:
+      - master
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  osx_build:
+    # macos-15 is arm64; macos-15-intel is x86_64. macos-13 (Intel) was
+    # retired Dec 4 2025 and macos-14 is unsupported after Nov 2 2026.
+    runs-on: ${{ matrix.distro }}
+    if: ${{ !contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]') }}
+
+    strategy:
+      fail-fast: true
+      matrix:
+        distro:
+          - 'macos-15-intel'
+          - 'macos-15'
+        include:
+          - distro: 'macos-15-intel'
+            pre: 'x86_64'
+          - distro: 'macos-15'
+            pre: 'arm64'
+    env:
+      GEODA_VER: '1.22.1'
+      GEODA_ARCH: ${{ matrix.pre }}
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      - name: Install application certificate
+        uses: apple-actions/import-codesign-certs@v2
+        with:
+          keychain: ${{ github.run_id }}
+          keychain-password: ${{ github.run_id }}
+          p12-file-base64: ${{ secrets.MACOS_CERTIFICATE }}
+          p12-password: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+
+      - name: Install GDAL using Brew x86_64
+        if: ${{ matrix.pre == 'x86_64' }}
+        run: |
+          rm /usr/local/bin/2to3 || true
+          rm /usr/local/bin/idle3 || true
+          rm /usr/local/bin/pydoc3 || true
+          rm /usr/local/bin/python3 || true
+          rm /usr/local/bin/python3-config || true
+          brew install --force --overwrite --quiet gdal || true
+          # Get GDAL version for later use
+          GDAL_VERSION=$(gdal-config --version)
+          GDAL_MAJOR_VERSION=$(echo $GDAL_VERSION | cut -d. -f1)
+          GDAL_MINOR_VERSION=$(echo $GDAL_VERSION | cut -d. -f2)
+          echo "GDAL_VERSION=$GDAL_VERSION" >> $GITHUB_ENV
+          echo "GDAL_MAJOR_VERSION=$GDAL_MAJOR_VERSION" >> $GITHUB_ENV
+          echo "GDAL_DYLIB_NAME=libgdal.${GDAL_MAJOR_VERSION}${GDAL_MINOR_VERSION}.dylib" >> $GITHUB_ENV
+
+      - name: Install GDAL using Brew Arm64
+        if: ${{ matrix.pre == 'arm64' }}
+        run: |
+          arch
+          brew install gdal
+          sudo mkdir -p /usr/local/opt
+          sudo ln -s /opt/homebrew/opt/gdal /usr/local/opt/gdal
+          sudo ln -s /opt/homebrew/opt/proj /usr/local/opt/proj
+          # Get GDAL version for later use
+          GDAL_VERSION=$(gdal-config --version)
+          GDAL_MAJOR_VERSION=$(echo $GDAL_VERSION | cut -d. -f1)
+          GDAL_MINOR_VERSION=$(echo $GDAL_VERSION | cut -d. -f2)
+          echo "GDAL_VERSION=$GDAL_VERSION" >> $GITHUB_ENV
+          echo "GDAL_MAJOR_VERSION=$GDAL_MAJOR_VERSION" >> $GITHUB_ENV
+          echo "GDAL_DYLIB_NAME=libgdal.${GDAL_MAJOR_VERSION}${GDAL_MINOR_VERSION}.dylib" >> $GITHUB_ENV
+
+      - uses: actions/cache@v4
+        id: cache
+        with:
+          path: |
+            BuildTools/macosx/libraries
+            BuildTools/macosx/temp
+          key: ${{ runner.os }}-${{ matrix.pre }}-deps-cache-${{ hashFiles('BuildTools/macosx/install.sh') }}
+
+      - if: steps.cache.outputs.cache-hit != 'true'
+        name: Build Dependencies
+        run: |
+          cd BuildTools/macosx
+          export GEODA_HOME=$PWD
+          export GEODA_ARCH=${{ env.GEODA_ARCH }}
+          ./install.sh
+
+      - name: Build GeoDa
+        run: |
+          mkdir -p o
+          cd BuildTools/macosx
+          export GEODA_HOME=$PWD
+          export GEODA_ARCH=${{ env.GEODA_ARCH }}
+          cp ../../GeoDamake.macosx.opt ../../GeoDamake.opt
+          echo "find identity"
+          security find-identity -v
+          # Update Info.plist version to match version.h
+          echo "Updating Info.plist version..."
+          VER_MAJOR=$(grep "const int version_major" $GEODA_HOME/../../version.h | sed -e 's/.*const int version_major = \([0-9]*\);.*/\1/')
+          VER_MINOR=$(grep "const int version_minor" $GEODA_HOME/../../version.h | sed -e 's/.*const int version_minor = \([0-9]*\);.*/\1/')
+          VER_BUILD=$(grep "const int version_build" $GEODA_HOME/../../version.h | sed -e 's/.*const int version_build = \([0-9]*\);.*/\1/')
+          GEODA_VERSION=$VER_MAJOR.$VER_MINOR.$VER_BUILD-$GEODA_ARCH
+          echo $GEODA_VERSION
+          # Update version in plist files
+          # 3-part version (major.minor.build); append a 4th component only if
+          # version.h still carries version_subbuild (legacy 1.22.0.x scheme).
+          VER_STR="${VER_MAJOR}.${VER_MINOR}.${VER_BUILD}"
+          VER_SUB=$(grep "const int version_subbuild" $GEODA_HOME/../../version.h | sed -e 's/.*const int version_subbuild = \([0-9]*\);.*/\1/' || true)
+          if [ -n "$VER_SUB" ]; then
+            VER_STR="$VER_STR.$VER_SUB"
+          fi
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VER_STR" GeoDa-GDAL-Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $VER_STR" GeoDa-GDAL-Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VER_STR" GeoDa-Xcode-Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $VER_STR" GeoDa-Xcode-Info.plist
+          make -j$(sysctl -n hw.ncpu)
+          make app
+          cd create-dmg
+          ./geoda.sh $GEODA_VERSION
+          codesign --timestamp -s "Developer ID Application: Geodapress LLC (26M5NG43GP)" -i edu.uchicago.spatial GeoDa$GEODA_VERSION-Installer.dmg
+
+      - name: Notarize DMG
+        run: |
+          cd BuildTools/macosx/create-dmg
+          DMG_FILE="GeoDa${{ env.GEODA_VER }}-${{ env.GEODA_ARCH }}-Installer.dmg"
+
+          # Check if Apple ID credentials are available
+          if [ -z "${{ secrets.APPLE_ID_USERNAME }}" ] || [ -z "${{ secrets.APPLE_ID_APP_SPECIFIC_PASSWORD }}" ] || [ -z "${{ secrets.APPLE_TEAM_ID }}" ]; then
+            echo "Apple ID credentials not available, skipping notarization"
+            exit 0
+          fi
+
+          echo "Submitting DMG for notarization..."
+          xcrun notarytool submit "$DMG_FILE" \
+            --apple-id "${{ secrets.APPLE_ID_USERNAME }}" \
+            --password "${{ secrets.APPLE_ID_APP_SPECIFIC_PASSWORD }}" \
+            --team-id "${{ secrets.APPLE_TEAM_ID }}" \
+            --wait
+
+          echo "Stapling notarization ticket to DMG..."
+          xcrun stapler staple "$DMG_FILE"
+
+          echo "Verifying notarization..."
+          xcrun stapler validate "$DMG_FILE"
+
+      # Upload artifact
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GeoDa-${{ env.GEODA_VER }}-${{ env.GEODA_ARCH }}-MacOS
+          path: ${{ github.workspace }}/BuildTools/macosx/create-dmg/GeoDa${{ env.GEODA_VER }}-${{ env.GEODA_ARCH }}-Installer.dmg
