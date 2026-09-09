@@ -50,7 +50,7 @@ jobs:
 
           # Function to check if all required workflows are complete
           check_workflows() {
-            local max_attempts=120  # 2 hours maximum (120 * 60 seconds)
+            local max_attempts=60  # 1 hours maximum (60 * 60 seconds)
             local attempt=1
             
             while [ $attempt -le $max_attempts ]; do
@@ -60,15 +60,51 @@ jobs:
               COMMIT_SHA=$(git rev-parse HEAD)
               
               # Check if all three build workflows have completed successfully
-              # We'll use a simple approach: wait and then proceed
-              # The download-artifact action will handle missing artifacts gracefully
+              # We need to check the workflow runs for the current commit
+              WORKFLOWS_COMPLETE=true
+              
+              # Check OSX build workflow
+              OSX_STATUS=$(gh api repos/${{ github.repository }}/actions/runs --jq '.workflow_runs[] | select(.head_sha=="'$COMMIT_SHA'" and .name=="Mac OSX builds") | .conclusion' --paginate | head -1)
+              if [ "$OSX_STATUS" != "success" ]; then
+                echo "Mac OSX builds workflow status: $OSX_STATUS (waiting...)"
+                WORKFLOWS_COMPLETE=false
+              else
+                echo "Mac OSX builds workflow completed successfully"
+              fi
+              
+              # Check Ubuntu build workflow
+              UBUNTU_STATUS=$(gh api repos/${{ github.repository }}/actions/runs --jq '.workflow_runs[] | select(.head_sha=="'$COMMIT_SHA'" and .name=="Ubuntu builds") | .conclusion' --paginate | head -1)
+              if [ "$UBUNTU_STATUS" != "success" ]; then
+                echo "Ubuntu builds workflow status: $UBUNTU_STATUS (waiting...)"
+                WORKFLOWS_COMPLETE=false
+              else
+                echo "Ubuntu builds workflow completed successfully"
+              fi
+              
+              # Check Windows build workflow
+              WINDOWS_STATUS=$(gh api repos/${{ github.repository }}/actions/runs --jq '.workflow_runs[] | select(.head_sha=="'$COMMIT_SHA'" and .name=="Windows builds") | .conclusion' --paginate | head -1)
+              if [ "$WINDOWS_STATUS" != "success" ]; then
+                echo "Windows builds workflow status: $WINDOWS_STATUS (waiting...)"
+                WORKFLOWS_COMPLETE=false
+              else
+                echo "Windows builds workflow completed successfully"
+              fi
+              
+              # If all workflows are complete, break out of the loop
+              if [ "$WORKFLOWS_COMPLETE" = true ]; then
+                echo "All build workflows have completed successfully!"
+                break
+              fi
               
               echo "Waiting 60 seconds before next check..."
               sleep 60
               attempt=$((attempt + 1))
             done
             
-            echo "Maximum wait time reached. Proceeding with available artifacts..."
+            if [ "$WORKFLOWS_COMPLETE" = false ]; then
+              echo "Warning: Not all build workflows completed successfully within the timeout period."
+              echo "Proceeding with available artifacts..."
+            fi
           }
 
           # Start the check process
@@ -112,8 +148,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/GeoDa-Windows-x86-installer/GeoDa_${{ steps.get_version.outputs.version }}_x86_Setup.exe
-          asset_name: GeoDa_${{ steps.get_version.outputs.version }}_x86_Setup.exe
+          asset_path: ./artifacts/GeoDa-Windows-x86-installer/GeoDa_1.22_x86_Setup.exe
+          asset_name: GeoDa-Windows-x86-installer.zip
           asset_content_type: application/octet-stream
         continue-on-error: true
 
@@ -123,8 +159,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/GeoDa-Windows-x64-installer/GeoDa_${{ steps.get_version.outputs.version }}_x64_Setup.exe
-          asset_name: GeoDa_${{ steps.get_version.outputs.version }}_x64_Setup.exe
+          asset_path: ./artifacts/GeoDa-Windows-x64-installer/GeoDa_1.22_x64_Setup.exe
+          asset_name: GeoDa-Windows-x64-installer.zip
           asset_content_type: application/octet-stream
         continue-on-error: true
 
@@ -157,7 +193,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./artifacts/GeoDa-${{ steps.get_version.outputs.version }}-x86_64-MacOS/GeoDa${{ steps.get_version.outputs.version }}-x86_64-Installer.dmg
-          asset_name: GeoDa${{ steps.get_version.outputs.version }}-x86_64-Installer.dmg
+          asset_name: GeoDa1.22.0-x86_64-Installer.dmg
           asset_content_type: application/octet-stream
         continue-on-error: true
 
@@ -168,7 +204,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./artifacts/GeoDa-${{ steps.get_version.outputs.version }}-arm64-MacOS/GeoDa${{ steps.get_version.outputs.version }}-arm64-Installer.dmg
-          asset_name: GeoDa${{ steps.get_version.outputs.version }}-arm64-Installer.dmg
+          asset_name: GeoDa1.22.0-arm64-Installer
           asset_content_type: application/octet-stream
         continue-on-error: true
 
