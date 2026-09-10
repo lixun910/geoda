@@ -132,15 +132,20 @@ json_spirit::Value McpPrompts::GetPrompt(const json_spirit::Object& params) cons
         }
     }
 
+    // MCP message content is an array of content blocks, matching how
+    // tools/call results are wrapped.
     json_spirit::Pair content_type("type", json_spirit::Value("text"));
     json_spirit::Pair content_text("text",
         json_spirit::Value(wxString::FromUTF8(text.c_str()).ToStdString()));
     std::vector<json_spirit::Pair> content;
     content.push_back(content_type);
     content.push_back(content_text);
+    json_spirit::Array content_blocks;
+    content_blocks.push_back(Obj(content));
 
     json_spirit::Pair msg_role("role", json_spirit::Value("user"));
-    json_spirit::Pair msg_content("content", Obj(content));
+    json_spirit::Pair msg_content("content",
+        json_spirit::Value(content_blocks));
     std::vector<json_spirit::Pair> msg;
     msg.push_back(msg_role);
     msg.push_back(msg_content);
@@ -370,8 +375,9 @@ std::string McpPrompts::SectionText(const wxString& section)
 "Standard (attribute) clustering:\n"
 "- cluster/pam {columns, k}             Partitioning Around Medoids\n"
 "- cluster/dbscan {columns, minpts, eps}\n"
-"    Density-based; noise observations are labeled -1. If eps is omitted\n"
-"    it is estimated from the data (max 1-nearest-neighbor distance).\n"
+"    Density-based; noise observations are labeled 0 and clusters are 1+.\n"
+"    If eps is omitted it is estimated from the data (max 1-nearest-neighbor\n"
+"    distance).\n"
 "- cluster/hdbscan {columns, minpts}    Hierarchical density-based\n"
 "- cluster/spectral {columns, weights, k}\n"
 "    Spectral clustering on the graph defined by the weights.\n"

@@ -21,6 +21,10 @@
 #include "MCP/McpServer.h"
 #include <json_spirit/json_spirit.h>
 
+#include <atomic>
+#include <cctype>
+#include <cstdlib>
+
 // Posted by a worker thread to hand a finished socket back to the main thread
 // for closing. wxSocket on macOS must be closed on the thread that created it.
 wxDEFINE_EVENT(wxEVT_MCP_SOCKET_CLOSE, wxCommandEvent);
@@ -42,6 +46,7 @@ namespace
             case 400: status_text = "Bad Request"; break;
             case 404: status_text = "Not Found"; break;
             case 500: status_text = "Internal Server Error"; break;
+            case 503: status_text = "Service Unavailable"; break;
             default:  status_text = "OK"; break;
         }
         std::string resp;
@@ -49,9 +54,6 @@ namespace
         resp += "Content-Type: application/json\r\n";
         resp += "Content-Length: " + std::to_string(body.size()) + "\r\n";
         resp += "Connection: close\r\n";
-        resp += "Access-Control-Allow-Origin: *\r\n";
-        resp += "Access-Control-Allow-Methods: POST, OPTIONS\r\n";
-        resp += "Access-Control-Allow-Headers: Content-Type\r\n";
         resp += "\r\n";
         resp += body;
         return resp;
@@ -109,18 +111,24 @@ class McpWorkerThread : public wxThread
 {
 public:
     McpWorkerThread(wxSocketBase* socket, const std::string& body,
-                    McpServer* mcp, wxEvtHandler* handler)
+                    McpServer* mcp, wxEvtHandler* handler,
+                    std::atomic<int>* active_workers)
         : wxThread(wxTHREAD_DETACHED), m_socket(socket), m_body(body),
-          m_mcp(mcp), m_handler(handler) {}
+          m_mcp(mcp), m_handler(handler), m_active_workers(active_workers) {}
 
     virtual void* Entry()
     {
-        json_spirit::Value response = m_mcp->HandleRequest(m_body);
-        std::string http = BuildHttpResponse(json_spirit::write(response), 200);
-        m_socket->Write(http.c_str(), (wxUint32)http.size());
+        try {
+            json_spirit::Value response = m_mcp->HandleRequest(m_body);
+            std::string http = BuildHttpResponse(json_spirit::write(response), 200);
+            m_socket->Write(http.c_str(), (wxUint32)http.size());
+        } catch (...) {
+            // Never leak the worker slot: fall through and release it below.
+        }
         wxCommandEvent evt(wxEVT_MCP_SOCKET_CLOSE);
         evt.SetClientData(m_socket);
         wxQueueEvent(m_handler, evt.Clone());
+        if (m_active_workers) --(*m_active_workers);
         return NULL;
     }
 
@@ -129,6 +137,7 @@ private:
     std::string m_body;
     McpServer* m_mcp;
     wxEvtHandler* m_handler;
+    std::atomic<int>* m_active_workers;
 };
 
 BEGIN_EVENT_TABLE(McpHttpServer, wxEvtHandler)
@@ -138,7 +147,8 @@ BEGIN_EVENT_TABLE(McpHttpServer, wxEvtHandler)
 END_EVENT_TABLE()
 
 McpHttpServer::McpHttpServer(int port)
-    : m_server(NULL), m_port(port), m_mcp(new McpServer())
+    : m_server(NULL), m_port(port), m_mcp(new McpServer()),
+      m_active_workers(0)
 {
 }
 
@@ -239,6 +249,18 @@ void McpHttpServer::OnClientEvent(wxSocketEvent& event)
     if (header_end == std::string::npos) return;
 
     std::string headers = buffer.substr(0, header_end);
+    std::string method, path;
+    ParseRequestLine(headers, method, path);
+
+    // GET (health check) and OPTIONS (preflight) carry no body, so they can
+    // be handled as soon as the header block has arrived.
+    if (method == "GET" || method == "OPTIONS") {
+        m_buffers.erase(sock);
+        sock->Notify(false);
+        HandleRequest(sock, method, path, "");
+        return;
+    }
+
     int content_length = ParseContentLength(headers);
     if (content_length < 0) {
         m_buffers.erase(sock);
@@ -252,8 +274,6 @@ void McpHttpServer::OnClientEvent(wxSocketEvent& event)
     if (buffer.size() < body_start + (size_t)content_length) return;
 
     std::string body = buffer.substr(body_start, (size_t)content_length);
-    std::string method, path;
-    ParseRequestLine(headers, method, path);
     m_buffers.erase(sock);
     sock->Notify(false);
     HandleRequest(sock, method, path, body);
@@ -303,15 +323,27 @@ void McpHttpServer::HandleRequest(wxSocketBase* socket,
     }
 
     if (m_mcp->IsHeavyTool(request)) {
+        // Bound the number of concurrent heavy-tool workers so a client
+        // cannot exhaust threads/CPU. When at capacity, reject the request
+        // with 503 instead of queueing unbounded work.
+        if (m_active_workers >= kMaxWorkers) {
+            SendResponse(socket, "{\"error\":\"server busy\"}", 503);
+            socket->Close();
+            socket->Destroy();
+            return;
+        }
+        ++m_active_workers;
         // Hand off to a worker thread. Detach the socket from the main
         // thread's event loop first so the worker owns it exclusively; the
         // worker posts it back for closing when done.
         socket->SetNotify(0);
         socket->Notify(false);
-        McpWorkerThread* thread = new McpWorkerThread(socket, body, m_mcp, this);
+        McpWorkerThread* thread =
+            new McpWorkerThread(socket, body, m_mcp, this, &m_active_workers);
         if (thread->Create() == wxTHREAD_NO_ERROR) {
             thread->Run();
         } else {
+            --m_active_workers;
             delete thread;
             SendResponse(socket, "{\"error\":\"internal\"}", 500);
             socket->Close();
@@ -334,12 +366,11 @@ void McpHttpServer::SendResponse(wxSocketBase* socket, const std::string& body,
 
 void McpHttpServer::SendCorsPreflight(wxSocketBase* socket)
 {
+    // No CORS headers: the server binds to 127.0.0.1 and is meant for
+    // desktop MCP clients, not browsers. Omitting Access-Control-Allow-*
+    // keeps any web page from issuing cross-origin requests to it.
     std::string resp;
     resp += "HTTP/1.1 204 No Content\r\n";
-    resp += "Access-Control-Allow-Origin: *\r\n";
-    resp += "Access-Control-Allow-Methods: POST, OPTIONS\r\n";
-    resp += "Access-Control-Allow-Headers: Content-Type\r\n";
-    resp += "Access-Control-Max-Age: 86400\r\n";
     resp += "Content-Length: 0\r\n";
     resp += "Connection: close\r\n";
     resp += "\r\n";

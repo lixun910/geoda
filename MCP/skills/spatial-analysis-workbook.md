@@ -215,8 +215,8 @@ spatially contiguous via the weights matrix.
 
 - `cluster/pam {columns, k}` — Partitioning Around Medoids
 - `cluster/dbscan {columns, minpts, eps}` — density-based; noise
-  observations are labeled `-1`. If `eps` is omitted it is estimated from the
-  data (max 1-nearest-neighbor distance).
+  observations are labeled `0` and clusters are `1+`. If `eps` is omitted it
+  is estimated from the data (max 1-nearest-neighbor distance).
 - `cluster/hdbscan {columns, minpts}` — hierarchical density-based
 - `cluster/spectral {columns, weights, k}` — spectral clustering on the
   graph defined by the weights
