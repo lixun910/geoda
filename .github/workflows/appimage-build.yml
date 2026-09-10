@@ -25,12 +25,15 @@ jobs:
   # This workflow contains a single job called "appimage_build"
   appimage_build:
     # The type of runner that the job will run on
-    runs-on: ubuntu-24.04
+    # Build on the oldest distro we want the AppImage to run on: ubuntu-22.04
+    # (glibc 2.35). Bundling libs from a newer base (e.g. 24.04, glibc 2.39)
+    # makes the AppImage require GLIBC_2.38+ and breaks portability.
+    runs-on: ubuntu-22.04
     if: ${{ !contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]') }}
 
     env:
       GEODA_VER: '1.22.1'
-      TARGET_OS: 'noble'
+      TARGET_OS: 'jammy'
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -55,19 +58,55 @@ jobs:
           echo '-k' > ~/.curlrc
           sudo apt-get install -y cmake ninja-build build-essential
           # GeoDa requires wxWidgets >= 3.1 (wxWindow::FromDIP, wx/xrc/xh_auitoolb.h);
-          # ubuntu-24.04 ships wx 3.2 via apt.
-          sudo apt-get install -y libwxgtk3.2-dev libwxgtk-webview3.2-dev
+          # jammy's apt only ships wx 3.0.5, so wx 3.2.4 is built from source below.
+          # These are the build deps for that source build (see create_deps.sh).
+          sudo apt-get install -y libgtk-3-dev libgl1-mesa-dev libglu1-mesa-dev
           sudo apt-get install -y libgdal-dev
           sudo apt-get install -y libboost-all-dev
           sudo apt-get install -y libeigen3-dev
-          sudo apt-get install -y libgl1-mesa-dev libglu1-mesa-dev
           sudo apt-get install -y libcurl4-openssl-dev
-          sudo apt-get install -y libwebkit2gtk-4.1-dev
+          sudo apt-get install -y libwebkit2gtk-4.0-dev
+
+      # Cache the wxWidgets source build (installed to BuildTools/ubuntu/libraries)
+      # so the ~10-15 min wx build is a one-time cost per wx version.
+      - uses: actions/cache@v4
+        id: wx-cache
+        with:
+          path: |
+            BuildTools/ubuntu/libraries
+            BuildTools/ubuntu/temp
+          key: ${{ runner.os }}-${{ env.TARGET_OS }}-wx-3.2.4
+
+      # Build wxWidgets 3.2.4 from source: jammy's apt only ships wx 3.0.5,
+      # which cannot compile GeoDa (needs wx >= 3.1). Same recipe as the legacy
+      # build (BuildTools/ubuntu/create_deps.sh): static, monolithic, webview.
+      - if: steps.wx-cache.outputs.cache-hit != 'true'
+        name: Build wxWidgets 3.2.4
+        run: |
+          mkdir -p BuildTools/ubuntu/temp
+          cd BuildTools/ubuntu/temp
+          if [ ! -f "wxWidgets-3.2.4.tar.bz2" ]; then
+            curl -L -O https://github.com/wxWidgets/wxWidgets/releases/download/v3.2.4/wxWidgets-3.2.4.tar.bz2
+          fi
+          if [ ! -d "wxWidgets-3.2.4" ]; then
+            tar -xf wxWidgets-3.2.4.tar.bz2
+          fi
+          cd wxWidgets-3.2.4
+          chmod +x configure
+          ./configure --with-gtk=3 --disable-shared --enable-monolithic --with-opengl \
+            --enable-postscript --without-libtiff --disable-debug --enable-webview \
+            --prefix=$GITHUB_WORKSPACE/BuildTools/ubuntu/libraries
+          make -j$(nproc)
+          make install
 
       # Build GeoDa
       - name: Build GeoDa
         run: |
-          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DGEODA_USE_CLAPACK_EXTERNAL=ON
+          # Point CMake's find_package(wxWidgets) at the source-built wx install.
+          export PATH="$GITHUB_WORKSPACE/BuildTools/ubuntu/libraries/bin:$PATH"
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DGEODA_USE_CLAPACK_EXTERNAL=ON \
+            -DwxWidgets_ROOT_DIR=$GITHUB_WORKSPACE/BuildTools/ubuntu/libraries
           cmake --build build
           # create_appimage.sh expects the binary + runtime data in BuildTools/ubuntu/build
           mkdir -p BuildTools/ubuntu/build
@@ -208,6 +247,22 @@ jobs:
             echo "ERROR: AppImage creation failed!"
             exit 1
           fi
+
+      # Regression guard: the AppImage must not require a newer glibc than the
+      # build base (jammy = glibc 2.35, GCC 11 = GLIBCXX 3.4.29). This catches
+      # the case where a bundled lib drags in a newer glibc requirement.
+      - name: Verify glibc compatibility
+        run: |
+          ./GeoDa-${GEODA_VER}-x86_64.AppImage --appimage-extract >/dev/null
+          MAX_GLIBC=$(find squashfs-root -type f \( -name GeoDa -o -name '*.so*' \) \
+            -exec objdump -T {} \; 2>/dev/null | grep -o 'GLIBC_[0-9.]*' | sort -V | tail -1)
+          MAX_GLIBCXX=$(find squashfs-root -type f \( -name GeoDa -o -name '*.so*' \) \
+            -exec objdump -T {} \; 2>/dev/null | grep -o 'GLIBCXX_[0-9.]*' | sort -V | tail -1)
+          echo "Max GLIBC: $MAX_GLIBC, Max GLIBCXX: $MAX_GLIBCXX"
+          [ "$(printf '%s\n2.35' "$MAX_GLIBC" | sort -V | tail -1)" = "2.35" ] || \
+            { echo "FAIL: AppImage requires GLIBC newer than 2.35"; exit 1; }
+          [ "$(printf '%s\n3.4.29' "$MAX_GLIBCXX" | sort -V | tail -1)" = "3.4.29" ] || \
+            { echo "FAIL: AppImage requires GLIBCXX newer than 3.4.29"; exit 1; }
 
       # Upload artifact
       - uses: actions/upload-artifact@v4
