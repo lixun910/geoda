@@ -125,3 +125,5 @@ internationalization/token.json
 
 GeoDamake.opt
 build/
+/.idea
+/cmake-build-debug
