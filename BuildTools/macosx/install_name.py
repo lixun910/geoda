@@ -117,9 +117,12 @@ def process_dependency(framework_path, dylib_name):
                 os.system(cmd)
             # process item
             process_dependency(framework_path, file_name)
-    print("codesign {}", dylib_path)
-    cmd = f'codesign --force --timestamp -o runtime -s "{CODESIGN_ID}" {dylib_path}'
-    os.system(cmd)
+    # Skip codesigning when no identity was passed (CI on fork pull requests,
+    # where the Developer ID certificate secret is unavailable).
+    if CODESIGN_ID:
+        print("codesign {}", dylib_path)
+        cmd = f'codesign --force --timestamp -o runtime -s "{CODESIGN_ID}" {dylib_path}'
+        os.system(cmd)
 
 
 process_dependency(FRAMEWORK_PATH, "libwx_osx_cocoau_gl-3.2.dylib")

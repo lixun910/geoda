@@ -5,6 +5,17 @@ endif
 
 include ../../GeoDamake.opt
 
+# Sign the .app bundle with the Developer ID certificate unless
+# GEODA_SKIP_CODESIGN=1. CI sets this on pull requests from forks, where the
+# certificate secret is not available; the bundle is then built unsigned.
+ifneq ($(GEODA_SKIP_CODESIGN),1)
+CODESIGN_CMD = codesign -f --timestamp -o runtime -s "Developer ID Application: Geodapress LLC (26M5NG43GP)"
+CODESIGN_ID = "Developer ID Application: Geodapress LLC (26M5NG43GP)"
+else
+CODESIGN_CMD = @true
+CODESIGN_ID =
+endif
+
 GeoDa_OBJ = $(wildcard $(GeoDa_ROOT)/o/*.o)
 
 default:	compile-geoda 
@@ -126,14 +137,14 @@ build-geoda-mac:
 	install_name_tool -change "$(GEODA_HOME)/libraries/lib/libwx_osx_cocoau-3.2.0.3.0.dylib" "@executable_path/../Frameworks/libwx_osx_cocoau-3.2.dylib" build/GeoDa.app/Contents/MacOS/GeoDa
 	install_name_tool -change "/usr/local/opt/gdal/lib/$(GDAL_DYLIB_NAME)" "@executable_path/../Frameworks/$(GDAL_DYLIB_NAME)" build/GeoDa.app/Contents/MacOS/GeoDa
 	install_name_tool -change "/opt/homebrew/opt/gdal/lib/$(GDAL_DYLIB_NAME)" "@executable_path/../Frameworks/$(GDAL_DYLIB_NAME)" build/GeoDa.app/Contents/MacOS/GeoDa
-	python3 install_name.py $(GEODA_HOME)/build/GeoDa.app/Contents/Frameworks "Developer ID Application: Geodapress LLC (26M5NG43GP)" $(GDAL_DYLIB_NAME)
+	python3 install_name.py $(GEODA_HOME)/build/GeoDa.app/Contents/Frameworks "$(CODESIGN_ID)" $(GDAL_DYLIB_NAME)
 	install_name_tool -change "@executable_path/../Frameworks/libwx_osx_cocoau-3.2.0.3.0.dylib" "@executable_path/../Frameworks/libwx_osx_cocoau-3.2.dylib" build/GeoDa.app/Contents/Frameworks/libwx_osx_cocoau_gl-3.2.dylib
-	codesign -f --timestamp -o runtime -s "Developer ID Application: Geodapress LLC (26M5NG43GP)" build/GeoDa.app/Contents/Frameworks/libwx_osx_cocoau_gl-3.2.dylib
-	codesign -f --timestamp -o runtime -s "Developer ID Application: Geodapress LLC (26M5NG43GP)" build/GeoDa.app/Contents/Frameworks/libwx_osx_cocoau-3.2.0.3.0.dylib
-	codesign -f --timestamp -o runtime -s "Developer ID Application: Geodapress LLC (26M5NG43GP)" build/GeoDa.app/Contents/Frameworks/libwx_osx_cocoau-3.2.dylib
-	codesign -f --timestamp -o runtime -s "Developer ID Application: Geodapress LLC (26M5NG43GP)" build/GeoDa.app/Contents/MacOS/lisa_kernel.cl
-	codesign -f --timestamp -o runtime -s "Developer ID Application: Geodapress LLC (26M5NG43GP)" build/GeoDa.app/Contents/MacOS/GeoDa
-	codesign -f --timestamp -o runtime -s "Developer ID Application: Geodapress LLC (26M5NG43GP)" build/GeoDa.app
+	$(CODESIGN_CMD) build/GeoDa.app/Contents/Frameworks/libwx_osx_cocoau_gl-3.2.dylib
+	$(CODESIGN_CMD) build/GeoDa.app/Contents/Frameworks/libwx_osx_cocoau-3.2.0.3.0.dylib
+	$(CODESIGN_CMD) build/GeoDa.app/Contents/Frameworks/libwx_osx_cocoau-3.2.dylib
+	$(CODESIGN_CMD) build/GeoDa.app/Contents/MacOS/lisa_kernel.cl
+	$(CODESIGN_CMD) build/GeoDa.app/Contents/MacOS/GeoDa
+	$(CODESIGN_CMD) build/GeoDa.app
 
 	
 clean:
