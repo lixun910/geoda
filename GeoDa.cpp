@@ -432,11 +432,10 @@ bool GdaApp::OnInit(void)
 #endif
     wxString os_id = GeneralWxUtils::LogOsId();
     wxLogMessage(os_id);
-    wxString versionlog = wxString::Format("vs: %d-%d-%d-%d",
+    wxString versionlog = wxString::Format("vs: %d-%d-%d",
                                            Gda::version_major,
                                            Gda::version_minor,
-                                           Gda::version_build,
-                                           Gda::version_subbuild);
+                                           Gda::version_build);
     wxLogMessage(versionlog);
     wxLogMessage("%s", loggerFile);
     
@@ -6889,11 +6888,7 @@ void GdaFrame::OnHelpAbout(wxCommandEvent& WXUNUSED(event) )
 	wxString vl_s;
 	vl_s << "GeoDa " << Gda::version_major << "." << Gda::version_minor << ".";
 	vl_s << Gda::version_build;
-    
-    if (Gda::version_subbuild > 0) {
-        vl_s << "." << Gda::version_subbuild;
-    }
-    
+
 	if (Gda::version_type == 0) {
 		vl_s << " (alpha),";
 	} else if (Gda::version_type == 1) {
