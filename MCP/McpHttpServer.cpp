@@ -24,6 +24,10 @@
 #include <atomic>
 #include <cctype>
 #include <cstdlib>
+#include <wx/datetime.h>
+#include <wx/file.h>
+#include <wx/filename.h>
+#include <wx/utils.h>
 
 // Posted by a worker thread to hand a finished socket back to the main thread
 // for closing. wxSocket on macOS must be closed on the thread that created it.
@@ -101,6 +105,66 @@ namespace
                 path = line.substr(sp1 + 1);
         }
     }
+
+    // Discovery file: ~/.geoda/mcp.json = {server, url, port, pid, startedAt}.
+    // The port is only known after binding (a taken port falls back to a
+    // nearby one, then to an OS-assigned one), so external MCP clients read
+    // this file instead of guessing. Written on start, removed on stop.
+    wxString GetDiscoveryFilePath()
+    {
+        wxString dir = wxGetHomeDir() + wxFileName::GetPathSeparator() + ".geoda";
+        if (!wxDirExists(dir)) wxFileName::Mkdir(dir);
+        return dir + wxFileName::GetPathSeparator() + "mcp.json";
+    }
+
+    // Read back the port recorded in the discovery file, or 0 if unreadable.
+    int ReadDiscoveryPort()
+    {
+        wxString path = GetDiscoveryFilePath();
+        if (!wxFileExists(path)) return 0;
+        wxFile f(path, wxFile::read);
+        if (!f.IsOpened()) return 0;
+        wxString content;
+        f.ReadAll(&content);
+        f.Close();
+        int pos = content.Find("\"port\":");
+        if (pos == wxNOT_FOUND) return 0;
+        long port = 0;
+        content.Mid(pos + 7).BeforeFirst(',').BeforeFirst('}').Trim(true).Trim(false)
+            .ToLong(&port);
+        return (int)port;
+    }
+
+    void WriteDiscoveryFile(int port)
+    {
+        wxString path = GetDiscoveryFilePath();
+        wxString body = wxString::Format(
+            "{\"server\":\"geoda\",\"url\":\"http://127.0.0.1:%d/mcp\","
+            "\"port\":%d,\"pid\":%ld,\"startedAt\":\"%s\"}",
+            port, port, (long)wxGetProcessId(),
+            wxDateTime::UNow().FormatISOCombined());
+        // Write to a temp file and rename, so a reader never sees a partial
+        // file.
+        wxString tmp = path + ".tmp";
+        wxRemoveFile(tmp);
+        wxFile f;
+        if (f.Create(tmp, true) || f.Open(tmp, wxFile::write)) {
+            f.Write(body);
+            f.Close();
+            wxRenameFile(tmp, path, true);
+            // Owner-only: the file names a local endpoint.
+            wxFileName(path).SetPermissions(wxS_IRUSR | wxS_IWUSR);
+        }
+    }
+
+    // Only remove the file if it describes the port this instance bound --
+    // several instances share the one path, and a stopping instance must not
+    // erase a running one's entry.
+    void DeleteDiscoveryFile(int port)
+    {
+        if (ReadDiscoveryPort() != port) return;
+        wxRemoveFile(GetDiscoveryFilePath());
+    }
 }
 
 // Worker thread for heavy tools (LISA with permutations, clustering). Owns the
@@ -162,9 +226,15 @@ bool McpHttpServer::Start()
 {
     if (m_server) return true;
 
-    int try_ports[2];
+    // Preferred port first, then the next few (so a second GeoDa instance
+    // lands on a nearby port rather than a random one), then let the OS pick.
+    int try_ports[12];
     int n = 0;
-    if (m_port != 0) try_ports[n++] = m_port;
+    if (m_port != 0) {
+        for (int i = 0; i < 10 && m_port + i <= 65535; ++i) {
+            try_ports[n++] = m_port + i;
+        }
+    }
     try_ports[n++] = 0;
 
     for (int i = 0; i < n; ++i) {
@@ -180,6 +250,7 @@ bool McpHttpServer::Start()
             m_server->SetEventHandler(*this, MCP_SERVER_SOCKET_ID);
             m_server->SetNotify(wxSOCKET_CONNECTION_FLAG);
             m_server->Notify(true);
+            WriteDiscoveryFile(m_port);
             return true;
         }
         delete server;
@@ -194,6 +265,7 @@ void McpHttpServer::Stop()
         m_server->Close();
         m_server->Destroy();
         m_server = NULL;
+        DeleteDiscoveryFile(m_port);
     }
     for (std::map<wxSocketBase*, std::string>::iterator it = m_buffers.begin();
          it != m_buffers.end(); ++it) {
