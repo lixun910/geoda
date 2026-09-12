@@ -391,20 +391,6 @@ bool GdaApp::OnInit(void)
     
 	SetTopWindow(GdaFrame::GetGdaFrame());
 
-    // Start the built-in MCP server. It is on by default (port
-    // GEODA_MCP_DEFAULT_PORT, see OnCmdLineParsed) so external MCP clients can
-    // connect as soon as the app is up; --no-mcp / GEODA_MCP_ENABLED=0 turns it
-    // off. (no wxLogMessage here: the log target is not set up yet, and a
-    //  queued message would flush into a blocking modal dialog)
-    if (m_mcp_port > 0) {
-        McpHttpServer* mcp_server = new McpHttpServer(m_mcp_port);
-        if (mcp_server->Start()) {
-            GdaFrame::GetGdaFrame()->SetMcpServer(mcp_server);
-        } else {
-            delete mcp_server;
-        }
-    }
-
 	if (GeneralWxUtils::isWindows()) {
 		// For XP / Vista / Win 7, the user can select to use font sizes
 		// of %100, %125 or %150.
@@ -446,6 +432,23 @@ bool GdaApp::OnInit(void)
                                            Gda::version_build);
     wxLogMessage(versionlog);
     wxLogMessage("%s", loggerFile);
+
+    // Start the built-in MCP server. It is on by default (port
+    // GEODA_MCP_DEFAULT_PORT, see OnCmdLineParsed) so external MCP clients can
+    // connect as soon as the app is up; --no-mcp / GEODA_MCP_ENABLED=0 turns it
+    // off. This runs *after* the log target is installed on purpose: binding
+    // the socket and writing the discovery file can emit wxLog messages, and
+    // with the default GUI log target still active they would be buffered and
+    // then flushed into a blocking modal dialog while OnInit() is still
+    // running -- which stalls the whole app, MCP included, until dismissed.
+    if (m_mcp_port > 0) {
+        McpHttpServer* mcp_server = new McpHttpServer(m_mcp_port);
+        if (mcp_server->Start()) {
+            GdaFrame::GetGdaFrame()->SetMcpServer(mcp_server);
+        } else {
+            delete mcp_server;
+        }
+    }
     
    
     if (!cmd_line_proj_file_name.IsEmpty()) {
