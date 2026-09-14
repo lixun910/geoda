@@ -2264,7 +2264,9 @@ json_spirit::Value McpClusterSpatialKmeans(const McpToolContext& ctx,
 
     ClusterData cd = GetClusterData(ctx, params);
 
-    // Run k-means first to get an initial clustering.
+    // Run k-means first to get an initial clustering. 'b' is kmeans++ seeding,
+    // 'a' is random initialization.
+    char init_method = (GetStr(params, "init") == "kmeans++") ? 'b' : 'a';
     int* clusterid = new int[cd.rows];
     double error = 0.0;
     int ifound = 0;
@@ -2275,8 +2277,8 @@ json_spirit::Value McpClusterSpatialKmeans(const McpToolContext& ctx,
     }
     double* weight = new double[cd.ncols];
     for (int c = 0; c < cd.ncols; ++c) weight[c] = 1.0;
-    kcluster(k, cd.rows, cd.ncols, cd.data, mask, weight, 0, 10, 100, 'a',
-             'e', clusterid, &error, &ifound, 0, 0, 1, 1);
+    kcluster(k, cd.rows, cd.ncols, cd.data, mask, weight, 0, 10, 100,
+             init_method, 'e', clusterid, &error, &ifound, 0, 0, 1, 1);
     for (int i = 0; i < cd.rows; ++i) delete[] mask[i];
     delete[] mask;
     delete[] weight;
@@ -2876,8 +2878,16 @@ json_spirit::Value McpWindowCreatePlot(const McpToolContext& ctx,
 
     TemplateFrame* nf = NULL;
     if (plot_type == "histogram") {
-        nf = new HistogramFrame(GdaFrame::GetGdaFrame(),
-                                project, var_info, col_ids, title);
+        HistogramFrame* hf = new HistogramFrame(GdaFrame::GetGdaFrame(),
+                                                project, var_info, col_ids,
+                                                title);
+        nf = hf;
+        int bins = GetInt(params, "bins", 0);
+        if (bins > 0) {
+            HistogramCanvas* hc =
+                dynamic_cast<HistogramCanvas*>(hf->template_canvas);
+            if (hc) hc->SetNumIntervals(bins);
+        }
     } else if (plot_type == "boxplot") {
         nf = new BoxPlotFrame(GdaFrame::GetGdaFrame(), project,
                               var_info, col_ids, title);

@@ -82,6 +82,70 @@ namespace
         return Obj(p);
     }
 
+    // As above, plus JSON Schema minItems/maxItems so a client can tell how
+    // many elements the array takes (e.g. a scatter plot takes exactly two).
+    // Pass 0 to leave a bound unconstrained.
+    json_spirit::Value ArrProp(const char* desc, const char* item_type,
+                               int min_items, int max_items)
+    {
+        json_spirit::Object o = ArrProp(desc, item_type).get_obj();
+        if (min_items > 0) {
+            o.push_back(P("minItems", json_spirit::Value(min_items)));
+        }
+        if (max_items > 0) {
+            o.push_back(P("maxItems", json_spirit::Value(max_items)));
+        }
+        return json_spirit::Value(o);
+    }
+
+    // String property restricted to a fixed set of allowed values, emitted as
+    // a JSON Schema "enum" so a client can enumerate the choices instead of
+    // parsing the description.
+    json_spirit::Value EnumProp(const char* desc,
+                                const std::vector<const char*>& values)
+    {
+        std::vector<json_spirit::Pair> p;
+        p.push_back(P("type", json_spirit::Value("string")));
+        p.push_back(P("description", json_spirit::Value(desc)));
+        std::vector<json_spirit::Value> vals;
+        for (size_t i = 0; i < values.size(); ++i) {
+            vals.push_back(json_spirit::Value(values[i]));
+        }
+        p.push_back(P("enum", json_spirit::Value(json_spirit::Array(vals))));
+        return Obj(p);
+    }
+
+    // Add a JSON Schema "default" to a property. Use the same value the tool
+    // handler applies when the argument is omitted, so a client can pre-select
+    // it. The overloads mirror the *Prop helpers above.
+    json_spirit::Value Def(const json_spirit::Value& prop,
+                           const json_spirit::Value& def)
+    {
+        json_spirit::Object o = prop.get_obj();
+        o.push_back(P("default", def));
+        return json_spirit::Value(o);
+    }
+
+    json_spirit::Value Def(const json_spirit::Value& prop, const char* def)
+    {
+        return Def(prop, json_spirit::Value(def));
+    }
+
+    json_spirit::Value Def(const json_spirit::Value& prop, int def)
+    {
+        return Def(prop, json_spirit::Value(def));
+    }
+
+    json_spirit::Value Def(const json_spirit::Value& prop, double def)
+    {
+        return Def(prop, json_spirit::Value(def));
+    }
+
+    json_spirit::Value Def(const json_spirit::Value& prop, bool def)
+    {
+        return Def(prop, json_spirit::Value(def));
+    }
+
     json_spirit::Value Schema(const std::vector<json_spirit::Pair>& props,
                               const std::vector<const char*>& required)
     {
@@ -352,16 +416,22 @@ void RegisterCommands(McpTools& tools)
         "Create a spatial weights matrix and return its id (uuid). Types: "
         "queen, rook, knn, distance, kernel.",
         Schema(std::vector<json_spirit::Pair>{
-                   P("type", StrProp("queen, rook, knn, distance, or kernel")),
-                   P("k", IntProp("Number of nearest neighbors (knn)")),
+                   P("type",
+                     Def(EnumProp("Spatial weights type",
+                                  {"queen", "rook", "knn", "distance",
+                                   "kernel"}), "queen")),
+                   P("k", Def(IntProp("Number of nearest neighbors (knn)"), 6)),
                    P("distance_threshold",
                      NumProp("Distance threshold (distance)")),
                    P("kernel",
-                     StrProp("triangular, uniform, epanechnikov, quartic, "
-                             "gaussian (kernel)")),
-                   P("order", IntProp("Contiguity order (queen/rook)")),
-                   P("is_arc", BoolProp("Use great-circle distance")),
-                   P("is_mile", BoolProp("Distance in miles"))},
+                     Def(EnumProp("Kernel function",
+                                  {"triangular", "uniform", "epanechnikov",
+                                   "quartic", "gaussian"}), "triangular")),
+                   P("order",
+                     Def(IntProp("Contiguity order (queen/rook)"), 1)),
+                   P("is_arc",
+                     Def(BoolProp("Use great-circle distance"), false)),
+                   P("is_mile", Def(BoolProp("Distance in miles"), false))},
                {}),
         true, McpWeightsCreate);
 
@@ -385,7 +455,7 @@ void RegisterCommands(McpTools& tools)
         Schema(std::vector<json_spirit::Pair>{
                    P("column", StrProp("Numeric column name")),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("permutations", IntProp("Permutations (default 999)"))},
+                   P("permutations", Def(IntProp("Number of permutations"), 999))},
                {"column", "weights"}),
         true, McpGlobalMoran);
 
@@ -394,7 +464,7 @@ void RegisterCommands(McpTools& tools)
         Schema(std::vector<json_spirit::Pair>{
                    P("column", StrProp("Numeric column name")),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("permutations", IntProp("Permutations (default 999)"))},
+                   P("permutations", Def(IntProp("Number of permutations"), 999))},
                {"column", "weights"}),
         true, McpGlobalGeary);
 
@@ -403,7 +473,7 @@ void RegisterCommands(McpTools& tools)
         Schema(std::vector<json_spirit::Pair>{
                    P("column", StrProp("Numeric column name")),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("permutations", IntProp("Permutations (default 999)"))},
+                   P("permutations", Def(IntProp("Number of permutations"), 999))},
                {"column", "weights"}),
         true, McpGlobalGeneralG);
 
@@ -416,13 +486,14 @@ void RegisterCommands(McpTools& tools)
         Schema(std::vector<json_spirit::Pair>{
                    P("column", StrProp("Numeric column name")),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("permutations", IntProp("Permutations (default 999)")),
+                   P("permutations", Def(IntProp("Number of permutations"), 999)),
                    P("significance_cutoff",
-                     NumProp("Significance cutoff (default 0.05)")),
-                   P("row_standardize", BoolProp("Row-standardize (default true)")),
+                     Def(NumProp("Significance level"), 0.05)),
+                   P("row_standardize", Def(BoolProp("Row-standardize"), true)),
                    P("lisa_type",
-                     StrProp("univariate, bivariate, differential, or "
-                             "eb_rate_standardized")),
+                     Def(EnumProp("LISA type",
+                                  {"univariate", "bivariate", "differential",
+                                   "eb_rate_standardized"}), "univariate")),
                    P("second_column",
                      StrProp("Second column for bivariate/differential"))},
                {"column", "weights"}),
@@ -433,13 +504,15 @@ void RegisterCommands(McpTools& tools)
         Schema(std::vector<json_spirit::Pair>{
                    P("column", StrProp("Numeric column name")),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("permutations", IntProp("Permutations (default 999)")),
+                   P("permutations", Def(IntProp("Number of permutations"), 999)),
                    P("significance_cutoff",
-                     NumProp("Significance cutoff (default 0.05)")),
-                   P("row_standardize", BoolProp("Row-standardize (default true)")),
+                     Def(NumProp("Significance level"), 0.05)),
+                   P("row_standardize", Def(BoolProp("Row-standardize"), true)),
                    P("lisa_type",
-                     StrProp("univariate, bivariate, differential, "
-                             "eb_rate_standardized, or multivariate")),
+                     Def(EnumProp("LISA type",
+                                  {"univariate", "bivariate", "differential",
+                                   "eb_rate_standardized", "multivariate"}),
+                         "univariate")),
                    P("second_column",
                      StrProp("Second column for bivariate/differential"))},
                {"column", "weights"}),
@@ -450,9 +523,9 @@ void RegisterCommands(McpTools& tools)
         Schema(std::vector<json_spirit::Pair>{
                    P("column", StrProp("Numeric column name")),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("permutations", IntProp("Permutations (default 999)")),
+                   P("permutations", Def(IntProp("Number of permutations"), 999)),
                    P("significance_cutoff",
-                     NumProp("Significance cutoff (default 0.05)")),
+                     Def(NumProp("Significance level"), 0.05)),
                    P("gstar", BoolProp("Use G* (include self in neighborhood)"))},
                {"column", "weights"}),
         true, McpLisaLocalG);
@@ -463,9 +536,9 @@ void RegisterCommands(McpTools& tools)
     Add(tools, "cluster/skater", "SKATER", "Cluster",
         "Minimum-spanning-tree regionalization (spatially constrained).",
         Schema(std::vector<json_spirit::Pair>{
-                   P("columns", ArrProp("Numeric column names", "string")),
+                   P("columns", ArrProp("Numeric column names", "string", 1, 0)),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("k", IntProp("Number of regions (default 3)")),
+                   P("k", Def(IntProp("Number of regions"), 3)),
                    P("boundary", StrProp("Boundary variable (optional)"))},
                {"columns", "weights"}),
         true, McpClusterSkater);
@@ -473,30 +546,35 @@ void RegisterCommands(McpTools& tools)
     Add(tools, "cluster/redcap", "REDCAP", "Cluster",
         "Spatially constrained hierarchical clustering (regionalization).",
         Schema(std::vector<json_spirit::Pair>{
-                   P("columns", ArrProp("Numeric column names", "string")),
+                   P("columns", ArrProp("Numeric column names", "string", 1, 0)),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("k", IntProp("Number of regions (default 3)")),
+                   P("k", Def(IntProp("Number of regions"), 3)),
                    P("method",
-                     StrProp("firstorder, fullorder_ward, fullorder_alk, "
-                             "fullorder_clk, singlelink, avglink, "
-                             "completelink"))},
+                     Def(EnumProp("REDCAP method",
+                                  {"firstorder", "fullorder_ward",
+                                   "fullorder_alk", "fullorder_clk",
+                                   "singlelink", "avglink", "completelink"}),
+                         "firstorder"))},
                {"columns", "weights"}),
         true, McpClusterRedcap);
 
     Add(tools, "cluster/schc", "SCHC", "Cluster",
         "Spatially constrained hierarchical clustering.",
         Schema(std::vector<json_spirit::Pair>{
-                   P("columns", ArrProp("Numeric column names", "string")),
+                   P("columns", ArrProp("Numeric column names", "string", 1, 0)),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("k", IntProp("Number of regions (default 3)")),
-                   P("method", StrProp("singlelink, avglink, or completelink"))},
+                   P("k", Def(IntProp("Number of regions"), 3)),
+                   P("method",
+                     Def(EnumProp("SCHC method",
+                                  {"singlelink", "avglink", "completelink"}),
+                         "singlelink"))},
                {"columns", "weights"}),
         true, McpClusterSchc);
 
     Add(tools, "cluster/maxp", "Max-p", "Cluster",
         "Max-p regionalization with a bound constraint.",
         Schema(std::vector<json_spirit::Pair>{
-                   P("columns", ArrProp("Numeric column names", "string")),
+                   P("columns", ArrProp("Numeric column names", "string", 1, 0)),
                    P("weights", StrProp("Weights id (uuid)")),
                    P("bound_variable", StrProp("Bound variable")),
                    P("min_bound", NumProp("Minimum bound value"))},
@@ -506,28 +584,32 @@ void RegisterCommands(McpTools& tools)
     Add(tools, "cluster/azp", "AZP", "Cluster",
         "Automatic zoning procedure (regionalization).",
         Schema(std::vector<json_spirit::Pair>{
-                   P("columns", ArrProp("Numeric column names", "string")),
+                   P("columns", ArrProp("Numeric column names", "string", 1, 0)),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("k", IntProp("Number of regions (default 3)")),
-                   P("method", StrProp("greedy, tabu, or sa"))},
+                   P("k", Def(IntProp("Number of regions"), 3)),
+                   P("method",
+                     Def(EnumProp("AZP method", {"greedy", "tabu", "sa"}),
+                         "greedy"))},
                {"columns", "weights"}),
         true, McpClusterAzp);
 
     Add(tools, "cluster/spatial_kmeans", "Spatial K-Means", "Cluster",
         "K-means with a spatial penalty via the weights matrix.",
         Schema(std::vector<json_spirit::Pair>{
-                   P("columns", ArrProp("Numeric column names", "string")),
+                   P("columns", ArrProp("Numeric column names", "string", 1, 0)),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("k", IntProp("Number of clusters (default 3)")),
-                   P("init", StrProp("kmeans++ or random"))},
+                   P("k", Def(IntProp("Number of clusters"), 3)),
+                   P("init",
+                     Def(EnumProp("Cluster initialization",
+                                  {"kmeans++", "random"}), "random"))},
                {"columns", "weights"}),
         true, McpClusterSpatialKmeans);
 
     Add(tools, "cluster/dbscan", "DBSCAN", "Cluster",
         "Density-based clustering. Noise observations are labeled 0.",
         Schema(std::vector<json_spirit::Pair>{
-                   P("columns", ArrProp("Numeric column names", "string")),
-                   P("minpts", IntProp("Min points (default 4)")),
+                   P("columns", ArrProp("Numeric column names", "string", 1, 0)),
+                   P("minpts", Def(IntProp("Min points"), 4)),
                    P("eps", NumProp("Epsilon (estimated if omitted)"))},
                {"columns"}),
         true, McpClusterDbscan);
@@ -535,41 +617,41 @@ void RegisterCommands(McpTools& tools)
     Add(tools, "cluster/hdbscan", "HDBSCAN", "Cluster",
         "Hierarchical density-based clustering. Noise is labeled 0.",
         Schema(std::vector<json_spirit::Pair>{
-                   P("columns", ArrProp("Numeric column names", "string")),
-                   P("minpts", IntProp("Min points (default 4)"))},
+                   P("columns", ArrProp("Numeric column names", "string", 1, 0)),
+                   P("minpts", Def(IntProp("Min points"), 4))},
                {"columns"}),
         true, McpClusterHdbscan);
 
     Add(tools, "cluster/spectral", "Spectral Clustering", "Cluster",
         "Spectral clustering on the graph defined by the weights.",
         Schema(std::vector<json_spirit::Pair>{
-                   P("columns", ArrProp("Numeric column names", "string")),
+                   P("columns", ArrProp("Numeric column names", "string", 1, 0)),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("k", IntProp("Number of clusters (default 3)"))},
+                   P("k", Def(IntProp("Number of clusters"), 3))},
                {"columns", "weights"}),
         true, McpClusterSpectral);
 
     Add(tools, "cluster/pam", "PAM", "Cluster",
         "Partitioning Around Medoids.",
         Schema(std::vector<json_spirit::Pair>{
-                   P("columns", ArrProp("Numeric column names", "string")),
-                   P("k", IntProp("Number of clusters (default 3)"))},
+                   P("columns", ArrProp("Numeric column names", "string", 1, 0)),
+                   P("k", Def(IntProp("Number of clusters"), 3))},
                {"columns"}),
         true, McpClusterPam);
 
     Add(tools, "cluster/kmeans", "K-Means", "Cluster",
         "Standard k-means clustering (Euclidean distance).",
         Schema(std::vector<json_spirit::Pair>{
-                   P("columns", ArrProp("Numeric column names", "string")),
-                   P("k", IntProp("Number of clusters (default 3)"))},
+                   P("columns", ArrProp("Numeric column names", "string", 1, 0)),
+                   P("k", Def(IntProp("Number of clusters"), 3))},
                {"columns"}),
         true, McpClusterKmeans);
 
     Add(tools, "cluster/kmedians", "K-Medians", "Cluster",
         "K-medians clustering (Manhattan distance, medoid-based).",
         Schema(std::vector<json_spirit::Pair>{
-                   P("columns", ArrProp("Numeric column names", "string")),
-                   P("k", IntProp("Number of clusters (default 3)"))},
+                   P("columns", ArrProp("Numeric column names", "string", 1, 0)),
+                   P("k", Def(IntProp("Number of clusters"), 3))},
                {"columns"}),
         true, McpClusterKmedians);
 
@@ -577,24 +659,26 @@ void RegisterCommands(McpTools& tools)
         "Agglomerative hierarchical clustering (single, complete, average, "
         "or ward linkage).",
         Schema(std::vector<json_spirit::Pair>{
-                   P("columns", ArrProp("Numeric column names", "string")),
-                   P("k", IntProp("Number of clusters (default 3)")),
+                   P("columns", ArrProp("Numeric column names", "string", 1, 0)),
+                   P("k", Def(IntProp("Number of clusters"), 3)),
                    P("method",
-                     StrProp("single, complete, average, or ward"))},
+                     Def(EnumProp("Linkage method",
+                                  {"single", "complete", "average", "ward"}),
+                         "average"))},
                {"columns"}),
         true, McpClusterHierarchical);
 
     Add(tools, "cluster/mds", "Multidimensional Scaling", "Cluster",
         "MDS coordinates for the observations (2 dimensions).",
         Schema(std::vector<json_spirit::Pair>{
-                   P("columns", ArrProp("Numeric column names", "string"))},
+                   P("columns", ArrProp("Numeric column names", "string", 1, 0))},
                {"columns"}),
         true, McpClusterMds);
 
     Add(tools, "cluster/pca", "Principal Component Analysis", "Cluster",
         "PCA loadings, explained variance, and component scores.",
         Schema(std::vector<json_spirit::Pair>{
-                   P("columns", ArrProp("Numeric column names", "string"))},
+                   P("columns", ArrProp("Numeric column names", "string", 1, 0))},
                {"columns"}),
         true, McpClusterPca);
 
@@ -611,9 +695,9 @@ void RegisterCommands(McpTools& tools)
         Schema(std::vector<json_spirit::Pair>{
                    P("dependent", StrProp("Dependent variable")),
                    P("independent",
-                     ArrProp("Independent variables", "string")),
+                     ArrProp("Independent variables", "string", 1, 0)),
                    P("include_constant",
-                     BoolProp("Include a constant term (default true)"))},
+                     Def(BoolProp("Include a constant term"), true))},
                {"dependent", "independent"}),
         true, McpRegressClassic);
 
@@ -626,30 +710,37 @@ void RegisterCommands(McpTools& tools)
         Schema(std::vector<json_spirit::Pair>{
                    P("column", StrProp("Numeric column name")),
                    P("theme",
-                     StrProp("quantile, natural_breaks, equal_intervals, "
-                             "percentile, stddev, unique_values, or "
-                             "no_theme")),
-                   P("num_categories", IntProp("Number of classes (default 5)")),
+                     Def(EnumProp("Classification theme",
+                                  {"quantile", "natural_breaks",
+                                   "equal_intervals", "percentile", "stddev",
+                                   "unique_values", "no_theme"}), "quantile")),
+                   P("num_categories", Def(IntProp("Number of classes"), 5)),
                    P("weights", StrProp("Weights id (uuid)")),
                    P("smoothing",
-                     StrProp("no_smoothing, raw_rate, excess_risk, "
-                             "empirical_bayes, spatial_rate, or "
-                             "spatial_empirical_bayes")),
+                     Def(EnumProp("Rate smoothing",
+                                  {"no_smoothing", "raw_rate", "excess_risk",
+                                   "empirical_bayes", "spatial_rate",
+                                   "spatial_empirical_bayes"}),
+                         "no_smoothing")),
                    P("return_image",
-                     BoolProp("Return a PNG snapshot of the map as an MCP "
-                              "image content block (default false)"))},
+                     Def(BoolProp("Return a PNG snapshot of the map as an MCP "
+                                  "image content block"), false))},
                {"column"}),
         false, McpWindowCreateMap);
 
     Add(tools, "window/create_plot", "Create Plot", "Window",
         "Create a histogram, box plot, or scatter plot window.",
         Schema(std::vector<json_spirit::Pair>{
-                   P("plot_type", StrProp("histogram, boxplot, or scatter")),
-                   P("columns", ArrProp("Column names", "string")),
+                   P("plot_type",
+                     EnumProp("Plot type", {"histogram", "boxplot", "scatter"})),
+                   P("columns", ArrProp("Column names", "string", 1, 0)),
+                   P("bins",
+                     IntProp("Number of histogram bins (histogram only; "
+                             "uses GeoDa's default when omitted)")),
                    P("title", StrProp("Window title (optional)")),
                    P("return_image",
-                     BoolProp("Return a PNG snapshot of the plot as an MCP "
-                              "image content block (default false)"))},
+                     Def(BoolProp("Return a PNG snapshot of the plot as an MCP "
+                                  "image content block"), false))},
                {"plot_type", "columns"}),
         false, McpWindowCreatePlot);
 
@@ -658,19 +749,22 @@ void RegisterCommands(McpTools& tools)
         Schema(std::vector<json_spirit::Pair>{
                    P("column", StrProp("Numeric column name")),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("map_type", StrProp("cluster or significance")),
-                   P("permutations", IntProp("Permutations (default 999)")),
+                   P("map_type",
+                     Def(EnumProp("Map type", {"cluster", "significance"}),
+                         "cluster")),
+                   P("permutations", Def(IntProp("Number of permutations"), 999)),
                    P("significance_cutoff",
-                     NumProp("Significance cutoff (default 0.05)")),
-                   P("row_standardize", BoolProp("Row-standardize (default true)")),
+                     Def(NumProp("Significance level"), 0.05)),
+                   P("row_standardize", Def(BoolProp("Row-standardize"), true)),
                    P("lisa_type",
-                     StrProp("univariate, bivariate, differential, or "
-                             "eb_rate_standardized")),
+                     Def(EnumProp("LISA type",
+                                  {"univariate", "bivariate", "differential",
+                                   "eb_rate_standardized"}), "univariate")),
                    P("second_column",
                      StrProp("Second column for bivariate/differential")),
                    P("return_image",
-                     BoolProp("Return a PNG snapshot of the map as an MCP "
-                              "image content block (default false)"))},
+                     Def(BoolProp("Return a PNG snapshot of the map as an MCP "
+                                  "image content block"), false))},
                {"column", "weights"}),
         false, McpWindowCreateLisaMap);
 
@@ -683,7 +777,7 @@ void RegisterCommands(McpTools& tools)
         "Create a bubble chart window (x, y, size, color).",
         Schema(std::vector<json_spirit::Pair>{
                    P("columns",
-                     ArrProp("At least 3 column names (x, y, size)", "string"))},
+                     ArrProp("At least 3 column names (x, y, size)", "string", 3, 0))},
                {"columns"}),
         false, McpWindowCreateBubbleChart);
 
@@ -691,14 +785,14 @@ void RegisterCommands(McpTools& tools)
         "Create a 3D scatter plot window (x, y, z).",
         Schema(std::vector<json_spirit::Pair>{
                    P("columns",
-                     ArrProp("At least 3 column names (x, y, z)", "string"))},
+                     ArrProp("At least 3 column names (x, y, z)", "string", 3, 0))},
                {"columns"}),
         false, McpWindowCreate3DScatter);
 
     Add(tools, "window/create_pcp", "Parallel Coordinate Plot", "Window",
         "Create a parallel coordinate plot window.",
         Schema(std::vector<json_spirit::Pair>{
-                   P("columns", ArrProp("Column names", "string"))},
+                   P("columns", ArrProp("Column names", "string", 1, 0))},
                {"columns"}),
         false, McpWindowCreatePcp);
 
@@ -735,7 +829,7 @@ void RegisterCommands(McpTools& tools)
         Schema(std::vector<json_spirit::Pair>{
                    P("column", StrProp("Numeric column name")),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("permutations", IntProp("Permutations (default 999)"))},
+                   P("permutations", Def(IntProp("Number of permutations"), 999))},
                {"column", "weights"}),
         true, McpGlobalMoran);
 
@@ -744,9 +838,9 @@ void RegisterCommands(McpTools& tools)
         Schema(std::vector<json_spirit::Pair>{
                    P("column", StrProp("Numeric column name")),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("permutations", IntProp("Permutations (default 999)")),
+                   P("permutations", Def(IntProp("Number of permutations"), 999)),
                    P("significance_cutoff",
-                     NumProp("Significance cutoff (default 0.05)"))},
+                     Def(NumProp("Significance level"), 0.05))},
                {"column", "weights"}),
         true, McpSpaceLisaUnivariate);
 
@@ -756,9 +850,9 @@ void RegisterCommands(McpTools& tools)
                    P("column", StrProp("Numeric column name")),
                    P("second_column", StrProp("Second column")),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("permutations", IntProp("Permutations (default 999)")),
+                   P("permutations", Def(IntProp("Number of permutations"), 999)),
                    P("significance_cutoff",
-                     NumProp("Significance cutoff (default 0.05)"))},
+                     Def(NumProp("Significance level"), 0.05))},
                {"column", "second_column", "weights"}),
         true, McpSpaceLisaBivariate);
 
@@ -768,9 +862,9 @@ void RegisterCommands(McpTools& tools)
                    P("column", StrProp("Numeric column name")),
                    P("second_column", StrProp("Second column")),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("permutations", IntProp("Permutations (default 999)")),
+                   P("permutations", Def(IntProp("Number of permutations"), 999)),
                    P("significance_cutoff",
-                     NumProp("Significance cutoff (default 0.05)"))},
+                     Def(NumProp("Significance level"), 0.05))},
                {"column", "second_column", "weights"}),
         true, McpSpaceLisaDifferential);
 
@@ -779,9 +873,9 @@ void RegisterCommands(McpTools& tools)
         Schema(std::vector<json_spirit::Pair>{
                    P("column", StrProp("Numeric column name")),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("permutations", IntProp("Permutations (default 999)")),
+                   P("permutations", Def(IntProp("Number of permutations"), 999)),
                    P("significance_cutoff",
-                     NumProp("Significance cutoff (default 0.05)"))},
+                     Def(NumProp("Significance level"), 0.05))},
                {"column", "weights"}),
         true, McpSpaceLisaEb);
 
@@ -790,9 +884,9 @@ void RegisterCommands(McpTools& tools)
         Schema(std::vector<json_spirit::Pair>{
                    P("column", StrProp("Numeric column name")),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("permutations", IntProp("Permutations (default 999)")),
+                   P("permutations", Def(IntProp("Number of permutations"), 999)),
                    P("significance_cutoff",
-                     NumProp("Significance cutoff (default 0.05)"))},
+                     Def(NumProp("Significance level"), 0.05))},
                {"column", "weights"}),
         true, McpLisaLocalG);
 
@@ -801,9 +895,9 @@ void RegisterCommands(McpTools& tools)
         Schema(std::vector<json_spirit::Pair>{
                    P("column", StrProp("Numeric column name")),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("permutations", IntProp("Permutations (default 999)")),
+                   P("permutations", Def(IntProp("Number of permutations"), 999)),
                    P("significance_cutoff",
-                     NumProp("Significance cutoff (default 0.05)"))},
+                     Def(NumProp("Significance level"), 0.05))},
                {"column", "weights"}),
         true, McpSpaceLocalGStar);
 
@@ -812,9 +906,9 @@ void RegisterCommands(McpTools& tools)
         Schema(std::vector<json_spirit::Pair>{
                    P("column", StrProp("Numeric column name")),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("permutations", IntProp("Permutations (default 999)")),
+                   P("permutations", Def(IntProp("Number of permutations"), 999)),
                    P("significance_cutoff",
-                     NumProp("Significance cutoff (default 0.05)"))},
+                     Def(NumProp("Significance level"), 0.05))},
                {"column", "weights"}),
         true, McpLisaLocalGeary);
 
@@ -825,9 +919,9 @@ void RegisterCommands(McpTools& tools)
                    P("column", StrProp("Numeric column name")),
                    P("second_column", StrProp("Second column")),
                    P("weights", StrProp("Weights id (uuid)")),
-                   P("permutations", IntProp("Permutations (default 999)")),
+                   P("permutations", Def(IntProp("Number of permutations"), 999)),
                    P("significance_cutoff",
-                     NumProp("Significance cutoff (default 0.05)"))},
+                     Def(NumProp("Significance level"), 0.05))},
                {"column", "second_column", "weights"}),
         true, McpSpaceLocalGearyMultivariate);
 
@@ -858,7 +952,7 @@ void RegisterCommands(McpTools& tools)
         "Create a quantile choropleth map.",
         Schema(std::vector<json_spirit::Pair>{
                    P("column", StrProp("Numeric column name")),
-                   P("num_categories", IntProp("Number of classes (default 5)"))},
+                   P("num_categories", Def(IntProp("Number of classes"), 5))},
                {"column"}),
         false, McpMapQuantile);
 
@@ -866,7 +960,7 @@ void RegisterCommands(McpTools& tools)
         "Create a natural breaks (Jenks) choropleth map.",
         Schema(std::vector<json_spirit::Pair>{
                    P("column", StrProp("Numeric column name")),
-                   P("num_categories", IntProp("Number of classes (default 5)"))},
+                   P("num_categories", Def(IntProp("Number of classes"), 5))},
                {"column"}),
         false, McpMapNaturalBreaks);
 
@@ -874,7 +968,7 @@ void RegisterCommands(McpTools& tools)
         "Create an equal intervals choropleth map.",
         Schema(std::vector<json_spirit::Pair>{
                    P("column", StrProp("Numeric column name")),
-                   P("num_categories", IntProp("Number of classes (default 5)"))},
+                   P("num_categories", Def(IntProp("Number of classes"), 5))},
                {"column"}),
         false, McpMapEqualIntervals);
 
@@ -882,7 +976,7 @@ void RegisterCommands(McpTools& tools)
         "Create a percentile choropleth map.",
         Schema(std::vector<json_spirit::Pair>{
                    P("column", StrProp("Numeric column name")),
-                   P("num_categories", IntProp("Number of classes (default 5)"))},
+                   P("num_categories", Def(IntProp("Number of classes"), 5))},
                {"column"}),
         false, McpMapPercentile);
 
@@ -947,21 +1041,24 @@ void RegisterCommands(McpTools& tools)
     Add(tools, "explore/histogram", "Histogram", "Explore",
         "Create a histogram window.",
         Schema(std::vector<json_spirit::Pair>{
-                   P("columns", ArrProp("One column name", "string"))},
+                   P("columns", ArrProp("One column name", "string", 1, 1)),
+                   P("bins",
+                     IntProp("Number of histogram bins (uses GeoDa's default "
+                             "when omitted)"))},
                {"columns"}),
         false, McpExploreHistogram);
 
     Add(tools, "explore/boxplot", "Box Plot", "Explore",
         "Create a box plot window.",
         Schema(std::vector<json_spirit::Pair>{
-                   P("columns", ArrProp("One column name", "string"))},
+                   P("columns", ArrProp("One column name", "string", 1, 1))},
                {"columns"}),
         false, McpExploreBoxplot);
 
     Add(tools, "explore/scatterplot", "Scatter Plot", "Explore",
         "Create a scatter plot window.",
         Schema(std::vector<json_spirit::Pair>{
-                   P("columns", ArrProp("Two column names (x, y)", "string"))},
+                   P("columns", ArrProp("Two column names (x, y)", "string", 2, 2))},
                {"columns"}),
         false, McpExploreScatterplot);
 
@@ -973,7 +1070,7 @@ void RegisterCommands(McpTools& tools)
         "Create a bubble chart window.",
         Schema(std::vector<json_spirit::Pair>{
                    P("columns",
-                     ArrProp("At least 3 column names (x, y, size)", "string"))},
+                     ArrProp("At least 3 column names (x, y, size)", "string", 3, 0))},
                {"columns"}),
         false, McpWindowCreateBubbleChart);
 
@@ -981,14 +1078,14 @@ void RegisterCommands(McpTools& tools)
         "Create a 3D scatter plot window.",
         Schema(std::vector<json_spirit::Pair>{
                    P("columns",
-                     ArrProp("At least 3 column names (x, y, z)", "string"))},
+                     ArrProp("At least 3 column names (x, y, z)", "string", 3, 0))},
                {"columns"}),
         false, McpWindowCreate3DScatter);
 
     Add(tools, "explore/pcp", "Parallel Coordinate Plot", "Explore",
         "Create a parallel coordinate plot window.",
         Schema(std::vector<json_spirit::Pair>{
-                   P("columns", ArrProp("Column names", "string"))},
+                   P("columns", ArrProp("Column names", "string", 1, 0))},
                {"columns"}),
         false, McpWindowCreatePcp);
 
@@ -1051,8 +1148,8 @@ void RegisterCommands(McpTools& tools)
                      ArrProp("Column names to export; defaults to all "
                              "columns", "string")),
                    P("include_geometry",
-                     BoolProp("Include geometry when the format supports it "
-                              "(default true)")),
+                     Def(BoolProp("Include geometry when the format supports "
+                                  "it"), true)),
                    P("format",
                      StrProp("OGR format name, overrides the extension, e.g. "
                              "\"GeoJSON\", \"ESRI Shapefile\", \"GeoPackage\"")),
