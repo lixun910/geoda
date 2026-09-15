@@ -211,11 +211,12 @@ namespace
                 return "";
             }
         }
-        double scale = canvas->GetContentScaleFactor();
-        if (GdaConst::enable_high_dpi_support && scale > 0) {
-            w = (int)(w / scale);
-            h = (int)(h / scale);
-        }
+        // Render at exactly the canvas's client size: RenderToDC() resizes the
+        // canvas's layer bitmaps to whatever it is handed and restores them
+        // only on the next idle event, while OnPaint() blits GetClientSize()
+        // from layer2_bm. Rendering at any other size leaves layer2_bm smaller
+        // than the paint rect and trips wxBitmap::GetSubBitmap. The client size
+        // is already in logical units, so do not scale it down again.
         wxBitmap canvas_bm;
         canvas_bm.CreateScaled(w, h, 32, 1.0);
         wxMemoryDC canvas_dc(canvas_bm);
@@ -2264,7 +2265,9 @@ json_spirit::Value McpClusterSpatialKmeans(const McpToolContext& ctx,
 
     ClusterData cd = GetClusterData(ctx, params);
 
-    // Run k-means first to get an initial clustering.
+    // Run k-means first to get an initial clustering. 'b' is kmeans++ seeding,
+    // 'a' is random initialization.
+    char init_method = (GetStr(params, "init") == "kmeans++") ? 'b' : 'a';
     int* clusterid = new int[cd.rows];
     double error = 0.0;
     int ifound = 0;
@@ -2275,8 +2278,8 @@ json_spirit::Value McpClusterSpatialKmeans(const McpToolContext& ctx,
     }
     double* weight = new double[cd.ncols];
     for (int c = 0; c < cd.ncols; ++c) weight[c] = 1.0;
-    kcluster(k, cd.rows, cd.ncols, cd.data, mask, weight, 0, 10, 100, 'a',
-             'e', clusterid, &error, &ifound, 0, 0, 1, 1);
+    kcluster(k, cd.rows, cd.ncols, cd.data, mask, weight, 0, 10, 100,
+             init_method, 'e', clusterid, &error, &ifound, 0, 0, 1, 1);
     for (int i = 0; i < cd.rows; ++i) delete[] mask[i];
     delete[] mask;
     delete[] weight;
@@ -2876,8 +2879,16 @@ json_spirit::Value McpWindowCreatePlot(const McpToolContext& ctx,
 
     TemplateFrame* nf = NULL;
     if (plot_type == "histogram") {
-        nf = new HistogramFrame(GdaFrame::GetGdaFrame(),
-                                project, var_info, col_ids, title);
+        HistogramFrame* hf = new HistogramFrame(GdaFrame::GetGdaFrame(),
+                                                project, var_info, col_ids,
+                                                title);
+        nf = hf;
+        int bins = GetInt(params, "bins", 0);
+        if (bins > 0) {
+            HistogramCanvas* hc =
+                dynamic_cast<HistogramCanvas*>(hf->template_canvas);
+            if (hc) hc->SetNumIntervals(bins);
+        }
     } else if (plot_type == "boxplot") {
         nf = new BoxPlotFrame(GdaFrame::GetGdaFrame(), project,
                               var_info, col_ids, title);
