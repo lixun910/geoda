@@ -211,11 +211,12 @@ namespace
                 return "";
             }
         }
-        double scale = canvas->GetContentScaleFactor();
-        if (GdaConst::enable_high_dpi_support && scale > 0) {
-            w = (int)(w / scale);
-            h = (int)(h / scale);
-        }
+        // Render at exactly the canvas's client size: RenderToDC() resizes the
+        // canvas's layer bitmaps to whatever it is handed and restores them
+        // only on the next idle event, while OnPaint() blits GetClientSize()
+        // from layer2_bm. Rendering at any other size leaves layer2_bm smaller
+        // than the paint rect and trips wxBitmap::GetSubBitmap. The client size
+        // is already in logical units, so do not scale it down again.
         wxBitmap canvas_bm;
         canvas_bm.CreateScaled(w, h, 32, 1.0);
         wxMemoryDC canvas_dc(canvas_bm);
