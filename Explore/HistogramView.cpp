@@ -1038,12 +1038,15 @@ void HistogramCanvas::HistogramIntervals()
 
 void HistogramCanvas::SetNumIntervals(int num_intervals)
 {
+	// PopulateCanvas() indexes ival_breaks[cur_intervals - 2], so a single
+	// interval reads out of range and aborts the app. Ignore it.
+	if (num_intervals < 2) return;
+
 	// A string variable must keep cur_intervals == number of unique values
 	// (InitIntervals() sizes the break arrays from it), so ignore the request.
 	for (size_t t=0; t<IS_VAR_STRING.size(); ++t) {
 		if (IS_VAR_STRING[t]) return;
 	}
-	if (num_intervals < 1) return;
 	cur_intervals = std::min(num_intervals, max_intervals);
 
 	isResize = true;
