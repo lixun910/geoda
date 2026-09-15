@@ -202,9 +202,15 @@
 // the application binary.
 extern void GdaInitXmlResource();
 
+// Port the built-in MCP server binds to when the app starts. The app starts
+// the server automatically so an external MCP client can be pointed at a
+// stable URL; if the port is taken it falls back to the next ones (see
+// McpHttpServer::Start).
+#define GEODA_MCP_DEFAULT_PORT 8765
+
 IMPLEMENT_APP(GdaApp)
 
-GdaApp::GdaApp() : checker(0), m_pLogFile(0)
+GdaApp::GdaApp() : checker(0), m_mcp_port(0), m_pLogFile(0)
 {
 	//Don't call wxHandleFatalExceptions so that a core dump file will be
 	//produced for debugging.
@@ -385,18 +391,6 @@ bool GdaApp::OnInit(void)
     
 	SetTopWindow(GdaFrame::GetGdaFrame());
 
-    // start built-in MCP server if requested via --mcp-port
-    // (no wxLogMessage here: the log target is not set up yet, and a queued
-    //  message would flush into a blocking modal dialog)
-    if (m_mcp_port > 0) {
-        McpHttpServer* mcp_server = new McpHttpServer(m_mcp_port);
-        if (mcp_server->Start()) {
-            GdaFrame::GetGdaFrame()->SetMcpServer(mcp_server);
-        } else {
-            delete mcp_server;
-        }
-    }
-
 	if (GeneralWxUtils::isWindows()) {
 		// For XP / Vista / Win 7, the user can select to use font sizes
 		// of %100, %125 or %150.
@@ -438,6 +432,23 @@ bool GdaApp::OnInit(void)
                                            Gda::version_build);
     wxLogMessage(versionlog);
     wxLogMessage("%s", loggerFile);
+
+    // Start the built-in MCP server. It is on by default (port
+    // GEODA_MCP_DEFAULT_PORT, see OnCmdLineParsed) so external MCP clients can
+    // connect as soon as the app is up; --no-mcp / GEODA_MCP_ENABLED=0 turns it
+    // off. This runs *after* the log target is installed on purpose: binding
+    // the socket and writing the discovery file can emit wxLog messages, and
+    // with the default GUI log target still active they would be buffered and
+    // then flushed into a blocking modal dialog while OnInit() is still
+    // running -- which stalls the whole app, MCP included, until dismissed.
+    if (m_mcp_port > 0) {
+        McpHttpServer* mcp_server = new McpHttpServer(m_mcp_port);
+        if (mcp_server->Start()) {
+            GdaFrame::GetGdaFrame()->SetMcpServer(mcp_server);
+        } else {
+            delete mcp_server;
+        }
+    }
     
    
     if (!cmd_line_proj_file_name.IsEmpty()) {
@@ -457,7 +468,26 @@ bool GdaApp::OnInit(void)
 
 bool GdaApp::OnCmdLineParsed(wxCmdLineParser& parser)
 {
-    m_mcp_port = 0;
+    // The MCP server starts with the app, on a fixed port, so an external
+    // MCP client can be pointed at a stable URL without any manual step.
+    // Override the port with --mcp-port N or GEODA_MCP_PORT; turn the server
+    // off with --no-mcp or GEODA_MCP_ENABLED=0.
+    m_mcp_port = GEODA_MCP_DEFAULT_PORT;
+    wxString mcp_enabled;
+    if ( wxGetEnv("GEODA_MCP_ENABLED", &mcp_enabled) ) {
+        if (mcp_enabled == "0" || mcp_enabled == "false" || mcp_enabled == "no") {
+            m_mcp_port = 0;
+        }
+    }
+    wxString env_mcp_port;
+    long env_port = 0;
+    if ( wxGetEnv("GEODA_MCP_PORT", &env_mcp_port) &&
+        env_mcp_port.ToLong(&env_port) && env_port > 0 && env_port <= 65535 ) {
+        m_mcp_port = (int)env_port;
+    }
+    if ( parser.Found("no-mcp") ) {
+        m_mcp_port = 0;
+    }
     long mcp_port = 0;
     if ( parser.Found("mcp-port", &mcp_port) ) {
         m_mcp_port = (int)mcp_port;
@@ -474,8 +504,11 @@ const wxCmdLineEntryDesc GdaApp::globalCmdLineDesc [] =
 		"displays help on the command line parameters",
 		wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
 	{ wxCMD_LINE_OPTION, "m", "mcp-port",
-		"start the built-in MCP server on the given port",
+		"port for the built-in MCP server (default 8765)",
 		wxCMD_LINE_VAL_NUMBER, wxCMD_LINE_PARAM_OPTIONAL },
+	{ wxCMD_LINE_SWITCH, NULL, "no-mcp",
+		"do not start the built-in MCP server",
+		wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
 	{ wxCMD_LINE_PARAM, NULL, NULL, "project file",
 		wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
 	{ wxCMD_LINE_NONE }
@@ -1239,7 +1272,7 @@ void GdaFrame::OnMcpStartServer(wxCommandEvent& event)
         return;
     }
     if (!m_mcp_server) {
-        m_mcp_server = new McpHttpServer(8765);
+        m_mcp_server = new McpHttpServer(GEODA_MCP_DEFAULT_PORT);
     }
     if (!m_mcp_server->Start()) {
         wxMessageBox(_("Failed to start the MCP server."), _("MCP Server"),

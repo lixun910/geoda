@@ -10,7 +10,7 @@ include ../../GeoDamake.opt
 # certificate secret is not available; the bundle is then built unsigned.
 ifneq ($(GEODA_SKIP_CODESIGN),1)
 CODESIGN_CMD = codesign -f --timestamp -o runtime -s "Developer ID Application: Geodapress LLC (26M5NG43GP)"
-CODESIGN_ID = "Developer ID Application: Geodapress LLC (26M5NG43GP)"
+CODESIGN_ID = Developer ID Application: Geodapress LLC (26M5NG43GP)
 else
 CODESIGN_CMD = @true
 CODESIGN_ID =
