@@ -125,6 +125,17 @@ jobs:
           cp ../../GeoDamake.macosx.opt ../../GeoDamake.opt
           echo "find identity"
           security find-identity -v
+          # A MACOS_CERTIFICATE secret that does not import into an identity
+          # (a stale or mismatched p12) leaves codesign without a match, and
+          # the build fails half an hour later in install_name.py. Decide
+          # ad-hoc signing from what the keychain actually holds rather than
+          # from the secret merely being set.
+          if [ "$GEODA_SKIP_CODESIGN" != "1" ] && \
+             ! security find-identity -v | grep -q "Developer ID Application"; then
+            echo "::warning::No Developer ID identity in the keychain; building ad-hoc signed"
+            GEODA_SKIP_CODESIGN=1
+            echo "GEODA_SKIP_CODESIGN=1" >> "$GITHUB_ENV"
+          fi
           # Update Info.plist version to match version.h
           echo "Updating Info.plist version..."
           VER_MAJOR=$(grep "const int version_major" $GEODA_HOME/../../version.h | sed -e 's/.*const int version_major = \([0-9]*\);.*/\1/')
@@ -156,6 +167,13 @@ jobs:
         run: |
           cd BuildTools/macosx/create-dmg
           DMG_FILE="GeoDa${{ env.GEODA_VER }}-${{ env.GEODA_ARCH }}-Installer.dmg"
+
+          # An ad-hoc signed build cannot be notarized, whatever credentials
+          # this repository carries.
+          if [ "$GEODA_SKIP_CODESIGN" = "1" ]; then
+            echo "Build is ad-hoc signed, skipping notarization"
+            exit 0
+          fi
 
           # Check if Apple ID credentials are available
           if [ -z "${{ secrets.APPLE_ID_USERNAME }}" ] || [ -z "${{ secrets.APPLE_ID_APP_SPECIFIC_PASSWORD }}" ] || [ -z "${{ secrets.APPLE_TEAM_ID }}" ]; then
