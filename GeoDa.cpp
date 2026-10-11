@@ -1412,6 +1412,8 @@ private:
     std::vector<McpClientSetup::Client> m_clients;
     wxStaticText* m_status;
     wxTextCtrl* m_report;
+    bool m_installing;   // waiting on a client CLI turns the event loop, so a
+                         // second button press has to be refused
 };
 
 // Ids for the per-client buttons, so one handler can serve them all.
@@ -1428,7 +1430,7 @@ McpInstallDialog::McpInstallDialog(wxWindow* parent, const wxString& base_url,
 : wxDialog(parent, wxID_ANY, _("Set Up an Agent to Drive GeoDa"),
            wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE),
   m_base_url(base_url), m_endpoint_url(endpoint_url), m_status(NULL),
-  m_report(NULL)
+  m_report(NULL), m_installing(false)
 {
     m_clients = McpClientSetup::ProbeClients();
 
@@ -1523,6 +1525,13 @@ void McpInstallDialog::OnInstallClick(wxCommandEvent& event)
 
 void McpInstallDialog::Install(const McpClientSetup::Client& client)
 {
+    // One install at a time. The wait below turns the event loop -- the CLI's
+    // output has to be read while it runs -- so a click that arrived during it
+    // is dispatched, and a second install would run on top of this one, both
+    // writing the same report.
+    if (m_installing) return;
+    m_installing = true;
+
     // The client's own CLI runs on this thread (wxExecute is main-thread only),
     // so say what is about to happen and paint it before the app goes quiet.
     m_report->SetValue("");
@@ -1536,6 +1545,7 @@ void McpInstallDialog::Install(const McpClientSetup::Client& client)
     McpClientSetup::Result result = McpClientSetup::Install(client, m_endpoint_url);
 
     ShowReport(result);
+    m_installing = false;
 }
 
 void McpInstallDialog::ShowReport(const McpClientSetup::Result& result)
@@ -1589,6 +1599,10 @@ void McpInstallDialog::ShowReport(const McpClientSetup::Result& result)
 
 void McpInstallDialog::OnManualSetup(wxCommandEvent& event)
 {
+    // Not while an install is running: this opens a second modal dialog on top
+    // of one that is already waiting, and the two would each register a server.
+    if (m_installing) return;
+
     McpServerInfoDialog dlg(this, m_base_url, m_endpoint_url);
     dlg.ShowModal();
 }

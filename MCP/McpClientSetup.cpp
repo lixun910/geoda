@@ -24,6 +24,7 @@
 #include <wx/filename.h>
 #include <wx/log.h>
 #include <wx/process.h>
+#include <wx/stopwatch.h>
 #include <wx/stream.h>
 #include <wx/utils.h>
 
@@ -247,6 +248,51 @@ bool LooksLikePath(const wxString& line)
 }
 
 #ifndef __WINDOWS__
+// A client CLI is given this long before it is stopped and the direct route
+// takes over. `plugin marketplace add` clones a repository, which a slow
+// connection can drag out, but not for five minutes.
+const long kClientTimeoutMs = 5 * 60 * 1000;
+
+/**
+ * The process object for a client CLI.
+ *
+ * wx's own OnTerminate is what deletes the object, and wx's bookkeeping for a
+ * child reaches into it from the event loop while the child is reaped -- freeing
+ * it first is a crash inside wxExecuteData::OnExit(). So the two facts the loop
+ * below needs are recorded here instead, and the object is left to the code that
+ * started it. GeoDa's solver runner does the same, for the same reason (see
+ * Regression/SpregEngine.cpp).
+ */
+class ClientProcess : public wxProcess {
+public:
+	ClientProcess() : wxProcess(wxPROCESS_REDIRECT), terminated(false), status(-1) {}
+
+	virtual void OnTerminate(int WXUNUSED(pid), int status_in)
+	{
+		status = status_in;
+		terminated = true;
+	}
+
+	bool terminated;
+	int status;
+};
+
+/** Read what both pipes hold right now, appending it to `out`. */
+void DrainProcess(ClientProcess* proc, wxString* out)
+{
+	wxInputStream* streams[2] = { proc->GetInputStream(), proc->GetErrorStream() };
+	char buffer[4096];
+	for (int i = 0; i < 2; ++i) {
+		wxInputStream* stream = streams[i];
+		while (stream && stream->CanRead()) {
+			stream->Read(buffer, sizeof(buffer));
+			const size_t n = stream->LastRead();
+			if (n == 0) break;	// the child closed this one
+			*out += wxString::FromUTF8(buffer, n);
+		}
+	}
+}
+
 /**
  * Run a client CLI and capture what it printed.
  *
@@ -254,11 +300,29 @@ bool LooksLikePath(const wxString& line)
  * (a marketplace, a plugin id, a path) are handed over as they are, so nothing
  * in them can be re-parsed. The wxString form is NOT used on Unix -- it splits
  * the command line itself and never reaches a shell, so quotes and redirects
- * written there would quietly do nothing.
+ * written there would quietly do nothing. Its capture overload, the one that
+ * drains both pipes for you, exists for that form only.
+ *
+ * The child has to be drained while it is alive: a command that prints more than
+ * a pipe buffer holds (64 KB) blocks on its next write, and against a
+ * synchronous wait for it to exit that is a deadlock, on the GUI thread -- and
+ * `plugin marketplace add` is a git clone, which likes to talk. So it runs
+ * asynchronously, with both streams read as they fill, until it goes away or
+ * until it has had long enough. wxExecute runs on the main thread only -- it
+ * asserts otherwise -- which is why the dialog says what it is doing first, and
+ * why it refuses a second install while this one is on the stack: the wait turns
+ * the event loop, so a click that arrives during it is dispatched.
  */
 CommandResult RunArgv(const wxString& program, const StringList& args)
 {
 	CommandResult result;
+
+	// A program that is not there is something an asynchronous start cannot
+	// report: the fork succeeds and the child dies in exec, which is
+	// indistinguishable from a command that ran and failed. The callers tell
+	// those apart -- "the client is not installed" is not "the client refused"
+	// -- so it is settled before anything is started.
+	if (!FileExists(program)) return result;
 
 	std::vector<std::string> utf8;
 	utf8.push_back(std::string(program.utf8_str()));
@@ -269,29 +333,54 @@ CommandResult RunArgv(const wxString& program, const StringList& args)
 	for (size_t i = 0; i < utf8.size(); ++i) argv.push_back(utf8[i].c_str());
 	argv.push_back(NULL);
 
-	// A redirected wxProcess with wxEXEC_SYNC hands back the child's output once
-	// it has exited. wxExecute runs on the main thread only -- it asserts
-	// otherwise -- which is why the dialog says what it is doing before it calls
-	// in here, and why the commands are the client's own quick ones.
-	wxProcess proc;
-	proc.Redirect();
-	result.code = wxExecute(&argv[0], wxEXEC_SYNC, &proc);
-	result.started = (result.code >= 0);
-	if (!result.started) return result;
-
-	wxInputStream* in = proc.GetInputStream();
-	wxInputStream* err = proc.GetErrorStream();
-	if (in) {
-		char buf[4096];
-		size_t n = in->Read(buf, sizeof(buf) - 1).LastRead();
-		buf[n] = '\0';
-		result.out += wxString(buf, wxConvUTF8);
+	ClientProcess* proc = new ClientProcess();
+	const long pid = wxExecute(&argv[0], wxEXEC_ASYNC, proc);
+	if (pid == 0) {
+		delete proc;
+		return result;		// never started: code stays -1
 	}
-	if (err) {
-		char buf[4096];
-		size_t n = err->Read(buf, sizeof(buf) - 1).LastRead();
-		buf[n] = '\0';
-		result.out += wxString(buf, wxConvUTF8);
+	result.started = true;
+
+	wxStopWatch watch;
+	for (;;) {
+		DrainProcess(proc, &result.out);
+		if (proc->terminated || !wxProcess::Exists(static_cast<int>(pid))) break;
+
+		if (watch.Time() > kClientTimeoutMs) {
+			// At the front, not appended: what a dialog is shown is the head of
+			// this (see FirstLines).
+			result.out = wxString::Format(
+			    _("(the client was stopped after %d minutes)\n"),
+			    static_cast<int>(kClientTimeoutMs / 60000)) + result.out;
+			wxLogMessage("MCP client setup: %s timed out after %ld ms", program,
+			             kClientTimeoutMs);
+			wxProcess::Kill(static_cast<int>(pid), wxSIGTERM, wxKILL_CHILDREN);
+			for (int i = 0; i < 20 && !proc->terminated &&
+			                wxProcess::Exists(static_cast<int>(pid)); ++i) {
+				wxMilliSleep(100);
+				wxYieldIfNeeded();
+			}
+			if (!proc->terminated && wxProcess::Exists(static_cast<int>(pid))) {
+				wxProcess::Kill(static_cast<int>(pid), wxSIGKILL, wxKILL_CHILDREN);
+			}
+			break;
+		}
+
+		wxMilliSleep(50);
+		// wx reaps the child from the event loop, and the exit status arrives
+		// with it, so the loop has to turn for this to ever finish.
+		wxYieldIfNeeded();
+	}
+	DrainProcess(proc, &result.out);
+
+	result.code = proc->terminated ? proc->status : -1;
+	if (proc->terminated || !wxProcess::Exists(static_cast<int>(pid))) {
+		delete proc;
+	} else {
+		// A child that outlived SIGKILL is not something to free while wx still
+		// has it; leave it to wx, as the solver runner does.
+		wxLogMessage("MCP client setup: %s is still running", program);
+		proc->Detach();
 	}
 	return result;
 }
@@ -341,13 +430,14 @@ CommandResult RunPathProbe(const wxString& name)
 }
 
 /**
- * Does the client know the GeoDa server, whoever registered it?
+ * Does the client know a GeoDa server at all, whoever registered it?
  *
  * A server that arrived with a plugin is *not* under the name the app would
  * register by hand: Claude Code lists it as `plugin:<plugin>:<server>`, and
  * `mcp get geoda` then fails even though the client has the server and is
  * connected to it. Both names are tried, and the bare one first, since that is
- * the one a direct registration uses (and the only one Codex uses).
+ * the one a direct registration uses (and the only one Codex uses). This is the
+ * question the direct route asks, where any registration is one to leave alone.
  */
 bool ServerIsRegistered(const wxString& binary)
 {
@@ -357,6 +447,33 @@ bool ServerIsRegistered(const wxString& binary)
 	const wxString qualified =
 	    wxString::Format("plugin:%s:%s", kPluginName, kServerName);
 	return RunClient(binary, Args3("mcp", "get", qualified)).code == 0;
+}
+
+/**
+ * Did the plugin actually deliver the server? -- a different question, and the
+ * only one the plugin route may answer yes to.
+ *
+ * Asking the loose question above would let a registration the user made by hand
+ * stand in for the plugin's: someone who set GeoDa up the old way has a bare
+ * `geoda`, so a plugin that delivered nothing would look like it had worked, the
+ * dialog would report the server as coming from the plugin, and the direct route
+ * that would have fixed it would be skipped.
+ *
+ * On Claude Code the plugin's server is the qualified name and a bare `geoda` is
+ * therefore a hand-made registration, so only the qualified name counts. Codex
+ * files both under the bare name, so the reply has to name this plugin's own
+ * launcher rather than merely resolve.
+ */
+bool PluginDeliveredServer(const McpClientSetup::Client& client)
+{
+	if (client.id == "claude") {
+		const wxString qualified =
+		    wxString::Format("plugin:%s:%s", kPluginName, kServerName);
+		return RunClient(client.binary, Args3("mcp", "get", qualified)).code == 0;
+	}
+	CommandResult known =
+	    RunClient(client.binary, Args3("mcp", "get", kServerName));
+	return known.code == 0 && known.out.Find("geoda-mcp") != wxNOT_FOUND;
 }
 
 /**
@@ -370,11 +487,24 @@ bool ServerIsRegistered(const wxString& binary)
  * network for the marketplace) is not something the user needs to see as an
  * error: it returns false, and the direct route installs the same server
  * without the plugin.
+ *
+ * Windows never gets this far: the server a plugin registers is the launcher,
+ * and a client there cannot run a POSIX shell script -- so the install would
+ * succeed, the read-back would resolve, and the user would be left with tools
+ * that never start.
  */
 bool InstallViaPlugin(const McpClientSetup::Client& client,
                       std::vector<McpClientSetup::Step>* steps,
                       wxString* why_not)
 {
+#ifdef __WINDOWS__
+	(void) steps;
+	*why_not = _("The plugin registers GeoDa's MCP launcher, which is a POSIX "
+	             "shell script: a client on Windows cannot run it, so the plugin "
+	             "is not installed there and the HTTP endpoint is registered "
+	             "instead.");
+	return false;
+#endif
 	const bool claude = (client.id == "claude");
 
 	// Claude Code takes one --sparse and then every path; Codex takes a --sparse
@@ -438,11 +568,13 @@ bool InstallViaPlugin(const McpClientSetup::Client& client,
 	// Read the registration back rather than trusting the install: a marketplace
 	// copy whose plugin declares no MCP server installs cleanly and leaves the
 	// client with no tools at all -- the silent failure this route exists to
-	// avoid -- so the direct route takes over when the server is not there.
-	if (!ServerIsRegistered(client.binary)) {
+	// avoid -- so the direct route takes over when the plugin's own server is
+	// not there. The plugin's own, not just any: see PluginDeliveredServer.
+	if (!PluginDeliveredServer(client)) {
 		*why_not = wxString::Format(
-		    _("the plugin installed but %s does not see the `%s` MCP server yet "
-		      "(`mcp get` failed), so the direct route is used instead"),
+		    _("the plugin installed but %s does not see the plugin's `%s` MCP "
+		      "server (`mcp get` does not resolve it to this plugin), so the "
+		      "direct route is used instead"),
 		    client.label, kServerName);
 		return false;
 	}
